@@ -11,8 +11,8 @@ from PIL import Image, ImageTk
 import webbrowser
 
 # Dark Theme
-BG_MAIN = "#0d1b2a" #Fond
-BG_SECONDARY = "#1b263b" #FondBarre
+BG_MAIN = "#0d1b2a"
+BG_SECONDARY = "#1b263b"
 ACCENT_COLOR = "#e0e1dd"
 FG_MAIN = "#778da9"
 FG_SECONDARY = "#e0e1dd"
@@ -194,6 +194,56 @@ def clear_windows_old(progress, results):
             pass
     results['windows_old_deleted'] = deleted
 
+######## FONCTIONS AVANCEES ########
+
+def clear_standby_memory(progress, results):
+    try:
+        run_hidden(["powershell", "-Command", "Clear-PhysicalMemoryStandbyList"])
+        results["ram_standby_cleared"] = True
+    except:
+        results["ram_standby_cleared"] = False
+
+def flush_dns(progress, results):
+    try:
+        res = run_hidden(["ipconfig", "/flushdns"])
+        results["dns_flushed"] = res.returncode == 0
+    except:
+        results["dns_flushed"] = False
+
+def disable_telemetry(progress, results):
+    diagnostic_svcs = ["DiagTrack", "dmwappushservice"]
+    disabled = []
+    for svc in diagnostic_svcs:
+        try:
+            run_hidden(["sc", "stop", svc])
+            run_hidden(["sc", "config", svc, "start=disabled"])
+            disabled.append(svc)
+        except:
+            pass
+    results["diag_disabled"] = len(disabled)
+
+def clear_large_logs(progress, results):
+    log_dirs = [
+        os.path.expandvars(r'%WINDIR%\Logs'),
+        os.path.expandvars(r'%WINDIR%\Temp'),
+        os.path.expandvars(r'%LOCALAPPDATA%\Temp')
+    ]
+    deleted = 0
+    for d in log_dirs:
+        if os.path.isdir(d):
+            for f in os.listdir(d):
+                if f.lower().endswith(".log"):
+                    fpath = os.path.join(d, f)
+                    try:
+                        if os.path.isfile(fpath):
+                            os.unlink(fpath)
+                            deleted += 1
+                    except:
+                        pass
+    results["logs_deleted"] = deleted
+
+######## INTERFACE ET LOGIQUE ########
+
 def create_flat_progressbar(parent, width=420, height=18, bg=BG_SECONDARY, fg=ACCENT_COLOR, pad=16):
     c = tk.Canvas(parent, width=width+pad*2, height=height+pad*2, bg=BG_MAIN, bd=0, highlightthickness=0)
     c.create_rectangle(pad, pad, pad+width, pad+height, fill=bg, outline=bg)
@@ -261,6 +311,23 @@ def multitool():
         wait_and_progress(95)
         status.config(text="Arrêt de modules système optionnels…", fg=ACCENT_COLOR)
         stop_services(SERVICES_TO_STOP, progress, results)
+
+        # AVANCÉES : n'exécute que si l'option est cochée dans le menu hamburger
+        if OPT_ADVANCED["clear_standby_memory"].get():
+            status.config(text="Libération de la RAM Standby…", fg=ACCENT_COLOR)
+            clear_standby_memory(progress, results)
+            wait_and_progress(98)
+        if OPT_ADVANCED["flush_dns"].get():
+            status.config(text="Flush DNS…", fg=ACCENT_COLOR)
+            flush_dns(progress, results)
+            wait_and_progress(99)
+        if OPT_ADVANCED["clear_large_logs"].get():
+            status.config(text="Nettoyage logs volumineux…", fg=ACCENT_COLOR)
+            clear_large_logs(progress, results)
+        if OPT_ADVANCED["disable_telemetry"].get():
+            status.config(text="Désactivation télémétrie/diagnostic…", fg=ACCENT_COLOR)
+            disable_telemetry(progress, results)
+
         wait_and_progress(100)
         status.config(text="Opération terminée !", fg=ACCENT_COLOR)
         time.sleep(0.38)
@@ -271,7 +338,7 @@ def multitool():
 def show_summary(results):
     bilan_win = tk.Toplevel(app)
     bilan_win.title("Bilan du nettoyage"); bilan_win.configure(bg=BG_MAIN)
-    bilan_win.geometry("480x370"); bilan_win.resizable(False, False); bilan_win.grab_set(); bilan_win.focus_set()
+    bilan_win.geometry("480x420"); bilan_win.resizable(False, False); bilan_win.grab_set(); bilan_win.focus_set()
     main_frame = tk.Frame(bilan_win, bg=BG_MAIN); main_frame.pack(fill="both", expand=True, pady=(10,0))
     tk.Label(main_frame, text="Bilan du nettoyage", font=("Segoe UI", 19, "bold"),
              bg=BG_MAIN, fg=ACCENT_COLOR).pack(pady=(10,20))
@@ -284,11 +351,15 @@ def show_summary(results):
         ("Installation précédente nettoyée", "Oui" if results.get('windows_old_deleted', 0) else "Non"),
         ("Cache Windows Update nettoyé", results.get('update_deleted', 0)),
         ("Corbeille vidée", results.get('recycle_bin_deleted', 0)),
-        ("Modules optionnels arrêtés", len(results.get('services_stopped', [])))
+        ("Modules optionnels arrêtés", len(results.get('services_stopped', []))),
+        ("RAM Standby libérée", "Oui" if results.get('ram_standby_cleared') else "Non"),
+        ("DNS flush", "Oui" if results.get('dns_flushed') else "Non"),
+        ("Logs volumineux supprimés", results.get('logs_deleted', 0)),
+        ("Télémétrie désactivée", "Oui" if results.get('diag_disabled') else "Non")
     ]
     details_frame = tk.Frame(main_frame, bg=BG_MAIN); details_frame.pack(pady=(0,15), padx=20, fill="x")
     for label, value in details:
-        line = tk.Frame(details_frame, bg=BG_MAIN); line.pack(fill="x", pady=4)
+        line = tk.Frame(details_frame, bg=BG_MAIN); line.pack(fill="x", pady=3)
         tk.Label(line, text=label + " :", font=("Segoe UI", 12), bg=BG_MAIN, fg=FG_MAIN,
                  anchor="w", justify="left").pack(side="left")
         tk.Label(line, text=f"{value}", font=("Segoe UI", 12, "bold"), bg=BG_MAIN, fg=ACCENT_COLOR,
@@ -329,9 +400,58 @@ def start_main_window():
     global app
     app = tk.Tk()
     app.title("5Gh'z_Cleaner")
-    app.geometry("520x300")
+    app.geometry("540x320")
     app.configure(bg=BG_MAIN)
     app.resizable(False, False)
+
+    # Initialisation DES OPTIONS après création de la racine !
+    global OPT_ADVANCED
+    OPT_ADVANCED = {
+        "clear_standby_memory": tk.BooleanVar(app, value=True),
+        "flush_dns": tk.BooleanVar(app, value=True),
+        "disable_telemetry": tk.BooleanVar(app, value=False),
+        "clear_large_logs": tk.BooleanVar(app, value=True)
+    }
+
+    # --- MENU HAMBURGER ET SLIDE OVERLAY + CROIX ---
+    def toggle_menu():
+        if side_menu.place_info():
+            side_menu.place_forget()
+        else:
+            side_menu.lift()
+            side_menu.place(x=0, y=0)
+            side_menu.tkraise()
+
+    hamburger_btn = tk.Button(app, text="≡", font=("Segoe UI", 18, "bold"),
+                              bg=BG_MAIN, fg=ACCENT_COLOR,
+                              activebackground=BG_SECONDARY, activeforeground=ACCENT_COLOR,
+                              bd=0, highlightthickness=0, relief="flat", command=toggle_menu)
+    hamburger_btn.place(x=8, y=8)
+
+    side_menu = tk.Frame(app, width=220, height=260, bg=BG_SECONDARY, bd=2, relief="flat")
+    side_menu_content = tk.Frame(side_menu, bg=BG_SECONDARY)
+    side_menu_content.place(relwidth=1, relheight=1, x=0, y=40)
+    close_btn = tk.Button(side_menu, text='✕', font=("Segoe UI", 13, "bold"), bg=BG_SECONDARY, fg=ACCENT_COLOR,
+                          relief="flat", bd=0, activebackground=BG_SECONDARY, activeforeground="#f55",
+                          highlightthickness=0, command=toggle_menu)
+    close_btn.place(x=190, y=5, width=25, height=25)
+    tk.Label(side_menu, text="Options avancées", font=("Segoe UI", 13, "bold"), bg=BG_SECONDARY, fg=ACCENT_COLOR).place(x=12, y=8)
+    row = 0
+    tk.Checkbutton(side_menu_content, text="Libérer RAM Standby", variable=OPT_ADVANCED["clear_standby_memory"],
+                   font=("Segoe UI", 11), bg=BG_SECONDARY, fg=FG_MAIN, selectcolor=BG_MAIN,
+                   activebackground=BG_MAIN, activeforeground=ACCENT_COLOR).grid(row=row, column=0, sticky="w", padx=18, pady=6); row += 1
+    tk.Checkbutton(side_menu_content, text="Flush DNS", variable=OPT_ADVANCED["flush_dns"],
+                   font=("Segoe UI", 11), bg=BG_SECONDARY, fg=FG_MAIN, selectcolor=BG_MAIN,
+                   activebackground=BG_MAIN, activeforeground=ACCENT_COLOR).grid(row=row, column=0, sticky="w", padx=18, pady=6); row += 1
+    tk.Checkbutton(side_menu_content, text="Désactiver télémétrie", variable=OPT_ADVANCED["disable_telemetry"],
+                   font=("Segoe UI", 11), bg=BG_SECONDARY, fg=FG_MAIN, selectcolor=BG_MAIN,
+                   activebackground=BG_MAIN, activeforeground=ACCENT_COLOR).grid(row=row, column=0, sticky="w", padx=18, pady=6); row += 1
+    tk.Checkbutton(side_menu_content, text="Nettoyer logs volumineux", variable=OPT_ADVANCED["clear_large_logs"],
+                   font=("Segoe UI", 11), bg=BG_SECONDARY, fg=FG_MAIN, selectcolor=BG_MAIN,
+                   activebackground=BG_MAIN, activeforeground=ACCENT_COLOR).grid(row=row, column=0, sticky="w", padx=18, pady=6)
+
+    # ------------------------------------------------
+
     def redraw_progress(*args):
         update_progress(progress_canvas, getattr(progress_canvas, '_fg_rect', progress_fg), progress.get(), 100)
     avatar_size = 54
