@@ -1,0 +1,87 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  
+  workflow_dispatch:  
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Create executable with PyInstaller
+      run: |
+        if (Test-Path "image.jpg") {
+          pyinstaller --onefile --windowed --name "5Ghz_Cleaner" --icon=image.jpg --add-data "image.jpg;." Index
+        } else {
+          pyinstaller --onefile --windowed --name "5Ghz_Cleaner" Index
+        }
+        
+    - name: Upload executable as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: 5Ghz_Cleaner-Windows
+        path: dist/5Ghz_Cleaner.exe
+        
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/5Ghz_Cleaner.exe
+        name: Release ${{ github.ref_name }}
+        body: |
+          ## 🚀 5Gh'z Cleaner ${{ github.ref_name }}
+          
+          **Advanced Windows System Optimization & Cleaning Tool**
+          
+          ### 📥 Download
+          - **Windows Executable**: `5Ghz_Cleaner.exe` (Standalone, no installation required)
+          
+          ### ✨ Key Features
+          - **Intelligent System Cleanup** - Removes temporary files, cache, and system junk
+          - **Performance Optimization** - Enhances system responsiveness and speed
+          - **Modern Dark UI** - Sleek and intuitive graphical interface
+          - **Advanced Memory Management** - Clears standby RAM and optimizes memory usage
+          - **Network Optimization** - DNS flush and network cache clearing
+          - **Privacy Protection** - Removes traces and diagnostic telemetry
+          - **Automatic Privilege Elevation** - Seamless UAC handling
+          
+          ### 🔧 Quick Start
+          1. **Download** the `5Ghz_Cleaner.exe` file
+          2. **Run as Administrator** (automatic UAC prompt)
+          3. **Accept** the terms and conditions
+          4. **Click** "🚀 Lancer le nettoyage" to start optimization
+          5. **Review** the detailed cleanup summary
+          
+          ### 🛡️ System Requirements
+          - **OS**: Windows 10/11 (64-bit recommended)
+          - **Privileges**: Administrator rights required
+          - **RAM**: 2GB minimum
+          - **Storage**: 50MB free space
+          
+          ### ⚠️ Important Notice
+          > This tool performs system-level operations. Please read the disclaimer and ensure you have proper backups before use.
+          
+          ---
+          
+          **Simply crafted with ❤️ by [UndKiMi](https://github.com/UndKiMi)**
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
