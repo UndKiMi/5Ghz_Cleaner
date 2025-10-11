@@ -24,13 +24,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Create executable with PyInstaller
+    - name: Create executable with Flet
       run: |
-        if (Test-Path "image.jpg") {
-          pyinstaller --onefile --windowed --name "5Ghz_Cleaner" --icon=image.jpg --add-data "image.jpg;." Index
-        } else {
-          pyinstaller --onefile --windowed --name "5Ghz_Cleaner" Index
-        }
+        flet pack main.py --name "5Ghz_Cleaner" --add-data "backend;backend" --add-data "frontend;frontend"
         
     - name: Upload executable as artifact
       uses: actions/upload-artifact@v4
@@ -50,24 +46,32 @@ jobs:
           
           **Advanced Windows System Optimization & Cleaning Tool**
           
+          ### 🎨 New in Version 2.0
+          - **Modern Flet UI** - Complete redesign with beautiful, responsive interface
+          - **Modular Architecture** - Clean separation between backend and frontend
+          - **Enhanced Performance** - Faster and more efficient cleaning operations
+          - **Improved UX** - Better progress tracking and detailed summaries
+          
           ### 📥 Download
           - **Windows Executable**: `5Ghz_Cleaner.exe` (Standalone, no installation required)
           
           ### ✨ Key Features
           - **Intelligent System Cleanup** - Removes temporary files, cache, and system junk
           - **Performance Optimization** - Enhances system responsiveness and speed
-          - **Modern Dark UI** - Sleek and intuitive graphical interface
+          - **Modern Dark UI** - Sleek Flet-based graphical interface
           - **Advanced Memory Management** - Clears standby RAM and optimizes memory usage
           - **Network Optimization** - DNS flush and network cache clearing
           - **Privacy Protection** - Removes traces and diagnostic telemetry
           - **Automatic Privilege Elevation** - Seamless UAC handling
+          - **Real-time Progress** - Live progress bar with detailed status updates
           
           ### 🔧 Quick Start
           1. **Download** the `5Ghz_Cleaner.exe` file
           2. **Run as Administrator** (automatic UAC prompt)
           3. **Accept** the terms and conditions
-          4. **Click** "🚀 Lancer le nettoyage" to start optimization
-          5. **Review** the detailed cleanup summary
+          4. **Configure** advanced options via hamburger menu (optional)
+          5. **Click** "🚀 Lancer le nettoyage" to start optimization
+          6. **Review** the detailed cleanup summary
           
           ### 🛡️ System Requirements
           - **OS**: Windows 10/11 (64-bit recommended)
@@ -75,12 +79,17 @@ jobs:
           - **RAM**: 2GB minimum
           - **Storage**: 50MB free space
           
+          ### 📚 Documentation
+          - [README.md](https://github.com/UndKiMi/5Ghz_Cleaner/blob/main/README.md) - Full documentation
+          - [QUICKSTART.md](https://github.com/UndKiMi/5Ghz_Cleaner/blob/main/QUICKSTART.md) - Quick start guide
+          - [MIGRATION.md](https://github.com/UndKiMi/5Ghz_Cleaner/blob/main/MIGRATION.md) - Migration guide from v1.x
+          
           ### ⚠️ Important Notice
           > This tool performs system-level operations. Please read the disclaimer and ensure you have proper backups before use.
           
           ---
           
-          **Simply crafted with ❤️ by [UndKiMi](https://github.com/UndKiMi)**
+          **Crafted with ❤️ by [UndKiMi](https://github.com/UndKiMi)**
         draft: false
         prerelease: false
       env:
