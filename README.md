@@ -1,4 +1,4 @@
-# 5Gh'z Cleaner
+# 5Ghz Cleaner
 
 Windows Cleaning & Optimisation Tool with Modern UI
 
