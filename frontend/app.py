@@ -7,17 +7,15 @@ import threading
 import time
 import webbrowser
 from backend import cleaner
-
-
-# Color scheme
-BG_MAIN = "#0d1b2a"
-BG_SECONDARY = "#1b263b"
-ACCENT_COLOR = "#e0e1dd"
-FG_MAIN = "#778da9"
-FG_SECONDARY = "#e0e1dd"
-SHADOW_COLOR = "#2a3342"
-BLUE_ACCENT = "#4a9eff"
-WARNING_COLOR = "#ff9500"
+from .constants import *
+from .ui_components import (
+    create_shield_icon,
+    create_warning_box,
+    create_terms_list,
+    create_checkbox,
+    create_footer
+)
+from .pages import MainPage
 
 
 class CleanerApp:
@@ -39,12 +37,12 @@ class CleanerApp:
     def _configure_window(self):
         """Configure window properties"""
         self.page.title = "5GH'z Cleaner"
-        self.page.window.width = 900
-        self.page.window.height = 1019
+        self.page.window.width = WINDOW_WIDTH
+        self.page.window.height = WINDOW_HEIGHT
         self.page.window.resizable = True
         self.page.window.maximizable = False
-        self.page.window.min_width = 876
-        self.page.window.min_height = 1019
+        self.page.window.min_width = WINDOW_MIN_WIDTH
+        self.page.window.min_height = WINDOW_MIN_HEIGHT
         self.page.window.frameless = False
         self.page.bgcolor = BG_MAIN
         self.page.padding = 0
@@ -113,166 +111,70 @@ class CleanerApp:
     def show_disclaimer(self):
         """Show disclaimer dialog before main app"""
         def close_disclaimer(e):
-            print(f"[DEBUG] Button clicked, checkbox value: {checkbox.value}")
             if checkbox.value:
-                # Button press animation
-                accept_button.scale = 0.95
-                accept_button.update()
-                time.sleep(0.1)
-                accept_button.scale = 1
-                accept_button.update()
-                
-                print("[INFO] User accepted disclaimer terms")
-                self.disclaimer_accepted = True
-                # Fade out animation
-                print("[INFO] Starting transition animation...")
-                disclaimer_container.opacity = 0
-                self.page.update()
-                time.sleep(0.3)
-                
-                # Clear the page and rebuild UI
-                print("[INFO] Clearing disclaimer screen...")
-                try:
-                    self.page.controls.clear()
-                    print("[INFO] Building main UI...")
-                    self.build_main_ui()
-                    print("[INFO] Updating page...")
-                    self.page.update()
-                    print("[SUCCESS] Main UI loaded successfully")
-                except Exception as ex:
-                    print(f"[ERROR] Failed to build main UI: {ex}")
-                    import traceback
-                    traceback.print_exc()
+                self._animate_button_press(accept_button)
+                self._transition_to_main_ui(disclaimer_container)
             else:
-                print("[WARNING] User attempted to continue without accepting terms")
                 self.show_warning("Veuillez cocher la case pour continuer.")
         
-        # Checkbox avec label personnalisé
-        checkbox = ft.Checkbox(
-            value=False,
-            fill_color={
-                ft.ControlState.DEFAULT: SHADOW_COLOR,
-                ft.ControlState.SELECTED: BLUE_ACCENT,
-            },
-            check_color="#ffffff",
-        )
+        # Create UI components
+        checkbox, checkbox_row = create_checkbox()
+        shield_container = create_shield_icon()
+        warning_box = create_warning_box()
+        terms_list = create_terms_list()
+        footer = create_footer()
         
-        checkbox_row = ft.Row(
-            [
-                checkbox,
-                ft.Column(
-                    [
-                        ft.Text(
-                            "J'ai lu et compris les conditions d'utilisation.",
-                            size=13,
-                            color=FG_SECONDARY,
-                            weight=ft.FontWeight.W_400,
-                        ),
-                        ft.Text(
-                            "J'accepte les risques associés à l'utilisation de ce logiciel.",
-                            size=13,
-                            color=FG_MAIN,
-                            weight=ft.FontWeight.W_300,
-                        ),
-                    ],
-                    spacing=2,
-                    expand=True,
-                ),
-            ],
-            spacing=10,
-            alignment=ft.MainAxisAlignment.START,
-        )
-        
-        # Shield icon (custom SVG - subtle shadow and glow)
-        shield_container = ft.Container(
-            content=ft.Image(
-                src="assets/shield_check.svg",
-                width=83,
-                height=83,
-                fit=ft.ImageFit.CONTAIN,
-            ),
-            shadow=[
-                # Ombre légère sous le bouclier
-                ft.BoxShadow(
-                    spread_radius=0,
-                    blur_radius=8,
-                    color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-                    offset=ft.Offset(0, 2),
-                ),
-                # Glow bleu très léger
-                ft.BoxShadow(
-                    spread_radius=0,
-                    blur_radius=12,
-                    color=ft.Colors.with_opacity(0.15, BLUE_ACCENT),
-                    offset=ft.Offset(0, 0),
-                ),
-            ],
-            animate=ft.Animation(1500, ft.AnimationCurve.EASE_IN_OUT),
-        )
-        
-        shield_icon = shield_container
-        
-        # Warning box
-        warning_box = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color="#ff9500", size=20),
-                    ft.Container(width=10),
-                    ft.Text(
-                        "Ce logiciel effectue des modifications système importantes. Assurez-vous d'avoir sauvegardé vos données importantes avant de continuer.",
-                        size=12,
-                        color=FG_SECONDARY,
-                        expand=True,
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.START,
-            ),
-            bgcolor="#1a2332",
-            padding=15,
-            border_radius=8,
-            border=ft.border.all(1, "#2a3342"),
-            expand=True,
-        )
-        
-        # Terms list
-        terms_list = ft.Container(
-            content=ft.Column(
-                [
-                    ft.Text(
-                        "• Ce logiciel requiert des droits d'administrateur pour fonctionner.",
-                        size=13,
-                        color=FG_SECONDARY,
-                    ),
-                    ft.Text(
-                        "• Les modifications effectuées peuvent affecter les performances du système.",
-                        size=13,
-                        color=FG_SECONDARY,
-                    ),
-                    ft.Text(
-                        "• Aucune responsabilité ne pourra être engagée en cas de perte de données.",
-                        size=13,
-                        color=FG_SECONDARY,
-                    ),
-                    ft.Text(
-                        "• Il est fortement recommandé de créer un point de restauration système avant utilisation.",
-                        size=13,
-                        color=FG_SECONDARY,
-                    ),
-                ],
-                spacing=12,
-            ),
-            bgcolor="#0f1821",
-            padding=20,
-            border_radius=8,
-            border=ft.border.all(1, "#1a2332"),
-            expand=True,
+        # Accept button
+        accept_button = ft.ElevatedButton(
+            "J'accepte les conditions",
+            on_click=close_disclaimer,
+            bgcolor=BLUE_ACCENT,
+            color="#ffffff",
+            height=45,
+            width=250,
+            scale=1,
+            animate_scale=ft.Animation(BUTTON_PRESS_DURATION, ft.AnimationCurve.EASE_OUT),
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
         )
         
         # Main card
-        main_card = ft.Container(
+        main_card = self._build_disclaimer_card(
+            shield_container, checkbox_row, warning_box, terms_list, accept_button
+        )
+        
+        
+        # Full disclaimer container
+        disclaimer_container = ft.Container(
+            content=ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Container(height=50),
+                        main_card,
+                        ft.Container(height=50),
+                        footer,
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+                padding=ft.padding.symmetric(horizontal=20),
+            ),
+            bgcolor=BG_MAIN,
+            expand=True,
+            opacity=1,
+            animate_opacity=ft.Animation(FADE_DURATION, ft.AnimationCurve.EASE_OUT),
+        )
+        
+        # Add content and start animations
+        self.page.add(disclaimer_container)
+        self._fade_in_container(disclaimer_container)
+        self._start_shield_glow_animation(shield_container)
+    
+    def _build_disclaimer_card(self, shield, checkbox_row, warning_box, terms_list, accept_button):
+        """Build the main disclaimer card"""
+        return ft.Container(
             content=ft.Column(
                 [
-                    shield_icon,
+                    shield,
                     ft.Container(height=20),
                     ft.Text(
                         "Conditions d'utilisation",
@@ -296,27 +198,15 @@ class CleanerApp:
                     ft.Container(height=25),
                     checkbox_row,
                     ft.Container(height=25),
-                    accept_button := ft.ElevatedButton(
-                        "J'accepte les conditions",
-                        on_click=close_disclaimer,
-                        bgcolor=BLUE_ACCENT,
-                        color="#ffffff",
-                        height=45,
-                        width=250,
-                        scale=1,
-                        animate_scale=ft.Animation(100, ft.AnimationCurve.EASE_OUT),
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=8),
-                        ),
-                    ),
+                    accept_button,
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.START,
             ),
-            bgcolor="#0d1b2a",
+            bgcolor=BG_MAIN,
             padding=40,
             border_radius=12,
-            border=ft.border.all(1, "#1a2332"),
+            border=ft.border.all(1, "#2a3342"),
             width=700,
             shadow=ft.BoxShadow(
                 spread_radius=1,
@@ -325,119 +215,82 @@ class CleanerApp:
                 offset=ft.Offset(0, 4),
             ),
         )
+    
+    def _animate_button_press(self, button):
+        """Animate button press effect"""
+        button.scale = 0.95
+        button.update()
+        time.sleep(0.1)
+        button.scale = 1
+        button.update()
+    
+    def _transition_to_main_ui(self, container):
+        """Transition from disclaimer to main UI"""
+        self.disclaimer_accepted = True
+        container.opacity = 0
+        self.page.update()
+        time.sleep(0.3)
         
-        # Footer
-        footer = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Text(
-                        "Version 1.0 Major Update • Réalisé avec",
-                        size=11,
-                        color="#4a5568",
-                    ),
-                    ft.Container(width=4),
-                    ft.Text(
-                        "❤️",
-                        size=11,
-                    ),
-                    ft.Container(width=4),
-                    ft.Text(
-                        "par",
-                        size=11,
-                        color="#4a5568",
-                    ),
-                    ft.Container(width=4),
-                    ft.TextButton(
-                        "K_iMi",
-                        on_click=lambda e: webbrowser.open("https://github.com/UndKiMi"),
-                        style=ft.ButtonStyle(
-                            color=BLUE_ACCENT,
-                            padding=0,
-                            text_style=ft.TextStyle(size=11, weight=ft.FontWeight.NORMAL),
-                        ),
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                spacing=0,
-            ),
-            padding=ft.padding.only(bottom=10),
-        )
-        
-        # Full disclaimer container with fade-in animation (no scroll)
-        disclaimer_container = ft.Container(
-            content=ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Container(height=50),
-                        main_card,
-                        ft.Container(height=50),
-                        footer,
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-                padding=ft.padding.symmetric(horizontal=20),
-            ),
-            bgcolor=BG_MAIN,
-            expand=True,
-            animate_opacity=300,
-        )
-        
-        # Add content directly (no custom title bar needed)
-        self.page.add(disclaimer_container)
-        
-        # Fade in animation
-        disclaimer_container.opacity = 0
+        try:
+            self.page.controls.clear()
+            self.build_main_ui()
+            self.page.update()
+        except Exception as ex:
+            print(f"[ERROR] Failed to build main UI: {ex}")
+            import traceback
+            traceback.print_exc()
+    
+    def _fade_in_container(self, container):
+        """Fade in animation for container"""
+        container.opacity = 0
         self.page.update()
         time.sleep(0.1)
-        disclaimer_container.opacity = 1
+        container.opacity = 1
         self.page.update()
-        
-        # Start subtle glowing pulsation animation
+    
+    def _start_shield_glow_animation(self, shield_container):
+        """Start shield glow pulsation animation"""
         def animate_glow():
             pulse_out = True
             while True:
                 try:
                     if pulse_out:
-                        # Pulse out - glow légèrement plus intense
                         shield_container.shadow = [
                             ft.BoxShadow(
                                 spread_radius=0,
-                                blur_radius=8,
-                                color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
+                                blur_radius=SHADOW_BLUR_RADIUS,
+                                color=ft.Colors.with_opacity(SHADOW_OPACITY, ft.Colors.BLACK),
                                 offset=ft.Offset(0, 2),
                             ),
                             ft.BoxShadow(
                                 spread_radius=0,
-                                blur_radius=15,
-                                color=ft.Colors.with_opacity(0.25, BLUE_ACCENT),
+                                blur_radius=GLOW_BLUR_MAX,
+                                color=ft.Colors.with_opacity(GLOW_OPACITY_MAX, BLUE_ACCENT),
                                 offset=ft.Offset(0, 0),
                             ),
                         ]
                     else:
-                        # Pulse in - glow plus doux
                         shield_container.shadow = [
                             ft.BoxShadow(
                                 spread_radius=0,
-                                blur_radius=8,
-                                color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
+                                blur_radius=SHADOW_BLUR_RADIUS,
+                                color=ft.Colors.with_opacity(SHADOW_OPACITY, ft.Colors.BLACK),
                                 offset=ft.Offset(0, 2),
                             ),
                             ft.BoxShadow(
                                 spread_radius=0,
-                                blur_radius=12,
-                                color=ft.Colors.with_opacity(0.15, BLUE_ACCENT),
+                                blur_radius=GLOW_BLUR_MIN,
+                                color=ft.Colors.with_opacity(GLOW_OPACITY_MIN, BLUE_ACCENT),
                                 offset=ft.Offset(0, 0),
                             ),
                         ]
                     
                     shield_container.update()
                     pulse_out = not pulse_out
-                    time.sleep(2.0)  # Pulse très lent (2 secondes)
+                    time.sleep(SHIELD_PULSE_INTERVAL)
                 except:
                     break
         
-        # Start glow animation in background thread
         threading.Thread(target=animate_glow, daemon=True).start()
     
     def show_warning(self, message):
@@ -474,6 +327,12 @@ class CleanerApp:
         self.page.update()
     
     def build_main_ui(self):
+        """Build the main application UI"""
+        main_page = MainPage(self.page, self)
+        self.page.add(main_page.build())
+        self.page.update()
+    
+    def build_main_ui_old(self):
         """Build the main application UI"""
         print("[INFO] Constructing main UI components...")
         # Header with hamburger menu
