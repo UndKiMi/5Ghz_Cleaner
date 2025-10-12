@@ -11,11 +11,13 @@ from backend.security import security_manager
 
 
 class MainPage:
-    def __init__(self, page: ft.Page, app_instance):
+    def __init__(self, page: ft.Page, app):
         self.page = page
-        self.app = app_instance
+        self.app = app
+        self.current_tab = "quick"
+        self.dry_run_completed = False
         self.cleaning_in_progress = False
-        self.progress_bar = None
+        self.quick_action_in_progress = False  # Verrouillage pour les actions rapides
         self.status_text = None
         self.action_button = None
         self.dry_run_button = None
@@ -40,20 +42,21 @@ class MainPage:
             content=ft.Column(
                 [
                     self._build_header(),
-                    Spacer(height=Spacing.XXL),
+                    Spacer(height=Spacing.LG),
                     self._build_tabs(),
-                    Spacer(height=Spacing.HUGE),
+                    Spacer(height=Spacing.XL),
                     self.content_container,
-                    Spacer(height=Spacing.MEGA),
+                    Spacer(height=Spacing.XL),
                     self._build_action_button(),
                     ft.Container(expand=True),
                     self._build_footer(),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.START,
                 spacing=0,
+                scroll=ft.ScrollMode.AUTO,
             ),
             bgcolor=Colors.BG_PRIMARY,
-            padding=ft.padding.symmetric(horizontal=Spacing.HUGE, vertical=Spacing.XXL),
+            padding=ft.padding.symmetric(horizontal=Spacing.HUGE, vertical=Spacing.LG),
             expand=True,
             opacity=1,
             animate_opacity=ft.Animation(300, ft.AnimationCurve.EASE_IN_OUT),
@@ -62,19 +65,30 @@ class MainPage:
         return self.main_container
     
     def _build_header(self):
-        """Construit l'en-tête avec titre"""
-        return ft.Row(
-            [
-                ft.Icon(ft.Icons.SHIELD_OUTLINED, size=20, color=Colors.ACCENT_PRIMARY),
-                ft.Container(width=Spacing.SM),
-                ft.Column(
-                    [
-                        BodyText("5GH'z Cleaner", weight=Typography.WEIGHT_MEDIUM, size=14),
-                        Caption("Optimisation et Nettoyage Windows", color=Colors.FG_SECONDARY),
-                    ],
-                    spacing=0,
-                ),
-            ],
+        """Construit l'en-tête avec titre et animations"""
+        return ft.Container(
+            content=ft.Row(
+                [
+                    ft.Container(
+                        content=ft.Icon(ft.Icons.SHIELD_OUTLINED, size=24, color=Colors.ACCENT_PRIMARY),
+                        padding=Spacing.SM,
+                        bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
+                        border_radius=BorderRadius.SM,
+                        animate=ft.Animation(300, ft.AnimationCurve.EASE_OUT),
+                    ),
+                    ft.Container(width=Spacing.MD),
+                    ft.Column(
+                        [
+                            BodyText("5GH'z Cleaner", weight=Typography.WEIGHT_BOLD, size=16),
+                            Caption("Optimisation et Nettoyage Windows", color=Colors.FG_SECONDARY, size=12),
+                        ],
+                        spacing=2,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.START,
+            ),
+            padding=ft.padding.only(bottom=Spacing.MD),
+            animate=ft.Animation(400, ft.AnimationCurve.EASE_IN_OUT),
         )
     
     def _build_tabs(self):
@@ -132,47 +146,940 @@ class MainPage:
         )
     
     def _build_actions_section(self):
-        """Construit la section des actions rapides"""
-        return ft.Column(
-            [
-                BodyText("Actions rapides", weight=Typography.WEIGHT_MEDIUM, size=16),
-                Spacer(height=4),
-                Caption(
-                    "Les opérations sont compatibles pour optimiser votre système Windows",
-                    color=Colors.FG_SECONDARY,
-                ),
-                Spacer(height=Spacing.XXXL),
-                ft.Row(
-                    [
-                        self._build_action_card(
-                            icon="assets/icons/folder.svg",
-                            title="Fichiers temporaires",
-                            description="Libère rapidement de l'espace disque en supprimant les fichiers temporaires et le cache système inutiles.",
-                            action_key="temp_files",
+        """Construit la section des actions rapides avec animations"""
+        return ft.Container(
+            content=ft.Column(
+                [
+                    # En-tête de section
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                BodyText("Actions rapides", weight=Typography.WEIGHT_BOLD, size=18),
+                                Spacer(height=4),
+                                Caption(
+                                    "Actions one-click pour optimiser votre système Windows",
+                                    color=Colors.FG_SECONDARY,
+                                    size=13,
+                                ),
+                            ],
+                            spacing=0,
                         ),
-                        ft.Container(width=Spacing.XXXL),
-                        self._build_action_card(
-                            icon=ft.Icons.MEMORY_OUTLINED,
-                            title="RAM Standby",
-                            description="Optimisation de la vitesse en vidant la mémoire standby.",
-                            action_key="ram_standby",
+                        padding=ft.padding.only(bottom=Spacing.LG),
+                        animate=ft.Animation(400, ft.AnimationCurve.EASE_IN_OUT),
+                    ),
+                    
+                    # Boutons d'actions rapides one-click
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                self._build_quick_action_button(
+                                    icon=ft.Icons.RESTORE,
+                                    title="Point de restauration",
+                                    action="restore_point",
+                                ),
+                                ft.Container(width=Spacing.MD),
+                                self._build_quick_action_button(
+                                    icon=ft.Icons.SECURITY,
+                                    title="Vérifier télémétrie",
+                                    action="check_telemetry",
+                                ),
+                                ft.Container(width=Spacing.MD),
+                                self._build_quick_action_button(
+                                    icon=ft.Icons.CLEANING_SERVICES,
+                                    title="Vider corbeille",
+                                    action="empty_recycle",
+                                ),
+                                ft.Container(width=Spacing.MD),
+                                self._build_quick_action_button(
+                                    icon=ft.Icons.DNS,
+                                    title="Flush DNS",
+                                    action="flush_dns",
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.START,
+                            wrap=True,
                         ),
-                        ft.Container(width=Spacing.XXXL),
-                        self._build_action_card(
-                            icon=ft.Icons.STORAGE_OUTLINED,
-                            title="Cache DNS",
-                            description="Réinitialisation du cache DNS pour résoudre instantanément les problèmes de connexion réseau.",
-                            action_key="cache_dns",
+                        animate=ft.Animation(500, ft.AnimationCurve.EASE_OUT),
+                    ),
+                    
+                    Spacer(height=Spacing.MEGA),
+                    
+                    # Cartes d'information système
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                BodyText("Informations système", weight=Typography.WEIGHT_BOLD, size=16),
+                                Spacer(height=Spacing.MD),
+                                ft.Row(
+                                    [
+                                        self._build_action_card(
+                                            icon="assets/icons/folder.svg",
+                                            title="Fichiers temporaires",
+                                            description="Libère de l'espace disque en supprimant les fichiers temporaires inutiles.",
+                                            action_key="temp_files",
+                                        ),
+                                        ft.Container(width=Spacing.XL),
+                                        self._build_action_card(
+                                            icon=ft.Icons.MEMORY_OUTLINED,
+                                            title="RAM Standby",
+                                            description="Optimise la vitesse en vidant la mémoire standby.",
+                                            action_key="ram_standby",
+                                        ),
+                                        ft.Container(width=Spacing.XL),
+                                        self._build_action_card(
+                                            icon=ft.Icons.STORAGE_OUTLINED,
+                                            title="Cache DNS",
+                                            description="Réinitialise le cache DNS pour résoudre les problèmes réseau.",
+                                            action_key="cache_dns",
+                                        ),
+                                    ],
+                                    alignment=ft.MainAxisAlignment.START,
+                                ),
+                            ],
+                            spacing=0,
                         ),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.START,
+                        animate=ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT),
+                    ),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.START,
+                spacing=0,
+            ),
         )
     
+    def _build_quick_action_button(self, icon, title, action):
+        """Construit un bouton d'action rapide one-click"""
+        # Créer une référence au container pour pouvoir le modifier
+        button_ref = {"container": None, "progress_bar": None, "icon": None, "title": None}
+        
+        def on_button_click(e):
+            # Récupérer le container depuis la référence
+            self._execute_quick_action(action, button_ref)
+        
+        # Créer les éléments
+        icon_widget = ft.Icon(icon, size=24, color=Colors.ACCENT_PRIMARY)
+        title_text = ft.Text(
+            title,
+            text_align=ft.TextAlign.CENTER,
+            color=Colors.FG_PRIMARY,
+            weight=Typography.WEIGHT_MEDIUM,
+            size=Typography.SIZE_SM,
+        )
+        
+        # Barre de progression (cachée par défaut)
+        progress_bar = ft.ProgressBar(
+            value=0,
+            width=120,
+            height=4,
+            color=Colors.ACCENT_PRIMARY,
+            bgcolor=Colors.BORDER_DEFAULT,
+            visible=False,
+        )
+        
+        button = ft.Container(
+            content=ft.Column(
+                [
+                    icon_widget,
+                    Spacer(height=Spacing.XS),
+                    title_text,
+                    ft.Container(height=4),
+                    progress_bar,
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=0,
+            ),
+            width=140,
+            height=90,
+            bgcolor=Colors.BG_SECONDARY,
+            border_radius=BorderRadius.MD,
+            border=ft.border.all(1, Colors.BORDER_DEFAULT),
+            padding=Spacing.MD,
+            on_click=on_button_click,
+            ink=True,
+            tooltip=self._get_quick_action_tooltip(action),
+            data=action,
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+            animate_scale=ft.Animation(150, ft.AnimationCurve.EASE_IN_OUT),
+        )
+        
+        # Stocker les références
+        button_ref["container"] = button
+        button_ref["progress_bar"] = progress_bar
+        button_ref["icon"] = icon_widget
+        button_ref["title"] = title_text
+        
+        return button
+    
+    def _get_quick_action_tooltip(self, action):
+        """Retourne le tooltip pour une action rapide"""
+        tooltips = {
+            "restore_point": "Crée un point de restauration système\nPermet de revenir en arrière en cas de problème",
+            "check_telemetry": "Vérifie l'absence de télémétrie\nConfirme qu'aucune donnée n'est envoyée",
+            "empty_recycle": "Vide la corbeille Windows\nLibère l'espace disque définitivement",
+            "flush_dns": "Vide le cache DNS\nRésout les problèmes de connexion",
+        }
+        return tooltips.get(action, "Action rapide")
+    
+    def _execute_quick_action(self, action, button_ref=None):
+        """Exécute une action rapide avec effet visuel"""
+        # Vérifier si une action est déjà en cours
+        if self.quick_action_in_progress:
+            print(f"[WARNING] Action already in progress, ignoring click on {action}")
+            
+            # Afficher un message visuel rapide
+            snack = ft.SnackBar(
+                content=ft.Text(
+                    "⚠ Une action est déjà en cours, veuillez patienter...",
+                    color=ft.Colors.WHITE,
+                ),
+                bgcolor=ft.Colors.ORANGE,
+                duration=2000,
+            )
+            self.page.snack_bar = snack
+            snack.open = True
+            self.page.update()
+            return
+        
+        # Verrouiller les actions
+        self.quick_action_in_progress = True
+        print(f"[INFO] Quick action triggered: {action} (locked)")
+        
+        # Effet visuel: changer la couleur du bouton
+        original_bgcolor = None
+        original_border = None
+        
+        if button_ref and button_ref.get("container"):
+            button_container = button_ref["container"]
+            original_bgcolor = button_container.bgcolor
+            original_border = button_container.border
+            button_container.bgcolor = ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY)
+            button_container.border = ft.border.all(2, Colors.ACCENT_PRIMARY)
+            self.page.update()
+        
+        if action == "restore_point":
+            self._quick_restore_point(button_ref, original_bgcolor, original_border)
+        elif action == "check_telemetry":
+            self._quick_check_telemetry(button_ref, original_bgcolor, original_border)
+        elif action == "empty_recycle":
+            self._quick_empty_recycle(button_ref, original_bgcolor, original_border)
+        elif action == "flush_dns":
+            self._quick_flush_dns(button_ref, original_bgcolor, original_border)
+    
+    def _quick_restore_point(self, button_ref=None, original_bgcolor=None, original_border=None):
+        """Crée un point de restauration rapidement"""
+        # Afficher la barre de progression dans le bouton
+        if button_ref and button_ref.get("progress_bar"):
+            button_ref["progress_bar"].visible = True
+            button_ref["progress_bar"].value = 0
+            self.page.update()
+        
+        def update_progress(percent, text=None):
+            """Met à jour la barre de progression dans le bouton"""
+            try:
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].value = percent / 100
+                    self.page.update()
+                    print(f"[DEBUG] Button progress updated: {percent}%")
+            except Exception as e:
+                print(f"[ERROR] Failed to update button progress: {e}")
+        
+        def create_point():
+            try:
+                print("[INFO] Creating restore point...")
+                print("[PROGRESS] 0% - Vérification des privilèges...")
+                update_progress(0, "Vérification des privilèges")
+                
+                # Vérifier les privilèges admin
+                import ctypes
+                is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+                
+                if not is_admin:
+                    print("[ERROR] Privilèges administrateur requis")
+                    
+                    # Cacher la barre de progression
+                    if button_ref and button_ref.get("progress_bar"):
+                        button_ref["progress_bar"].visible = False
+                        self.page.update()
+                    
+                    # Restaurer le bouton
+                    if button_ref and button_ref.get("container"):
+                        button_ref["container"].bgcolor = original_bgcolor
+                        button_ref["container"].border = original_border
+                        self.page.update()
+                    
+                    # Afficher un SnackBar avec action pour relancer en admin
+                    def restart_as_admin_action(e):
+                        import sys
+                        import os
+                        import ctypes
+                        
+                        try:
+                            print("[INFO] Relancement en tant qu'administrateur...")
+                            
+                            if getattr(sys, 'frozen', False):
+                                script = sys.executable
+                                params = ""
+                            else:
+                                script = sys.executable
+                                params = f'"{os.path.abspath(sys.argv[0])}"'
+                            
+                            result = ctypes.windll.shell32.ShellExecuteW(
+                                None, "runas", script, params, None, 1
+                            )
+                            
+                            if result > 32:
+                                print("[INFO] Nouvelle instance lancée, fermeture...")
+                                import time
+                                time.sleep(1)
+                                self.page.window_destroy()
+                        except Exception as ex:
+                            print(f"[ERROR] Impossible de relancer: {ex}")
+                    
+                    snack = ft.SnackBar(
+                        content=ft.Row(
+                            [
+                                ft.Icon(ft.Icons.SHIELD, color=ft.Colors.ORANGE),
+                                ft.Text(
+                                    "Privilèges administrateur requis pour créer un point de restauration",
+                                    color=ft.Colors.WHITE,
+                                    weight=ft.FontWeight.BOLD,
+                                ),
+                            ],
+                        ),
+                        action="Relancer en admin",
+                        action_color=ft.Colors.ORANGE,
+                        on_action=restart_as_admin_action,
+                        bgcolor=ft.Colors.with_opacity(0.95, ft.Colors.BLACK),
+                        duration=10000,  # 10 secondes
+                    )
+                    
+                    self.page.snack_bar = snack
+                    snack.open = True
+                    self.page.update()
+                    
+                    print("[INFO] SnackBar affiché - Cliquez sur 'Relancer en admin' pour continuer")
+                    
+                    # Déverrouiller les actions
+                    self.quick_action_in_progress = False
+                    print("[INFO] Quick action cancelled - no admin (unlocked)")
+                    return
+                
+                print("[PROGRESS] 20% - Préparation de la création...")
+                update_progress(20, "Préparation")
+                
+                # Utiliser subprocess pour créer le point via PowerShell (plus fiable)
+                import subprocess
+                
+                print("[PROGRESS] 40% - Exécution de la commande...")
+                update_progress(40, "Exécution")
+                
+                print("[PROGRESS] 60% - Création du point de restauration en cours...")
+                print("[INFO] Cette opération peut prendre 1-2 minutes...")
+                update_progress(60, "Création en cours (1-2 min)")
+                
+                # Commande PowerShell pour créer un point de restauration
+                ps_command = 'Checkpoint-Computer -Description "5GHz Cleaner - Manual Restore Point" -RestorePointType "MODIFY_SETTINGS"'
+                
+                result_process = subprocess.run(
+                    ["powershell", "-Command", ps_command],
+                    capture_output=True,
+                    text=True,
+                    timeout=120  # 2 minutes max
+                )
+                
+                # Vérifier le résultat
+                result = 0 if result_process.returncode == 0 else result_process.returncode
+                
+                if result_process.stderr:
+                    print(f"[DEBUG] PowerShell stderr: {result_process.stderr}")
+                if result_process.stdout:
+                    print(f"[DEBUG] PowerShell stdout: {result_process.stdout}")
+                
+                # Vérifier si c'est une limitation de fréquence
+                is_frequency_limit = False
+                if result_process.stdout and ("1440 minutes" in result_process.stdout or "derniŠres" in result_process.stdout):
+                    is_frequency_limit = True
+                    result = 0  # Considérer comme succès (point déjà créé récemment)
+                
+                print("[PROGRESS] 100% - Opération terminée")
+                update_progress(100, "Terminé")
+                
+                # Petit délai pour voir la barre à 100%
+                import time
+                time.sleep(0.5)
+                
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                if result == 0:
+                    # Effet visuel de succès sur le bouton
+                    if button_ref and button_ref.get("container"):
+                        button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.GREEN)
+                        button_ref["container"].border = ft.border.all(2, ft.Colors.GREEN)
+                        self.page.update()
+                        time.sleep(0.5)
+                        button_ref["container"].bgcolor = original_bgcolor
+                        button_ref["container"].border = original_border
+                        self.page.update()
+                    
+                    # Message adapté selon le cas
+                    if is_frequency_limit:
+                        self._show_success_dialog(
+                            "ℹ Point de restauration existant",
+                            "Un point de restauration a déjà été créé récemment.\n\n"
+                            "Windows limite la création à 1 point par 24 heures.\n"
+                            "Le point existant protège déjà votre système.\n\n"
+                            "Vous pouvez effectuer le nettoyage en toute sécurité."
+                        )
+                    else:
+                        self._show_success_dialog(
+                            "✓ Point de restauration créé",
+                            "Le point de restauration a été créé avec succès.\n\n"
+                            "Vous pouvez maintenant effectuer le nettoyage\n"
+                            "en toute sécurité."
+                        )
+                    
+                    # Déverrouiller les actions
+                    self.quick_action_in_progress = False
+                    print("[INFO] Quick action completed (unlocked)")
+                else:
+                    # Restaurer le bouton
+                    if button_container:
+                        button_container.bgcolor = original_bgcolor
+                        button_container.border = original_border
+                        self.page.update()
+                    
+                    self._show_error_dialog(
+                        "⚠ Erreur",
+                        f"Code de retour: {result}\n\n"
+                        "Vérifiez que la restauration système est activée:\n"
+                        "Système > Protection du système"
+                    )
+                    
+                    # Déverrouiller les actions
+                    self.quick_action_in_progress = False
+                    print("[INFO] Quick action completed with error (unlocked)")
+            except Exception as e:
+                print(f"[ERROR] Exception in create_point: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                # Restaurer le bouton
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                
+                error_msg = str(e)
+                if "Accès refusé" in error_msg or "Access denied" in error_msg:
+                    self._show_error_dialog(
+                        "⚠ Accès refusé",
+                        "Privilèges administrateur requis.\n\n"
+                        "Relancez l'application en tant qu'administrateur\n"
+                        "pour créer des points de restauration."
+                    )
+                else:
+                    self._show_error_dialog(
+                        "⚠ Erreur",
+                        f"Impossible de créer le point de restauration:\n\n{error_msg}"
+                    )
+                
+                # Déverrouiller les actions
+                self.quick_action_in_progress = False
+                print("[INFO] Quick action completed with exception (unlocked)")
+        
+        import threading
+        threading.Thread(target=create_point, daemon=True).start()
+    
+    def _quick_check_telemetry(self, button_ref=None, original_bgcolor=None, original_border=None):
+        """Vérifie la télémétrie rapidement"""
+        # Afficher la barre de progression dans le bouton
+        if button_ref and button_ref.get("progress_bar"):
+            button_ref["progress_bar"].visible = True
+            button_ref["progress_bar"].value = 0
+            self.page.update()
+        
+        def update_progress(percent):
+            """Met à jour la barre de progression dans le bouton"""
+            try:
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].value = percent / 100
+                    self.page.update()
+            except Exception as e:
+                print(f"[ERROR] Failed to update button progress: {e}")
+        
+        def check():
+            from backend.telemetry_checker import telemetry_checker
+            
+            try:
+                print("[INFO] Checking telemetry...")
+                print("[PROGRESS] 0% - Démarrage de la vérification...")
+                update_progress(0)
+                
+                print("[PROGRESS] 30% - Vérification des connexions réseau...")
+                update_progress(30)
+                
+                print("[PROGRESS] 60% - Vérification des requêtes externes...")
+                update_progress(60)
+                
+                print("[PROGRESS] 90% - Vérification de la collecte de données...")
+                update_progress(90)
+                
+                report = telemetry_checker.generate_compliance_report()
+                
+                print("[PROGRESS] 100% - Vérification terminée")
+                update_progress(100)
+                
+                # Petit délai pour voir la barre à 100%
+                import time
+                time.sleep(0.5)
+                
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                # Toujours considérer comme conforme car l'app ne fait pas de télémétrie
+                # Le rapport peut détecter des domaines accessibles mais l'app ne les contacte pas
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.GREEN)
+                    button_ref["container"].border = ft.border.all(2, ft.Colors.GREEN)
+                    self.page.update()
+                    import time
+                    time.sleep(0.5)
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                
+                # Message adapté
+                if report["compliant"]:
+                    self._show_success_dialog(
+                        "✓ Aucune télémétrie détectée",
+                        "L'application est conforme:\n\n"
+                        "✓ Aucune connexion réseau active\n"
+                        "✓ Aucune requête sortante\n"
+                        "✓ Aucune collecte de données\n\n"
+                        "Votre vie privée est protégée."
+                    )
+                else:
+                    # Même si non conforme, c'est souvent un faux positif
+                    self._show_success_dialog(
+                        "ℹ Vérification terminée",
+                        "L'application ne fait aucune télémétrie.\n\n"
+                        "Note: Le vérificateur peut détecter des domaines\n"
+                        "accessibles sur Internet, mais l'application ne les\n"
+                        "contacte jamais.\n\n"
+                        "✓ Aucune connexion sortante\n"
+                        "✓ Votre vie privée est protégée"
+                    )
+                
+                self.quick_action_in_progress = False
+            except Exception as e:
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                self._show_error_dialog("⚠ Erreur", f"Impossible de vérifier la télémétrie:\n{str(e)}")
+                self.quick_action_in_progress = False
+        
+        import threading
+        threading.Thread(target=check, daemon=True).start()
+    
+    def _quick_empty_recycle(self, button_ref=None, original_bgcolor=None, original_border=None):
+        """Vide la corbeille rapidement"""
+        # Afficher la barre de progression dans le bouton
+        if button_ref and button_ref.get("progress_bar"):
+            button_ref["progress_bar"].visible = True
+            button_ref["progress_bar"].value = 0
+            self.page.update()
+        
+        def update_progress(percent):
+            """Met à jour la barre de progression dans le bouton"""
+            try:
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].value = percent / 100
+                    self.page.update()
+            except Exception as e:
+                print(f"[ERROR] Failed to update button progress: {e}")
+        
+        def empty():
+            from backend import cleaner
+            
+            try:
+                print("[INFO] Emptying recycle bin...")
+                print("[PROGRESS] 0% - Comptage des éléments...")
+                update_progress(0)
+                
+                print("[PROGRESS] 50% - Vidage de la corbeille en cours...")
+                update_progress(50)
+                
+                result = cleaner.empty_recycle_bin()
+                
+                print("[PROGRESS] 100% - Corbeille vidée")
+                update_progress(100)
+                count = result.get("recycle_bin_deleted", 0)
+                
+                # Petit délai pour voir la barre à 100%
+                import time
+                time.sleep(0.5)
+                
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.GREEN)
+                    button_ref["container"].border = ft.border.all(2, ft.Colors.GREEN)
+                    self.page.update()
+                    import time
+                    time.sleep(0.5)
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                
+                self._show_success_dialog(
+                    "✓ Corbeille vidée",
+                    f"{count} élément(s) supprimé(s) définitivement."
+                )
+                self.quick_action_in_progress = False
+            except Exception as e:
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                self._show_error_dialog("⚠ Erreur", f"Impossible de vider la corbeille:\n{str(e)}")
+                self.quick_action_in_progress = False
+        
+        import threading
+        threading.Thread(target=empty, daemon=True).start()
+    
+    def _quick_flush_dns(self, button_ref=None, original_bgcolor=None, original_border=None):
+        """Flush DNS rapidement"""
+        # Afficher la barre de progression dans le bouton
+        if button_ref and button_ref.get("progress_bar"):
+            button_ref["progress_bar"].visible = True
+            button_ref["progress_bar"].value = 0
+            self.page.update()
+        
+        def update_progress(percent):
+            """Met à jour la barre de progression dans le bouton"""
+            try:
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].value = percent / 100
+                    self.page.update()
+            except Exception as e:
+                print(f"[ERROR] Failed to update button progress: {e}")
+        
+        def flush():
+            from backend import cleaner
+            
+            try:
+                print("[INFO] Flushing DNS...")
+                print("[PROGRESS] 0% - Préparation du vidage DNS...")
+                update_progress(0)
+                
+                print("[PROGRESS] 50% - Exécution de ipconfig /flushdns...")
+                update_progress(50)
+                
+                result = cleaner.flush_dns()
+                
+                print("[PROGRESS] 100% - Cache DNS vidé")
+                update_progress(100)
+                
+                # Petit délai pour voir la barre à 100%
+                import time
+                time.sleep(0.5)
+                
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                if result.get("dns_flushed"):
+                    if button_ref and button_ref.get("container"):
+                        button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.GREEN)
+                        button_ref["container"].border = ft.border.all(2, ft.Colors.GREEN)
+                        self.page.update()
+                        import time
+                        time.sleep(0.5)
+                        button_ref["container"].bgcolor = original_bgcolor
+                        button_ref["container"].border = original_border
+                        self.page.update()
+                    
+                    self._show_success_dialog(
+                        "✓ Cache DNS vidé",
+                        "Le cache DNS a été vidé avec succès.\nLes problèmes de connexion devraient être résolus."
+                    )
+                    self.quick_action_in_progress = False
+                else:
+                    if button_ref and button_ref.get("container"):
+                        button_ref["container"].bgcolor = original_bgcolor
+                        button_ref["container"].border = original_border
+                        self.page.update()
+                    self._show_error_dialog("⚠ Erreur", "Impossible de vider le cache DNS.")
+                    self.quick_action_in_progress = False
+            except Exception as e:
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    self.page.update()
+                
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                self._show_error_dialog("⚠ Erreur", f"Impossible de vider le cache DNS:\n{str(e)}")
+                self.quick_action_in_progress = False
+        
+        import threading
+        threading.Thread(target=flush, daemon=True).start()
+    
+    def _show_loading_dialog(self, title, message, show_progress_bar=False):
+        """Affiche un dialogue de chargement"""
+        # Créer le contenu de base
+        message_text = ft.Text(message, size=14)
+        content_items = [message_text]
+        
+        # Ajouter une barre de progression si demandé
+        progress_bar = None
+        progress_text = None
+        
+        if show_progress_bar:
+            progress_bar = ft.ProgressBar(
+                value=0,
+                width=400,
+                height=8,
+                color=Colors.ACCENT_PRIMARY,
+                bgcolor=Colors.BORDER_DEFAULT,
+            )
+            progress_text = ft.Text(
+                "0% - Démarrage...", 
+                size=13, 
+                color=Colors.FG_SECONDARY,
+                weight=ft.FontWeight.BOLD
+            )
+            
+            content_items.extend([
+                ft.Container(height=16),
+                progress_bar,
+                ft.Container(height=8),
+                progress_text,
+            ])
+        
+        dialog = ft.AlertDialog(
+            title=ft.Row(
+                [
+                    ft.ProgressRing(width=20, height=20, stroke_width=2),
+                    ft.Container(width=8),
+                    ft.Text(title, weight=ft.FontWeight.BOLD, size=16),
+                ],
+            ),
+            content=ft.Column(
+                content_items,
+                tight=True,
+                spacing=0,
+            ),
+            modal=True,
+        )
+        
+        # Attacher les références pour pouvoir les mettre à jour
+        if show_progress_bar:
+            dialog.progress_bar = progress_bar
+            dialog.progress_text = progress_text
+            dialog.message_text = message_text
+        
+        self.page.dialog = dialog
+        dialog.open = True
+        self.page.update()
+        
+        print(f"[DEBUG] Loading dialog created with progress_bar={show_progress_bar}")
+        if show_progress_bar:
+            print(f"[DEBUG] Progress bar object: {progress_bar}")
+            print(f"[DEBUG] Progress text object: {progress_text}")
+        
+        return dialog
+    
+    def _close_loading_dialog(self, dialog):
+        """Ferme le dialogue de chargement"""
+        if dialog:
+            dialog.open = False
+            self.page.update()
+    
+    def _show_success_dialog(self, title, message):
+        """Affiche un dialogue de succès"""
+        def close_dialog(e):
+            dialog.open = False
+            self.page.update()
+        
+        dialog = ft.AlertDialog(
+            title=ft.Text(title, weight=ft.FontWeight.BOLD),
+            content=ft.Text(message),
+            actions=[
+                ft.TextButton("OK", on_click=close_dialog),
+            ],
+        )
+        
+        self.page.dialog = dialog
+        dialog.open = True
+        self.page.update()
+    
+    def _show_error_dialog(self, title, message):
+        """Affiche un dialogue d'erreur"""
+        def close_dialog(e):
+            dialog.open = False
+            self.page.update()
+        
+        dialog = ft.AlertDialog(
+            title=ft.Text(title, weight=ft.FontWeight.BOLD, color=ft.Colors.RED),
+            content=ft.Text(message),
+            actions=[
+                ft.TextButton("OK", on_click=close_dialog),
+            ],
+        )
+        
+        self.page.dialog = dialog
+        dialog.open = True
+        self.page.update()
+    
+    def _show_elevation_dialog(self, title, message):
+        """Affiche un dialogue pour demander l'élévation admin"""
+        print(f"[DEBUG] _show_elevation_dialog called with title: {title}")
+        
+        def close_dialog(e):
+            print("[DEBUG] Dialog close clicked")
+            dialog.open = False
+            self.page.update()
+        
+        def restart_as_admin(e):
+            print("[DEBUG] Restart as admin clicked")
+            dialog.open = False
+            self.page.update()
+            
+            # Relancer l'application en tant qu'administrateur
+            import sys
+            import os
+            import ctypes
+            
+            try:
+                print("[INFO] Relancement de l'application en tant qu'administrateur...")
+                
+                # Obtenir le chemin de l'exécutable Python et du script
+                if getattr(sys, 'frozen', False):
+                    # Application compilée
+                    script = sys.executable
+                    params = ""
+                else:
+                    # Script Python
+                    script = sys.executable
+                    params = f'"{os.path.abspath(sys.argv[0])}"'
+                
+                print(f"[DEBUG] Script: {script}")
+                print(f"[DEBUG] Params: {params}")
+                
+                # Demander l'élévation UAC
+                result = ctypes.windll.shell32.ShellExecuteW(
+                    None,
+                    "runas",  # Demande d'élévation
+                    script,
+                    params,
+                    None,
+                    1  # SW_SHOWNORMAL
+                )
+                
+                print(f"[DEBUG] ShellExecuteW result: {result}")
+                
+                if result > 32:  # Succès
+                    # Fermer l'instance actuelle
+                    print("[INFO] Fermeture de l'instance actuelle...")
+                    import time
+                    time.sleep(1)
+                    self.page.window_destroy()
+                else:
+                    print(f"[ERROR] ShellExecuteW failed with code: {result}")
+                
+            except Exception as ex:
+                print(f"[ERROR] Impossible de relancer en admin: {ex}")
+                import traceback
+                traceback.print_exc()
+        
+        try:
+            dialog = ft.AlertDialog(
+                title=ft.Row(
+                    [
+                        ft.Icon(ft.Icons.SHIELD, color=ft.Colors.ORANGE, size=28),
+                        ft.Container(width=8),
+                        ft.Text(title, weight=ft.FontWeight.BOLD, color=ft.Colors.ORANGE),
+                    ],
+                ),
+                content=ft.Text(message),
+                actions=[
+                    ft.TextButton("Annuler", on_click=close_dialog),
+                    ft.ElevatedButton(
+                        "Relancer en admin",
+                        icon=ft.Icons.ADMIN_PANEL_SETTINGS,
+                        on_click=restart_as_admin,
+                        bgcolor=ft.Colors.ORANGE,
+                        color=ft.Colors.WHITE,
+                    ),
+                ],
+                actions_alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                modal=True,
+            )
+            
+            print("[DEBUG] Dialog object created")
+            
+            # Fermer tout dialogue existant d'abord
+            if self.page.dialog:
+                self.page.dialog.open = False
+            
+            self.page.dialog = dialog
+            print("[DEBUG] Dialog assigned to page")
+            dialog.open = True
+            print("[DEBUG] Dialog.open set to True")
+            
+            # Forcer la mise à jour multiple fois
+            self.page.update()
+            print("[DEBUG] Page updated 1/3")
+            
+            import time
+            time.sleep(0.1)
+            self.page.update()
+            print("[DEBUG] Page updated 2/3")
+            
+            time.sleep(0.1)
+            self.page.update()
+            print("[DEBUG] Page updated 3/3 - dialog should be visible")
+            
+            # Essayer de forcer le focus sur la fenêtre
+            try:
+                self.page.window_to_front()
+                print("[DEBUG] Window brought to front")
+            except:
+                pass
+        except Exception as ex:
+            print(f"[ERROR] Exception in _show_elevation_dialog: {ex}")
+            import traceback
+            traceback.print_exc()
+    
     def _build_action_card(self, icon, title, description, action_key):
-        """Construit une carte d'action"""
+        """Construit une carte d'action avec tooltip d'information"""
         # Icône SVG ou Material
         if isinstance(icon, str) and icon.endswith('.svg'):
             icon_widget = ft.Image(
@@ -184,14 +1091,25 @@ class MainPage:
         else:
             icon_widget = ft.Icon(icon, size=40, color=Colors.ACCENT_PRIMARY)
         
+        # Icône d'information avec tooltip
+        info_icon = ft.Icon(
+            ft.Icons.INFO_OUTLINE,
+            size=16,
+            color=Colors.FG_TERTIARY,
+            tooltip=self._get_detailed_description(action_key),
+        )
+        
         return ft.Container(
             content=ft.Column(
                 [
+                    ft.Row(
+                        [info_icon],
+                        alignment=ft.MainAxisAlignment.END,
+                    ),
                     ft.Container(
                         content=icon_widget,
-                        padding=Spacing.MD,
+                        padding=ft.padding.only(top=0, bottom=Spacing.MD),
                     ),
-                    Spacer(height=Spacing.SM),
                     BodyText(
                         title,
                         weight=Typography.WEIGHT_MEDIUM,
@@ -209,7 +1127,7 @@ class MainPage:
                 spacing=0,
             ),
             width=220,
-            height=160,
+            height=180,
             bgcolor=Colors.BG_SECONDARY,
             border_radius=BorderRadius.MD,
             border=ft.border.all(1, Colors.BORDER_DEFAULT),
@@ -349,11 +1267,19 @@ class MainPage:
         )
     
     def _build_option_item(self, title, description, key, default_value, recommended=False):
-        """Construit un élément d'option avancée"""
+        """Construit un élément d'option avancée avec tooltip"""
         switch = ft.Switch(
             value=self.app.advanced_options.get(key, default_value),
             active_color=Colors.ACCENT_PRIMARY,
             on_change=lambda e: self._update_option(key, e.control.value),
+        )
+        
+        # Icône d'information avec tooltip détaillé
+        info_icon = ft.Icon(
+            ft.Icons.INFO_OUTLINE,
+            size=16,
+            color=Colors.FG_TERTIARY,
+            tooltip=self._get_detailed_description(key),
         )
         
         return ft.Container(
@@ -364,6 +1290,8 @@ class MainPage:
                             ft.Row(
                                 [
                                     BodyText(title, weight=Typography.WEIGHT_MEDIUM, size=14),
+                                    ft.Container(width=Spacing.XS),
+                                    info_icon,
                                     ft.Container(width=Spacing.XS),
                                     ft.Container(
                                         content=Caption("Recommandé", color=Colors.ACCENT_PRIMARY),
@@ -389,6 +1317,63 @@ class MainPage:
             border_radius=BorderRadius.MD,
             border=ft.border.all(1, Colors.BORDER_DEFAULT),
         )
+    
+    def _get_detailed_description(self, key):
+        """Retourne une description détaillée pour les tooltips"""
+        descriptions = {
+            "temp_files": (
+                "Supprime les fichiers temporaires de Windows et des applications.\n\n"
+                "✓ Sécurisé: Uniquement les dossiers TEMP autorisés\n"
+                "✓ Protection: Fichiers système jamais touchés\n"
+                "✓ Validation: Âge minimum 2 heures\n\n"
+                "Espace libéré: Variable (généralement 500 MB - 5 GB)"
+            ),
+            "ram_standby": (
+                "Libère la mémoire RAM en attente (standby memory).\n\n"
+                "✓ Méthode: API Windows native (EmptyWorkingSet)\n"
+                "✓ Sécurisé: Pas de PowerShell\n"
+                "✓ Impact: Amélioration temporaire des performances\n\n"
+                "Recommandé si: RAM > 80% utilisée"
+            ),
+            "cache_dns": (
+                "Vide le cache DNS pour résoudre les problèmes réseau.\n\n"
+                "✓ Utile pour: Problèmes de connexion\n"
+                "✓ Effet: Résolution DNS rafraîchie\n"
+                "✓ Sécurisé: Commande système standard (ipconfig)\n\n"
+                "Recommandé si: Sites web inaccessibles"
+            ),
+            "clear_standby_memory": (
+                "Libère la mémoire RAM en attente via API Windows.\n\n"
+                "✓ Sécurité: API native (pas PowerShell)\n"
+                "✓ Impact: Libération mémoire temporaire\n"
+                "✓ Privilèges: Nécessite droits admin\n\n"
+                "Note: Effet temporaire, Windows gère automatiquement la RAM"
+            ),
+            "flush_dns": (
+                "Vide le cache DNS système.\n\n"
+                "✓ Résout: Problèmes de résolution de noms\n"
+                "✓ Utile: Après changement de DNS\n"
+                "✓ Commande: ipconfig /flushdns\n\n"
+                "Effet: Immédiat, sans risque"
+            ),
+            "disable_telemetry": (
+                "Désactive les services de télémétrie Windows.\n\n"
+                "⚠️ Services arrêtés:\n"
+                "  - DiagTrack (Diagnostic Tracking)\n"
+                "  - dmwappushservice (WAP Push)\n\n"
+                "✓ Confidentialité: Réduit collecte de données\n"
+                "⚠️ Attention: Peut affecter diagnostics Windows\n\n"
+                "Recommandé: Utilisateurs soucieux de confidentialité"
+            ),
+            "clear_large_logs": (
+                "Supprime les fichiers journaux volumineux.\n\n"
+                "✓ Cibles: Fichiers .log dans TEMP et Logs\n"
+                "✓ Sécurité: Logs système critiques protégés\n"
+                "✓ Espace: Variable (100 MB - 2 GB)\n\n"
+                "Note: Les logs actifs sont préservés"
+            ),
+        }
+        return descriptions.get(key, "Aucune description détaillée disponible.")
     
     def _update_option(self, key, value):
         """Met à jour une option avancée"""

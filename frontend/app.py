@@ -39,6 +39,8 @@ class CleanerApp:
         self.page.window.min_width = 876
         self.page.window.min_height = 1019
         self.page.window.frameless = False
+        self.page.window.always_on_top = False
+        self.page.window.focused = True
         self.page.bgcolor = Colors.BG_PRIMARY
         self.page.padding = 0
     

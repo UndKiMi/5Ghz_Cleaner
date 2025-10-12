@@ -4,6 +4,27 @@
 
 Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
 
+**Version actuelle :** 1.5  
+**Score de sécurité :** 95/100 🟢 (Excellent)
+
+---
+
+## 🚀 Démarrage Rapide
+
+### Pour les Utilisateurs
+1. Lisez [README.md](./README.md) - Guide d'utilisation
+2. Consultez [SECURITY_TOOLS.md](./SECURITY_TOOLS.md) - Outils de sécurité
+
+### Pour les Développeurs
+1. Lisez [README.md](./README.md) - Architecture
+2. Consultez [ORGANISATION.md](./ORGANISATION.md) - Structure du projet
+3. Voir [ANTI_BYPASS_SECURITY.md](./ANTI_BYPASS_SECURITY.md) - Sécurité
+
+### Pour les Auditeurs Sécurité
+1. Voir [../SECURITY.md](../SECURITY.md) - Rapport complet
+2. Consultez [SERVICES_DEPENDENCIES.md](./SERVICES_DEPENDENCIES.md)
+3. Voir [ANTI_BYPASS_SECURITY.md](./ANTI_BYPASS_SECURITY.md)
+
 ---
 
 ## 📖 Documentation Principale
@@ -19,11 +40,43 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
 - **Public :** Tous les utilisateurs
 - **Priorité :** ⭐⭐⭐⭐⭐
 
+### 2. **ORGANISATION.md**
+- **Description :** Organisation et structure du projet
+- **Contenu :**
+  - Architecture des dossiers
+  - Conventions de code
+  - Workflow de développement
+- **Public :** Développeurs
+- **Priorité :** ⭐⭐⭐⭐
+
 ---
 
 ## 🔐 Documentation Sécurité
 
-### 2. **SERVICES_DEPENDENCIES.md**
+### 3. **SECURITY_TOOLS.md**
+- **Description :** Guide des outils de sécurité
+- **Contenu :**
+  - Vérificateur de télémétrie
+  - Générateur de checksums
+  - Point de restauration
+  - Workflow GitHub Actions
+  - API natives Windows
+- **Ajouté le :** 2025-10-12
+- **Public :** Tous
+- **Priorité :** ⭐⭐⭐⭐⭐
+
+### 4. **SANDBOX_WIN32_ISOLATION.md**
+- **Description :** Guide d'exécution en sandbox
+- **Contenu :**
+  - Win32 App Isolation
+  - Installation étape par étape
+  - Tests de sécurité
+  - Dépannage
+- **Ajouté le :** 2025-10-12
+- **Public :** Utilisateurs avancés
+- **Priorité :** ⭐⭐⭐
+
+### 5. **SERVICES_DEPENDENCIES.md**
 - **Description :** Système de vérification des dépendances de services
 - **Contenu :**
   - Protections implémentées (3 niveaux)
@@ -91,37 +144,26 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
 
 ## 📊 Progression du Projet
 
-| Étape | Documentation | Score | Date |
-|-------|---------------|-------|------|
-| Initial | - | 42/100 ❌ | - |
-| Modules corrigés | - | 62/100 🟡 | - |
-| Spooler protégé | - | 65/100 🟡 | - |
-| Dépendances services | SERVICES_DEPENDENCIES.md | 75/100 🟡 | 2025-10-12 |
-| Élévation + Dry-Run | ELEVATION_DRYRUN.md | 86/100 🟢 | 2025-10-12 |
-| Bouton Dry-Run | DRY_RUN_BUTTON.md | 88/100 🟢 | 2025-10-12 |
-| Fix Anti-Spam | FIX_ANTI_SPAM.md | 88/100 🟢 | 2025-10-12 |
-| Anti-Contournement | ANTI_BYPASS_SECURITY.md | 89/100 🟢 | 2025-10-12 |
+| Version | Documentation | Score | Date |
+|---------|---------------|-------|------|
+| 1.0 | - | 42/100 ❌ | - |
+| 1.1 | SERVICES_DEPENDENCIES.md | 75/100 🟡 | 2025-10-12 |
+| 1.2 | ELEVATION_DRYRUN.md | 86/100 🟢 | 2025-10-12 |
+| 1.3 | DRY_RUN_BUTTON.md | 88/100 🟢 | 2025-10-12 |
+| 1.4 | ANTI_BYPASS_SECURITY.md | 89/100 🟢 | 2025-10-12 |
+| 1.5 | SECURITY_TOOLS.md + SANDBOX | **95/100** 🟢 | 2025-10-12 |
 
 ---
 
 ## 🎯 Roadmap Documentation
 
-### Phase 1 : Corrections Critiques (À venir)
-- [ ] **CONFIRMATION_WINDOWS_OLD.md** - Confirmation suppression Windows.old (+5 pts)
-- [ ] **CONFIRMATION_RECYCLE_BIN.md** - Confirmation vidage corbeille (+4 pts)
-- [ ] **RESTORE_POINT.md** - Point de restauration système (+3 pts)
+### Améliorations Futures
+- [ ] Certificat EV (Extended Validation) pour signature (+2 pts)
+- [ ] Sandbox Win32 App Isolation intégré (+3 pts)
+- [ ] Tests unitaires complets (+5 pts)
 
-**Score cible :** 101/100 🟢
-
-### Phase 2 : Améliorations Qualité (À venir)
-- [ ] **TESTS_UNITAIRES.md** - Documentation des tests (+6 pts)
-- [ ] **ARCHITECTURE.md** - Architecture détaillée du projet
-- [ ] **API_REFERENCE.md** - Référence complète de l'API
-
-### Phase 3 : Guide Utilisateur (À venir)
-- [ ] **USER_GUIDE.md** - Guide utilisateur complet
-- [ ] **FAQ.md** - Questions fréquentes
-- [ ] **TROUBLESHOOTING.md** - Résolution de problèmes
+**Score actuel :** 95/100 🟢 (Excellent)  
+**Score cible :** 105/100 🟢
 
 ---
 
@@ -131,18 +173,21 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
 Documentations/
 ├── INDEX.md                        <- Vous êtes ici
 ├── README.md                       <- Documentation générale
+├── ORGANISATION.md                 <- Structure du projet
 │
 ├── Sécurité/
+│   ├── SECURITY_TOOLS.md           <- Outils de sécurité ⭐
+│   ├── SANDBOX_WIN32_ISOLATION.md  <- Guide sandbox
 │   ├── SERVICES_DEPENDENCIES.md    <- Dépendances services
 │   ├── ELEVATION_DRYRUN.md         <- Élévation conditionnelle
 │   ├── DRY_RUN_BUTTON.md           <- Bouton obligatoire
 │   ├── FIX_ANTI_SPAM.md            <- Fix spam-click
 │   └── ANTI_BYPASS_SECURITY.md     <- Anti-contournement
 │
-├── À venir/
-│   ├── CONFIRMATION_WINDOWS_OLD.md
-│   ├── CONFIRMATION_RECYCLE_BIN.md
-│   └── RESTORE_POINT.md
+├── Obsolètes/ (à supprimer)
+│   ├── FIX_IMPORT_BODY.md          <- Obsolète
+│   ├── IMPROVEMENT_SCROLL.md       <- Obsolète
+│   └── PREVIEW_PAGE_SELECTION.md   <- Obsolète
 ```
 
 ---
@@ -152,19 +197,21 @@ Documentations/
 ### Par Thème
 
 **Sécurité :**
+- [Outils de Sécurité](./SECURITY_TOOLS.md) ⭐ NOUVEAU
+- [Sandbox Win32](./SANDBOX_WIN32_ISOLATION.md) ⭐ NOUVEAU
 - [Services Dependencies](./SERVICES_DEPENDENCIES.md)
 - [Élévation Conditionnelle](./ELEVATION_DRYRUN.md)
 - [Anti-Contournement](./ANTI_BYPASS_SECURITY.md)
 
 **UX/UI :**
 - [Bouton Dry-Run](./DRY_RUN_BUTTON.md)
-- [Élévation Conditionnelle](./ELEVATION_DRYRUN.md)
 
 **Bugfix :**
 - [Fix Anti-Spam](./FIX_ANTI_SPAM.md)
 
 **Général :**
 - [README](./README.md)
+- [Organisation](./ORGANISATION.md)
 
 ### Par Public
 
@@ -204,10 +251,10 @@ Documentations/
 
 ## 📊 Statistiques
 
-- **Total documentations :** 7 fichiers
-- **Pages totales :** ~70 pages
-- **Lignes de documentation :** ~2,500 lignes
-- **Score actuel :** 89/100 🟢
+- **Total documentations :** 11 fichiers (9 actifs + 2 nouveaux)
+- **Pages totales :** ~120 pages
+- **Lignes de documentation :** ~4,000 lignes
+- **Score actuel :** 95/100 🟢 (Excellent)
 - **Dernière mise à jour :** 2025-10-12
 
 ---
@@ -228,14 +275,21 @@ R : Voir [SERVICES_DEPENDENCIES.md](./SERVICES_DEPENDENCIES.md) - Liste de 12 se
 **Q : Comment tester la sécurité ?**  
 R : Voir [ANTI_BYPASS_SECURITY.md](./ANTI_BYPASS_SECURITY.md) - 7 tests disponibles
 
+**Q : Comment vérifier l'absence de télémétrie ?**  
+R : Voir [SECURITY_TOOLS.md](./SECURITY_TOOLS.md) - Vérificateur de télémétrie
+
+**Q : Comment exécuter en sandbox ?**  
+R : Voir [SANDBOX_WIN32_ISOLATION.md](./SANDBOX_WIN32_ISOLATION.md)
+
 ### Contact
 
 - **Repository :** https://github.com/UndKiMi/5Ghz_Cleaner
 - **Auteur :** UndKiMi
-- **Version :** 1.4
+- **Version :** 1.5
+- **Score :** 95/100 🟢
 
 ---
 
 **Index créé le :** 2025-10-12  
 **Dernière mise à jour :** 2025-10-12  
-**Version :** 1.0
+**Version :** 1.5

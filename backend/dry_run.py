@@ -53,46 +53,30 @@ class DryRunManager:
         temp_result = cleaner.clear_temp(dry_run=True)
         self._add_operation("Fichiers temporaires", temp_result)
         
-        # 2. Cache Windows Update (simulation)
+        # 2. Cache Windows Update
         print("[2/8] Analyse du cache Windows Update...")
-        # Note: Nécessite adaptation de la fonction
-        self._add_operation("Cache Windows Update", {
-            "temp_deleted": 0,
-            "dry_run": True,
-            "note": "Analyse non implémentée - nécessite droits admin"
-        })
+        update_cache_result = self._scan_windows_update_cache()
+        self._add_operation("Cache Windows Update", update_cache_result)
         
-        # 3. Prefetch (simulation)
+        # 3. Prefetch
         print("[3/8] Analyse du prefetch...")
-        self._add_operation("Prefetch", {
-            "prefetch_cleared": 0,
-            "dry_run": True,
-            "note": "Analyse non implémentée"
-        })
+        prefetch_result = self._scan_prefetch()
+        self._add_operation("Prefetch", prefetch_result)
         
-        # 4. Historique récent (simulation)
+        # 4. Historique récent
         print("[4/8] Analyse de l'historique récent...")
-        self._add_operation("Historique récent", {
-            "recent_cleared": 0,
-            "dry_run": True,
-            "note": "Analyse non implémentée"
-        })
+        recent_result = self._scan_recent_history()
+        self._add_operation("Historique récent", recent_result)
         
-        # 5. Cache miniatures (simulation)
+        # 5. Cache miniatures
         print("[5/8] Analyse du cache miniatures...")
-        self._add_operation("Cache miniatures", {
-            "thumbs_cleared": 0,
-            "dry_run": True,
-            "note": "Analyse non implémentée"
-        })
+        thumbs_result = self._scan_thumbnail_cache()
+        self._add_operation("Cache miniatures", thumbs_result)
         
-        # 6. Dumps de crash (simulation)
+        # 6. Dumps de crash
         print("[6/8] Analyse des dumps de crash...")
-        self._add_operation("Dumps de crash", {
-            "dumps_deleted": 0,
-            "dry_run": True,
-            "note": "Analyse non implémentée"
-        })
+        dumps_result = self._scan_crash_dumps()
+        self._add_operation("Dumps de crash", dumps_result)
         
         # 7. Windows.old (simulation)
         print("[7/8] Vérification de Windows.old...")
@@ -225,6 +209,156 @@ class DryRunManager:
         print("[INFO] Ceci est une PRÉVISUALISATION - Aucun fichier n'a été supprimé")
         print("[INFO] Pour effectuer le nettoyage réel, lancez le mode normal")
         print("="*80)
+    
+    def _scan_windows_update_cache(self):
+        """Scanne le cache Windows Update"""
+        import os
+        total_files = 0
+        total_size = 0
+        
+        update_cache_paths = [
+            os.path.join(os.getenv('WINDIR', 'C:\\Windows'), 'SoftwareDistribution', 'Download'),
+        ]
+        
+        for path in update_cache_paths:
+            if os.path.exists(path):
+                try:
+                    for root, dirs, files in os.walk(path):
+                        for file in files:
+                            try:
+                                file_path = os.path.join(root, file)
+                                total_size += os.path.getsize(file_path)
+                                total_files += 1
+                            except:
+                                pass
+                except:
+                    pass
+        
+        return {
+            "temp_deleted": total_files,
+            "dry_run": True,
+            "size_bytes": total_size,
+            "note": "Nécessite privilèges administrateur" if total_files == 0 else ""
+        }
+    
+    def _scan_prefetch(self):
+        """Scanne les fichiers prefetch"""
+        import os
+        total_files = 0
+        total_size = 0
+        
+        prefetch_path = os.path.join(os.getenv('WINDIR', 'C:\\Windows'), 'Prefetch')
+        
+        if os.path.exists(prefetch_path):
+            try:
+                for file in os.listdir(prefetch_path):
+                    if file.endswith('.pf'):
+                        try:
+                            file_path = os.path.join(prefetch_path, file)
+                            total_size += os.path.getsize(file_path)
+                            total_files += 1
+                        except:
+                            pass
+            except:
+                pass
+        
+        return {
+            "prefetch_cleared": total_files,
+            "dry_run": True,
+            "size_bytes": total_size,
+            "note": "Améliore le démarrage des applications"
+        }
+    
+    def _scan_recent_history(self):
+        """Scanne l'historique récent"""
+        import os
+        total_files = 0
+        total_size = 0
+        
+        recent_path = os.path.join(os.getenv('APPDATA', ''), 'Microsoft', 'Windows', 'Recent')
+        
+        if os.path.exists(recent_path):
+            try:
+                for file in os.listdir(recent_path):
+                    try:
+                        file_path = os.path.join(recent_path, file)
+                        if os.path.isfile(file_path):
+                            total_size += os.path.getsize(file_path)
+                            total_files += 1
+                    except:
+                        pass
+            except:
+                pass
+        
+        return {
+            "recent_cleared": total_files,
+            "dry_run": True,
+            "size_bytes": total_size,
+            "note": "Efface l'historique des fichiers récents"
+        }
+    
+    def _scan_thumbnail_cache(self):
+        """Scanne le cache des miniatures"""
+        import os
+        total_files = 0
+        total_size = 0
+        
+        thumbs_paths = [
+            os.path.join(os.getenv('LOCALAPPDATA', ''), 'Microsoft', 'Windows', 'Explorer'),
+        ]
+        
+        for path in thumbs_paths:
+            if os.path.exists(path):
+                try:
+                    for file in os.listdir(path):
+                        if file.startswith('thumbcache') or file.endswith('.db'):
+                            try:
+                                file_path = os.path.join(path, file)
+                                total_size += os.path.getsize(file_path)
+                                total_files += 1
+                            except:
+                                pass
+                except:
+                    pass
+        
+        return {
+            "thumbs_cleared": total_files,
+            "dry_run": True,
+            "size_bytes": total_size,
+            "note": "Les miniatures seront régénérées automatiquement"
+        }
+    
+    def _scan_crash_dumps(self):
+        """Scanne les dumps de crash"""
+        import os
+        total_files = 0
+        total_size = 0
+        
+        dump_paths = [
+            os.path.join(os.getenv('LOCALAPPDATA', ''), 'CrashDumps'),
+            os.path.join(os.getenv('WINDIR', 'C:\\Windows'), 'Minidump'),
+        ]
+        
+        for path in dump_paths:
+            if os.path.exists(path):
+                try:
+                    for file in os.listdir(path):
+                        if file.endswith('.dmp') or file.endswith('.mdmp'):
+                            try:
+                                file_path = os.path.join(path, file)
+                                total_size += os.path.getsize(file_path)
+                                total_files += 1
+                            except:
+                                pass
+                except:
+                    pass
+        
+        return {
+            "dumps_deleted": total_files,
+            "dry_run": True,
+            "size_bytes": total_size,
+            "note": "Fichiers de diagnostic de crash"
+        }
 
 
 # Instance globale

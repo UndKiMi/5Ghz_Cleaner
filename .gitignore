@@ -38,3 +38,36 @@ Thumbs.db
 # Flet build
 build/
 dist/
+*.spec
+
+# Logs
+*.log
+logs/
+5GH'zCleaner-logs/
+
+# Certificates (NEVER commit)
+*.pfx
+*.p12
+*.cer
+*.pem
+certificate.*
+
+# Checksums (generated)
+CHECKSUMS.txt
+CHECKSUMS.json
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Test results
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation obsolète
+Documentations/obsolete/
+DOCUMENTATION_GUIDE.txt
+.REGLES.txt

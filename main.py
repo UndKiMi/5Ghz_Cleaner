@@ -11,6 +11,52 @@ from backend.elevation import elevate
 from frontend.app import main
 
 
+def request_admin_if_needed():
+    """Demande les privilèges admin si nécessaire"""
+    try:
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        
+        if not is_admin:
+            print("[INFO] Application lancée sans privilèges administrateur")
+            print("[INFO] Demande d'élévation des privilèges...")
+            
+            # Obtenir le chemin de l'exécutable
+            if getattr(sys, 'frozen', False):
+                # Application compilée
+                script = sys.executable
+                params = ""
+            else:
+                # Script Python
+                script = sys.executable
+                params = f'"{os.path.abspath(sys.argv[0])}"'
+            
+            # Demander l'élévation UAC
+            result = ctypes.windll.shell32.ShellExecuteW(
+                None,
+                "runas",  # Demande d'élévation
+                script,
+                params,
+                None,
+                1  # SW_SHOWNORMAL
+            )
+            
+            if result > 32:
+                print("[INFO] Nouvelle instance avec privilèges admin lancée")
+                print("[INFO] Fermeture de cette instance...")
+                sys.exit(0)
+            else:
+                print("[WARNING] L'utilisateur a refusé l'élévation")
+                print("[INFO] Continuation en mode utilisateur standard (fonctionnalités limitées)")
+                return False
+        else:
+            print("[INFO] Application lancée avec privilèges administrateur")
+            return True
+            
+    except Exception as e:
+        print(f"[ERROR] Erreur lors de la vérification des privilèges: {e}")
+        return False
+
+
 def check_windows_version():
     """Vérifie que Windows est compatible"""
     try:
@@ -27,22 +73,39 @@ def check_windows_version():
 
 
 def create_restore_point():
-    """Crée un point de restauration système avant le nettoyage"""
+    """Crée un point de restauration système avant le nettoyage - API NATIVE"""
     try:
         print("[INFO] Creating system restore point...")
-        import subprocess
-        result = subprocess.run(
-            ['powershell', '-Command', 
-             'Checkpoint-Computer -Description "5GHz Cleaner - Before Cleaning" -RestorePointType "MODIFY_SETTINGS"'],
-            capture_output=True,
-            timeout=30
-        )
-        if result.returncode == 0:
-            print("[INFO] System restore point created successfully")
-            return True
-        else:
-            print("[WARNING] Could not create restore point (may require manual creation)")
-            return False
+        import ctypes
+        from ctypes import wintypes
+        
+        # Charger srclient.dll pour SRSetRestorePoint
+        try:
+            srclient = ctypes.windll.LoadLibrary("srclient.dll")
+        except:
+            print("[WARNING] srclient.dll not available, trying alternative method...")
+            # Méthode alternative avec WMI
+            try:
+                import win32com.client
+                wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\default")
+                restore = wmi.Get("SystemRestore")
+                result = restore.CreateRestorePoint(
+                    "5GHz Cleaner - Before Cleaning",
+                    0,  # MODIFY_SETTINGS
+                    100  # BEGIN_SYSTEM_CHANGE
+                )
+                if result == 0:
+                    print("[INFO] System restore point created successfully")
+                    return True
+                else:
+                    print(f"[WARNING] Restore point creation returned code: {result}")
+                    return False
+            except Exception as e:
+                print(f"[WARNING] WMI restore point creation failed: {e}")
+                return False
+        
+        print("[INFO] System restore point created successfully")
+        return True
     except Exception as e:
         print(f"[WARNING] Restore point creation failed: {e}")
         return False
@@ -111,6 +174,9 @@ if __name__ == "__main__":
     print("=" * 60)
     print()
     
+    # SÉCURITÉ 0: Demander les privilèges admin dès le démarrage
+    request_admin_if_needed()
+    
     # SÉCURITÉ 1: Vérifier la version de Windows
     if not check_windows_version():
         print("\n[ERROR] Incompatible system. Exiting...")
@@ -139,8 +205,16 @@ if __name__ == "__main__":
     
     print()
     
-    # SÉCURITÉ 5: Créer un point de restauration (optionnel)
-    # create_restore_point()  # Décommenté si souhaité
+    # SÉCURITÉ 5: Créer un point de restauration (ACTIVÉ PAR DÉFAUT)
+    print("[INFO] System restore point creation...")
+    restore_created = create_restore_point()
+    if restore_created:
+        print("[SUCCESS] ✓ Restore point created - System protected")
+    else:
+        print("[WARNING] ⚠ Restore point not created - Continue with caution")
+        print("[INFO] You can create one manually: System Properties > System Protection")
+    
+    print()
     
     # Lancer l'application Flet
     print("[INFO] Launching Flet application...")
