@@ -1,15 +1,16 @@
 """
-5Gh'z Cleaner - Windows Cleaning & Optimisation Tool
+5GH'z Cleaner - Main Entry Point
+Windows Cleaning & Optimization Tool
 Author: UndKiMi
-Repository: https://github.com/UndKiMi/5Ghz_Cleaner
 """
 import sys
 import os
-import ctypes
 import flet as ft
-from backend.elevation import elevate
-from frontend.app import main
+from frontend.app import CleanerApp
+from backend.elevation import is_admin, elevate_if_needed
 
+# Vérification de la signature au démarrage (optionnel)
+VERIFY_SIGNATURE_ON_STARTUP = False  # Mettre à True pour activer  
 
 def request_admin_if_needed():
     """Demande les privilèges admin si nécessaire"""
@@ -209,9 +210,9 @@ if __name__ == "__main__":
     print("[INFO] System restore point creation...")
     restore_created = create_restore_point()
     if restore_created:
-        print("[SUCCESS] ✓ Restore point created - System protected")
+        print("[SUCCESS] Restore point created - System protected")
     else:
-        print("[WARNING] ⚠ Restore point not created - Continue with caution")
+        print("[WARNING] Restore point not created - Continue with caution")
         print("[INFO] You can create one manually: System Properties > System Protection")
     
     print()
