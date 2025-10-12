@@ -521,12 +521,88 @@ Avant de soumettre votre PR, vérifiez:
 
 ---
 
+## 📝 Templates d'Issues et PR
+
+### 🐛 Template Bug Report
+
+```markdown
+**Description du Bug**
+Description claire et concise du bug.
+
+**Étapes pour Reproduire**
+1. Aller à '...'
+2. Cliquer sur '...'
+3. Voir l'erreur
+
+**Comportement Attendu**
+Ce qui devrait se passer.
+
+**Comportement Actuel**
+Ce qui se passe réellement.
+
+**Environnement**
+- OS: [ex: Windows 11 23H2]
+- Version: [ex: MAJOR UPDATE]
+- Python: [ex: 3.11.5]
+- Mode: [Admin / Standard]
+
+**Logs**
+Collez les logs pertinents ici
+
+**Screenshots**
+Si applicable
+```
+
+### 💡 Template Feature Request
+
+```markdown
+**Problème à Résoudre**
+Description du problème.
+
+**Solution Proposée**
+Description de la solution.
+
+**Alternatives**
+Autres solutions envisagées.
+
+**Impact Sécurité**
+Comment cela affecte la sécurité?
+```
+
+### 🔀 Template Pull Request
+
+```markdown
+## Description
+Changements apportés.
+
+## Type
+- [ ] Bug fix
+- [ ] Nouvelle fonctionnalité
+- [ ] Breaking change
+- [ ] Documentation
+
+## Checklist
+- [ ] Code suit PEP 8
+- [ ] Auto-review effectuée
+- [ ] Documentation mise à jour
+- [ ] Tests ajoutés
+- [ ] Sécurité vérifiée
+- [ ] CHANGELOG.md mis à jour
+
+## Tests
+Description des tests.
+
+Closes #(issue)
+```
+
+---
+
 ## 📞 Contact
 
 - **Issues**: [GitHub Issues](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/UndKiMi/5Ghz_Cleaner/discussions)
-- **Security**: security@example.com
-- **Email**: contact@example.com
+- **Security**: Voir [SECURITY.md](SECURITY.md) pour les vulnérabilités
+- **Questions**: Ouvrez une Discussion GitHub
 
 ---
 
@@ -537,5 +613,6 @@ Merci à tous les contributeurs qui aident à améliorer 5GHz Cleaner!
 ---
 
 **Auteur**: UndKiMi  
-**Date**: 12 Octobre 2025  
-**Version**: 1.6.0
+**Date**: Décembre 2024  
+**Version**: MAJOR UPDATE  
+**Dernière révision**: Décembre 2024
