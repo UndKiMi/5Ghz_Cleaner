@@ -7,14 +7,9 @@ import threading
 import time
 import webbrowser
 from backend import cleaner
-from .constants import *
-from .ui_components import (
-    create_shield_icon,
-    create_warning_box,
-    create_terms_list,
-    create_checkbox,
-    create_footer
-)
+from .design_system import *
+from .design_system.theme import Colors, Spacing, Typography, BorderRadius
+from .design_system.icons import ShieldIcon, WarningIcon
 from .pages import MainPage
 
 
@@ -37,14 +32,14 @@ class CleanerApp:
     def _configure_window(self):
         """Configure window properties"""
         self.page.title = "5GH'z Cleaner"
-        self.page.window.width = WINDOW_WIDTH
-        self.page.window.height = WINDOW_HEIGHT
+        self.page.window.width = 900
+        self.page.window.height = 1019
         self.page.window.resizable = True
         self.page.window.maximizable = False
-        self.page.window.min_width = WINDOW_MIN_WIDTH
-        self.page.window.min_height = WINDOW_MIN_HEIGHT
+        self.page.window.min_width = 876
+        self.page.window.min_height = 1019
         self.page.window.frameless = False
-        self.page.bgcolor = BG_MAIN
+        self.page.bgcolor = Colors.BG_PRIMARY
         self.page.padding = 0
     
     def build_title_bar(self, title="5GH'z Cleaner"):
@@ -53,39 +48,40 @@ class CleanerApp:
             self.page.window.minimized = True
             self.page.update()
         
+        def minimize_window(e):
+            self.page.window.minimized = True
+            self.page.update()
+        
         def close_window(e):
             self.page.window.close()
         
-        def start_drag(e):
-            self.page.window_drag_start()
-        
-        return ft.WindowDragArea(
+        return ft.Container(
             content=ft.Container(
                 content=ft.Row(
                     [
-                        ft.Icon(ft.Icons.SHIELD_OUTLINED, color=BLUE_ACCENT, size=18),
+                        ft.Icon(ft.Icons.SHIELD_OUTLINED, color=Colors.ACCENT_PRIMARY, size=18),
                         ft.Container(width=8),
                         ft.Text(
                             title,
                             size=13,
-                            color=FG_SECONDARY,
+                            color=Colors.FG_PRIMARY,
                             weight=ft.FontWeight.W_500,
                         ),
                         ft.Container(expand=True),
                         ft.IconButton(
                             icon=ft.Icons.MINIMIZE,
                             icon_size=18,
-                            icon_color=FG_SECONDARY,
+                            icon_color=Colors.FG_PRIMARY,
                             on_click=minimize_window,
                             tooltip="Réduire",
                             style=ft.ButtonStyle(
-                                overlay_color=ft.Colors.with_opacity(0.1, FG_SECONDARY),
+                                overlay_color=ft.Colors.with_opacity(0.1, Colors.FG_PRIMARY),
                             ),
                         ),
                         ft.IconButton(
                             icon=ft.Icons.CLOSE,
                             icon_size=18,
-                            icon_color=FG_SECONDARY,
+                            icon_color=Colors.FG_PRIMARY,
                             on_click=close_window,
                             tooltip="Fermer",
                             style=ft.ButtonStyle(
@@ -117,24 +113,63 @@ class CleanerApp:
             else:
                 self.show_warning("Veuillez cocher la case pour continuer.")
         
-        # Create UI components
-        checkbox, checkbox_row = create_checkbox()
-        shield_container = create_shield_icon()
-        warning_box = create_warning_box()
-        terms_list = create_terms_list()
-        footer = create_footer()
+        # Create UI components using design system
+        checkbox, checkbox_row = CustomCheckbox.create(
+            "J'ai lu et compris les conditions d'utilisation.",
+            "J'accepte les risques associés à l'utilisation de ce logiciel."
+        )
+        
+        shield_container = ShieldIcon(size=83, with_glow=True)
+        
+        warning_box = WarningBox(
+            "Ce logiciel effectue des modifications système importantes. "
+            "Assurez-vous d'avoir sauvegardé vos données importantes avant de continuer."
+        )
+        
+        terms = [
+            "Ce logiciel requiert des droits d'administrateur pour fonctionner.",
+            "Les modifications effectuées peuvent affecter les performances du système.",
+            "Aucune responsabilité ne pourra être engagée en cas de perte de données.",
+            "Il est fortement recommandé de créer un point de restauration système avant utilisation.",
+        ]
+        
+        terms_list = Panel(
+            content=ft.Column(
+                [BodyText(f"• {term}", size=13) for term in terms],
+                spacing=Spacing.SM,
+            )
+        )
+        
+        footer = ft.Container(
+            content=ft.Row(
+                [
+                    Caption("Version 1.0 Major Update • Réalisé avec", size=11, color=Colors.FG_TERTIARY),
+                    ft.Container(width=4),
+                    ft.Text("❤️", size=11),
+                    ft.Container(width=4),
+                    Caption("par", size=11, color=Colors.FG_TERTIARY),
+                    ft.Container(width=4),
+                    ft.TextButton(
+                        "K_iMi",
+                        on_click=lambda e: webbrowser.open("https://github.com/UndKiMi"),
+                        style=ft.ButtonStyle(
+                            color=Colors.ACCENT_PRIMARY,
+                            padding=0,
+                            text_style=ft.TextStyle(size=11, weight=ft.FontWeight.NORMAL),
+                        ),
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=0,
+            ),
+            padding=ft.padding.only(bottom=10),
+        )
         
         # Accept button
-        accept_button = ft.ElevatedButton(
+        accept_button = PrimaryButton(
             "J'accepte les conditions",
             on_click=close_disclaimer,
-            bgcolor=BLUE_ACCENT,
-            color="#ffffff",
-            height=45,
-            width=250,
-            scale=1,
-            animate_scale=ft.Animation(BUTTON_PRESS_DURATION, ft.AnimationCurve.EASE_OUT),
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+            width=250
         )
         
         # Main card
@@ -158,10 +193,10 @@ class CleanerApp:
                 ),
                 padding=ft.padding.symmetric(horizontal=20),
             ),
-            bgcolor=BG_MAIN,
+            bgcolor=Colors.BG_PRIMARY,
             expand=True,
             opacity=1,
-            animate_opacity=ft.Animation(FADE_DURATION, ft.AnimationCurve.EASE_OUT),
+            animate_opacity=ft.Animation(300, ft.AnimationCurve.EASE_OUT),
         )
         
         # Add content and start animations
@@ -171,49 +206,33 @@ class CleanerApp:
     
     def _build_disclaimer_card(self, shield, checkbox_row, warning_box, terms_list, accept_button):
         """Build the main disclaimer card"""
-        return ft.Container(
+        return Card(
             content=ft.Column(
                 [
                     shield,
-                    ft.Container(height=20),
-                    ft.Text(
-                        "Conditions d'utilisation",
-                        size=28,
-                        weight=ft.FontWeight.BOLD,
-                        color=ACCENT_COLOR,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                    ft.Container(height=5),
-                    ft.Text(
+                    Spacer(height=Spacing.MD),
+                    Heading("Conditions d'utilisation", level=1, text_align=ft.TextAlign.CENTER),
+                    Spacer(height=Spacing.XS),
+                    BodyText(
                         "Il est recommandé de lire attentivement les conditions d'utilisation avant de poursuivre.",
                         size=13,
-                        color=FG_MAIN,
+                        color=Colors.FG_SECONDARY,
                         text_align=ft.TextAlign.CENTER,
-                        style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE),
                     ),
-                    ft.Container(height=25),
+                    Spacer(height=Spacing.LG),
                     warning_box,
-                    ft.Container(height=20),
+                    Spacer(height=Spacing.MD),
                     terms_list,
-                    ft.Container(height=25),
+                    Spacer(height=Spacing.LG),
                     checkbox_row,
-                    ft.Container(height=25),
+                    Spacer(height=Spacing.LG),
                     accept_button,
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.START,
             ),
-            bgcolor=BG_MAIN,
-            padding=40,
-            border_radius=12,
-            border=ft.border.all(1, "#2a3342"),
+            shadow_level="lg",
             width=700,
-            shadow=ft.BoxShadow(
-                spread_radius=1,
-                blur_radius=15,
-                color=ft.Colors.with_opacity(0.3, ft.Colors.BLACK),
-                offset=ft.Offset(0, 4),
-            ),
         )
     
     def _animate_button_press(self, button):
@@ -264,8 +283,8 @@ class CleanerApp:
                             ),
                             ft.BoxShadow(
                                 spread_radius=0,
-                                blur_radius=GLOW_BLUR_MAX,
-                                color=ft.Colors.with_opacity(GLOW_OPACITY_MAX, BLUE_ACCENT),
+                                blur_radius=15,
+                                color=ft.Colors.with_opacity(0.25, Colors.ACCENT_PRIMARY),
                                 offset=ft.Offset(0, 0),
                             ),
                         ]
