@@ -145,5 +145,4 @@
 ---
 
 **Auteur**: UndKiMi  
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0

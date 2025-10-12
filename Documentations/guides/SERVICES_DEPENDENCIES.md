@@ -248,6 +248,6 @@ if result["dependencies_detected"]:
 
 ---
 
-**Documentation générée le:** 2025-10-12  
+**Documentation générée le:**   
 **Auteur:** 5GH'z Cleaner Team  
 **Version:** 1.1

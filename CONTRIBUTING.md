@@ -613,6 +613,4 @@ Merci à tous les contributeurs qui aident à améliorer 5GHz Cleaner!
 ---
 
 **Auteur**: UndKiMi  
-**Date**: Décembre 2024  
-**Version**: MAJOR UPDATE  
-**Dernière révision**: Décembre 2024
+**Version**: MAJOR UPDATE

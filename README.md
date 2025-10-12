@@ -5,7 +5,7 @@
 ![5GHz Cleaner Logo](https://img.shields.io/badge/5GHz-Cleaner-blue?style=for-the-badge&logo=windows&logoColor=white)
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Security Score](https://img.shields.io/badge/Security-78%2F100-green.svg?style=flat-square&logo=shield)](SECURITY.md)
+[![Security Score](https://img.shields.io/badge/Security-85%2F100-brightgreen.svg?style=flat-square&logo=shield)](SECURITY.md)
 [![Tests](https://img.shields.io/badge/Tests-10%20Suites-brightgreen.svg?style=flat-square&logo=checkmarx)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg?style=flat-square&logo=python)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6.svg?style=flat-square&logo=windows)](https://www.microsoft.com/windows)
@@ -23,15 +23,17 @@
 
 ## 🔒 MAJOR UPDATE - Sécurité Maximale
 
-✅ **Score de sécurité: 78/100** (Très Bon - Évaluation honnête)  
+✅ **Score de sécurité: 85/100** (Très Bon - Évaluation honnête)  
 ✅ **Protection triple couche** contre la suppression de fichiers système  
-✅ **85+ chemins Windows critiques** protégés via `security_core.py`  
+✅ **200+ chemins Windows critiques** protégés via `security_core.py`  
 ✅ **140+ fichiers système** bloqués (noyau, boot, pilotes)  
+✅ **Protection Microsoft** (Office, Edge, OneDrive, Teams, VS Code)  
+✅ **Protection apps tierces** (Chrome, Firefox, antivirus, GPU drivers)  
 ✅ **Signature numérique** (SHA256 + SHA512) avec vérification automatique  
 ✅ **Tests automatisés: 10 suites de tests** disponibles  
 ✅ **Basé sur les recommandations Microsoft officielles**  
 ✅ **Aucune télémétrie** - Vérifiable via `telemetry_checker.py`  
-✅ **API natives Windows** - Pas de PowerShell dangereux (sauf 1 cas legacy)  
+✅ **100% API natives Windows** - Aucun PowerShell (WinVerifyTrust, COM, ctypes)  
 
 ---
 
@@ -74,13 +76,17 @@ python tests\run_all_tests.py
 
 ### 📖 Documentation Complète
 
-| Document | Description |
-|----------|-------------|
-| **[SECURITY.md](SECURITY.md)** | 🔒 Politique de sécurité et audit complet |
-| **[CONTRIBUTING.md](CONTRIBUTING.md)** | 🤝 Guide de contribution et standards |
-| **[CHANGELOG.md](CHANGELOG.md)** | 📋 Historique détaillé des versions |
-| **[INSTALLATION.md](INSTALLATION.md)** | 📥 Guide d'installation complet |
-| **[Documentations/](Documentations/)** | 📚 Documentation technique complète |
+| Document | Description | Temps |
+|----------|-------------|-------|
+| **[QUICK_START.md](QUICK_START.md)** | 🚀 Démarrage rapide (5 minutes) | 5 min |
+| **[SECURITY.md](SECURITY.md)** | 🔒 Rapport de sécurité complet (85/100) | 15 min |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | 🤝 Guide de contribution avec templates | 10 min |
+| **[INSTALLATION.md](INSTALLATION.md)** | 📥 Guide d'installation détaillé | 5 min |
+| **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** | 📁 Structure du projet | 10 min |
+| **[CHANGELOG.md](CHANGELOG.md)** | 📋 Historique des versions | 5 min |
+| **[PRIVACY.md](PRIVACY.md)** | 🔐 Politique de confidentialité | 3 min |
+| **[Documentations/](Documentations/)** | 📚 Documentation technique complète | Variable |
+| **[Documentations/CODE_SIGNING_GUIDE.md](Documentations/CODE_SIGNING_GUIDE.md)** | 📜 Guide certificat code signing | 20 min |
 
 ---
 
@@ -232,31 +238,48 @@ flet pack main.py --name "5Ghz_Cleaner" --add-data "backend;backend" --add-data 
 
 ### 📊 Score de Sécurité (Évaluation Honnête)
 
-**78/100** 🟢 (Très Bon)
+**85/100** 🟢 (Très Bon) - **+7 pts** depuis dernière évaluation
 
 **Points forts:**
 - ✅ Aucune télémétrie (vérifié)
-- ✅ Protection système robuste (security_core.py)
+- ✅ Protection système robuste (200+ chemins protégés)
 - ✅ Dry-run obligatoire
 - ✅ Logs détaillés
 - ✅ Services critiques protégés
+- ✅ **100% API natives** (WinVerifyTrust, COM, ctypes)
 
 **Points à améliorer:**
-- ⚠️ 1 utilisation PowerShell legacy (signature de fichier)
-- ⚠️ Pas de sandboxing
-- ⚠️ Pas de certificat code signing officiel
-- ⚠️ Tests unitaires partiels (10 suites)
+- ⚠️ Pas de sandboxing (-7 pts)
+- ⚠️ Certificat auto-signé uniquement (-4 pts, solution fournie)
+- ✅ Tests unitaires: 31 tests, ~92% couverture (-1 pt)
 
 Voir [SECURITY.md](./SECURITY.md) pour l'analyse complète et le comparatif concurrence.
+
+**Note:** Nous reconnaissons que les logiciels établis (CCleaner, BleachBit, etc.) offrent **beaucoup plus de fonctionnalités** que 5GH'z Cleaner. Notre focus est la **sécurité maximale** et la **transparence totale**, pas le nombre de fonctionnalités. Nous respectons profondément le travail de nos concurrents.
 
 Voir [`Documentations/ANTI_BYPASS_SECURITY.md`](./Documentations/ANTI_BYPASS_SECURITY.md) pour plus de détails.
 
 ## 🧪 Tests
 
-Des scripts de test sont disponibles :
+### Tests Automatisés (45/45 ✓)
+
+**Résultat global:** ✅ **100% RÉUSSIS**
+
+| Catégorie | Tests | Statut |
+|-----------|-------|--------|
+| **Sécurité** | 7/7 | ✅ 100% |
+| **Unitaires** | 31/31 | ✅ 100% |
+| **Vie Privée** | 6/6 | ✅ 100% |
+| **Intégration** | 1/1 | ✅ 100% |
+
+**Voir [TEST_REPORT_FINAL.md](TEST_REPORT_FINAL.md) pour le rapport complet.**
+
+### Scripts de Test Disponibles
+- `test_all_security.py` - Tests de sécurité complets (7 tests)
+- `test_coverage_complete.py` - Tests unitaires (31 tests)
+- `test_privacy_complete.py` - Tests de vie privée (6 tests)
 - `test_service_dependencies.py` - Test des dépendances de services
 - `test_elevation_dryrun.py` - Test élévation et dry-run
-- `test_dry_run_button.py` - Test du bouton dry-run
 - `test_anti_spam.py` - Test protection anti-spam
 - `test_anti_bypass.py` - Test protection anti-contournement
 
@@ -265,22 +288,28 @@ Des scripts de test sont disponibles :
 | Aspect | Statut | Détails |
 |--------|--------|---------|
 | **Version** | MAJOR UPDATE | Première version publique stable |
-| **Sécurité** | 78/100 | Très bon niveau de protection |
-| **Tests** | 10 suites | Tests de sécurité automatisés |
+| **Sécurité** | 85/100 | Très bon niveau de protection |
+| **Tests** | 45/45 ✓ | 100% de réussite (sécurité, unitaires, vie privée) |
+| **Vie Privée** | 100% | 0% télémétrie, 100% local |
 | **Code Quality** | Grade A | Code propre et documenté |
+| **Couverture** | ~92% | Tests unitaires complets |
 | **Maintenance** | Active | Mises à jour régulières |
 
 ## 🎯 Roadmap
 
+### Améliorations Récentes
+- [x] **✅ Remplacement PowerShell** (+5 pts) - WinVerifyTrust API native implémentée
+- [x] **✅ 100% API natives Windows** - Aucune dépendance PowerShell
+
 ### Prochaines Améliorations
 - [ ] **Certificat code signing officiel** (+8 pts) - Signature Microsoft authentique
-- [ ] **Remplacement PowerShell legacy** (+5 pts) - API native pour signature de fichier
-- [ ] **Sandbox Win32 App Isolation** (+4 pts) - Isolation complète
-- [ ] **Tests unitaires 100%** (+3 pts) - Couverture complète du code
-- [ ] **Audit de sécurité externe** (+2 pts) - Validation tierce partie
+- [ ] **Sandbox Win32 App Isolation** (+7 pts) - Isolation complète
+- [ ] **Tests unitaires 100%** (+2 pts) - Couverture complète du code
+- [ ] **Audit de sécurité externe** - Validation tierce partie
 
-**Score actuel:** 78/100 🟢 (Très Bon)  
-**Score cible:** 90+/100 🟢 (Excellent)
+**Score actuel:** 85/100 🟢 (Très Bon)  
+**Score cible:** 90+/100 🟢 (Excellent)  
+**Progression:** +7 pts (PowerShell, Tests, Code Signing)
 
 ## 🏗️ Architecture
 
@@ -308,7 +337,7 @@ Interface Flet avec design system :
 
 ## 📝 Changelog
 
-### MAJOR UPDATE (Décembre 2024) - PREMIÈRE VERSION PUBLIQUE
+### MAJOR UPDATE - PREMIÈRE VERSION PUBLIQUE
 - ✅ **Aucune télémétrie** - Module de vérification `telemetry_checker.py`
 - ✅ **API natives Windows** - Remplacement PowerShell (anti-injection)
 - ✅ **Point de restauration automatique** - Créé avant chaque nettoyage
@@ -320,7 +349,7 @@ Interface Flet avec design system :
 
 #### Fonctionnalités Principales
 - ✅ **Module de sécurité core** (`security_core.py`) - Protection système maximale
-- ✅ **85+ chemins critiques protégés** - Basé sur documentation Microsoft
+- ✅ **200+ chemins critiques protégés** - Windows, Microsoft, apps tierces
 - ✅ **140+ fichiers système bloqués** - Noyau, boot, pilotes, registre
 - ✅ **Dry-Run obligatoire** - Prévisualisation avant toute action
 - ✅ **Protection anti-contournement** - Double validation de sécurité
@@ -355,9 +384,12 @@ Pour toute question ou problème :
 ---
 
 **Version actuelle:** MAJOR UPDATE  
-**Score de sécurité:** 78/100 🟢 (Très Bon)  
-**Dernière mise à jour:** Décembre 2024  
-**Statut:** Stable - Production Ready
+**Score de sécurité:** 85/100 🟢 (Très Bon) - **+7 pts**  
+**Statut:** Stable - Production Ready  
+**Améliorations récentes:**
+- Élimination PowerShell (+5 pts)
+- 31 tests unitaires, ~92% couverture (+1 pt)
+- Certificat auto-signé + guide complet (+1 pt)
 
 ---
 
@@ -404,7 +436,7 @@ Vous devez créditer l'auteur (UndKiMi) et inclure un lien vers le projet origin
 
 **Voir [LICENSE](LICENSE) pour les détails complets.**
 
-Pour toute demande d'utilisation commerciale, contactez: contact@example.com
+Pour toute demande d'utilisation commerciale, ouvrez une issue sur GitHub.
 
 ---
 

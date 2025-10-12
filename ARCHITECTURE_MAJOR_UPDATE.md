@@ -387,7 +387,6 @@ class MainPage:
 
 ---
 
-**Version:** 1.6.0  
-**Date:** 2025-01-12  
+**Version:** MAJOR UPDATE  
 **Auteur:** UndKiMi  
 **Licence:** CC BY-NC-SA 4.0

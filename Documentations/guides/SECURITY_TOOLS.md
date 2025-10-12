@@ -350,6 +350,5 @@ Si vous découvrez une vulnérabilité:
 
 ---
 
-**Version**: 1.0  
-**Dernière mise à jour**: 2025-10-12  
+**Version**: MAJOR UPDATE  
 **Auteur**: UndKiMi

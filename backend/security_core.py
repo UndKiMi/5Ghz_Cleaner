@@ -15,73 +15,378 @@ from pathlib import Path
 class WindowsSecurityCore:
     """Classe de sécurité immuable pour la protection du système Windows"""
     
-    # Chemins système ABSOLUMENT INTERDITS
+    # Chemins système ABSOLUMENT INTERDITS (200+ chemins protégés)
     CRITICAL_SYSTEM_PATHS = frozenset({
-        # Noyau Windows
+        # ========== NOYAU WINDOWS (CRITIQUE) ==========
         r'C:\Windows\System32',
         r'C:\Windows\SysWOW64',
         r'C:\Windows\WinSxS',
         r'C:\Windows\servicing',
-        
-        # Boot et démarrage
-        r'C:\Windows\Boot',
         r'C:\Windows\System',
+        
+        # ========== BOOT ET DÉMARRAGE (CRITIQUE) ==========
+        r'C:\Windows\Boot',
         r'C:\Boot',
         r'C:\EFI',
         r'C:\Recovery',
+        r'C:\Windows\ELAMBKUP',
+        r'C:\System Volume Information',
+        r'C:\$Recycle.Bin',
         
-        # Pilotes et matériel
+        # ========== PILOTES ET MATÉRIEL (CRITIQUE) ==========
         r'C:\Windows\System32\drivers',
         r'C:\Windows\System32\DriverStore',
         r'C:\Windows\inf',
+        r'C:\Windows\System32\DRVSTORE',
+        r'C:\Windows\System32\DriverState',
         
-        # Polices et ressources
+        # ========== POLICES ET RESSOURCES ==========
         r'C:\Windows\Fonts',
         r'C:\Windows\Resources',
         r'C:\Windows\Cursors',
+        r'C:\Windows\Media',
+        r'C:\Windows\Globalization',
+        r'C:\Windows\IME',
+        r'C:\Windows\InputMethod',
         
-        # Assemblies et composants
+        # ========== ASSEMBLIES ET COMPOSANTS .NET ==========
         r'C:\Windows\assembly',
         r'C:\Windows\Microsoft.NET',
+        r'C:\Program Files\dotnet',
+        r'C:\Program Files (x86)\dotnet',
+        r'C:\Program Files\Reference Assemblies',
+        r'C:\Program Files (x86)\Reference Assemblies',
         
-        # Configuration et registre
+        # ========== CONFIGURATION ET REGISTRE (CRITIQUE) ==========
         r'C:\Windows\Registration',
         r'C:\Windows\PolicyDefinitions',
         r'C:\Windows\System32\config',
+        r'C:\Windows\System32\GroupPolicy',
+        r'C:\Windows\System32\GroupPolicyUsers',
+        r'C:\ProgramData\Microsoft\Group Policy',
         
-        # Applications système
+        # ========== APPLICATIONS SYSTÈME WINDOWS ==========
         r'C:\Windows\SystemApps',
         r'C:\Windows\ImmersiveControlPanel',
         r'C:\Windows\ShellExperiences',
         r'C:\Windows\ShellComponents',
+        r'C:\Windows\Containers',
+        r'C:\Windows\SystemResources',
+        r'C:\Windows\FileManager',
+        r'C:\Windows\PrintDialog',
+        r'C:\Windows\Vss',
         
-        # Programmes
+        # ========== PROGRAMMES (PROTECTION LARGE) ==========
         r'C:\Program Files',
         r'C:\Program Files (x86)',
         r'C:\ProgramData\Microsoft\Windows',
+        r'C:\Windows\System32\WindowsPowerShell',
+        r'C:\Windows\SysWOW64\WindowsPowerShell',
         
-        # Utilisateurs système
+        # ========== UTILISATEURS SYSTÈME ==========
         r'C:\Users\Default',
         r'C:\Users\Public',
         r'C:\Users\All Users',
+        r'C:\ProgramData\Default',
         
-        # Logs système critiques
+        # ========== LOGS SYSTÈME CRITIQUES ==========
         r'C:\Windows\Logs\CBS',
         r'C:\Windows\Logs\DISM',
         r'C:\Windows\Logs\DPX',
         r'C:\Windows\Logs\MoSetup',
+        r'C:\Windows\Logs\WindowsUpdate',
+        r'C:\Windows\Panther',
+        r'C:\Windows\System32\LogFiles',
+        r'C:\Windows\System32\winevt',
         
-        # Windows Update
+        # ========== WINDOWS UPDATE (CRITIQUE) ==========
         r'C:\Windows\SoftwareDistribution\DataStore',
         r'C:\Windows\SoftwareDistribution\SelfUpdate',
+        r'C:\Windows\SoftwareDistribution\Download',
+        r'C:\Windows\WinSxS\Backup',
+        r'C:\Windows\WinSxS\ManifestCache',
         
-        # Sécurité Windows Defender
+        # ========== SÉCURITÉ WINDOWS DEFENDER ==========
         r'C:\ProgramData\Microsoft\Windows Defender',
         r'C:\Program Files\Windows Defender',
+        r'C:\Program Files\Windows Defender Advanced Threat Protection',
+        r'C:\ProgramData\Microsoft\Windows Defender Advanced Threat Protection',
+        r'C:\Windows\System32\SecurityHealth',
         
-        # Activation et licence
+        # ========== ACTIVATION ET LICENCE (CRITIQUE) ==========
         r'C:\Windows\System32\spp',
         r'C:\Windows\ServiceProfiles',
+        r'C:\Windows\System32\slmgr',
+        r'C:\ProgramData\Microsoft\Windows\ClipSVC',
+        
+        # ========== MICROSOFT OFFICE (SI INSTALLÉ) ==========
+        r'C:\Program Files\Microsoft Office',
+        r'C:\Program Files (x86)\Microsoft Office',
+        r'C:\ProgramData\Microsoft\Office',
+        r'C:\Program Files\Common Files\Microsoft Shared',
+        r'C:\Program Files (x86)\Common Files\Microsoft Shared',
+        
+        # ========== MICROSOFT EDGE ==========
+        r'C:\Program Files (x86)\Microsoft\Edge',
+        r'C:\Program Files (x86)\Microsoft\EdgeCore',
+        r'C:\Program Files (x86)\Microsoft\EdgeUpdate',
+        r'C:\Program Files (x86)\Microsoft\EdgeWebView',
+        
+        # ========== MICROSOFT ONEDRIVE ==========
+        r'C:\Program Files\Microsoft OneDrive',
+        r'C:\Program Files (x86)\Microsoft OneDrive',
+        r'C:\ProgramData\Microsoft OneDrive',
+        
+        # ========== MICROSOFT TEAMS ==========
+        r'C:\Program Files\Microsoft\Teams',
+        r'C:\Program Files (x86)\Microsoft\Teams',
+        r'C:\ProgramData\Microsoft\Teams',
+        
+        # ========== WINDOWS STORE ET APPS ==========
+        r'C:\Program Files\WindowsApps',
+        r'C:\ProgramData\Microsoft\Windows\AppRepository',
+        r'C:\Windows\System32\AppLocker',
+        
+        # ========== HYPER-V ET VIRTUALISATION ==========
+        r'C:\ProgramData\Microsoft\Windows\Hyper-V',
+        r'C:\Program Files\Hyper-V',
+        r'C:\Windows\System32\vmms',
+        
+        # ========== WSL (WINDOWS SUBSYSTEM FOR LINUX) ==========
+        r'C:\Program Files\WSL',
+        r'C:\Windows\System32\lxss',
+        
+        # ========== BITLOCKER (CHIFFREMENT) ==========
+        r'C:\Windows\System32\BitLocker',
+        r'C:\ProgramData\Microsoft\Crypto',
+        
+        # ========== CERTIFICATS ET CRYPTOGRAPHIE (CRITIQUE) ==========
+        r'C:\Windows\System32\CatRoot',
+        r'C:\Windows\System32\CatRoot2',
+        r'C:\ProgramData\Microsoft\Crypto\RSA',
+        r'C:\ProgramData\Microsoft\Crypto\Keys',
+        
+        # ========== WINDOWS HELLO ET BIOMÉTRIE ==========
+        r'C:\Windows\System32\WinBioDatabase',
+        r'C:\Windows\System32\WinBioPlugIns',
+        
+        # ========== PARE-FEU WINDOWS ==========
+        r'C:\Windows\System32\LogFiles\Firewall',
+        r'C:\Windows\System32\wfp',
+        
+        # ========== RÉSEAU ET CONNECTIVITÉ ==========
+        r'C:\Windows\System32\NetworkList',
+        r'C:\Windows\System32\sru',
+        r'C:\ProgramData\Microsoft\Network',
+        
+        # ========== TÂCHES PLANIFIÉES ==========
+        r'C:\Windows\System32\Tasks',
+        r'C:\Windows\Tasks',
+        
+        # ========== APPLICATIONS MICROSOFT COURANTES ==========
+        # Visual Studio Code
+        r'C:\Program Files\Microsoft VS Code',
+        r'C:\Program Files (x86)\Microsoft VS Code',
+        
+        # Visual Studio
+        r'C:\Program Files\Microsoft Visual Studio',
+        r'C:\Program Files (x86)\Microsoft Visual Studio',
+        r'C:\ProgramData\Microsoft\VisualStudio',
+        
+        # SQL Server
+        r'C:\Program Files\Microsoft SQL Server',
+        r'C:\Program Files (x86)\Microsoft SQL Server',
+        
+        # .NET SDK
+        r'C:\Program Files\dotnet\sdk',
+        r'C:\Program Files (x86)\dotnet\sdk',
+        
+        # ========== APPLICATIONS TIERCES CRITIQUES ==========
+        # Navigateurs (données utilisateur protégées)
+        r'C:\Program Files\Google\Chrome',
+        r'C:\Program Files (x86)\Google\Chrome',
+        r'C:\Program Files\Mozilla Firefox',
+        r'C:\Program Files (x86)\Mozilla Firefox',
+        r'C:\Program Files\BraveSoftware',
+        
+        # Antivirus tiers
+        r'C:\Program Files\Avast Software',
+        r'C:\Program Files\AVG',
+        r'C:\Program Files\Kaspersky Lab',
+        r'C:\Program Files\Norton',
+        r'C:\Program Files\Bitdefender',
+        r'C:\Program Files\ESET',
+        r'C:\Program Files\Malwarebytes',
+        
+        # Suites bureautiques
+        r'C:\Program Files\LibreOffice',
+        r'C:\Program Files (x86)\LibreOffice',
+        
+        # Outils système critiques
+        r'C:\Program Files\7-Zip',
+        r'C:\Program Files\WinRAR',
+        r'C:\Program Files\Adobe',
+        r'C:\Program Files (x86)\Adobe',
+        
+        # Drivers GPU
+        r'C:\Program Files\NVIDIA Corporation',
+        r'C:\Program Files (x86)\NVIDIA Corporation',
+        r'C:\Program Files\AMD',
+        r'C:\Program Files\Intel',
+        
+        # ========== PROTECTION SUPPLÉMENTAIRE ==========
+        r'C:\Windows\Installer',
+        r'C:\Windows\Downloaded Program Files',
+        r'C:\Windows\System32\Com',
+        r'C:\Windows\System32\Dism',
+        r'C:\Windows\System32\Sysprep',
+        r'C:\Windows\System32\oobe',
+        r'C:\Windows\System32\Recovery',
+        r'C:\Windows\System32\restore',
+        r'C:\Windows\System32\Speech',
+        r'C:\Windows\System32\wbem',
+        r'C:\Windows\System32\WindowsInternal.Inbox.Shared',
+        r'C:\Windows\System32\WindowsInternal.Inbox.Media.Shared',
+        
+        # ========== COMPOSANTS WINDOWS ADDITIONNELS ==========
+        r'C:\Windows\System32\spool',
+        r'C:\Windows\System32\FxsTmp',
+        r'C:\Windows\System32\migwiz',
+        r'C:\Windows\System32\NDF',
+        r'C:\Windows\System32\Printing_Admin_Scripts',
+        r'C:\Windows\System32\ras',
+        r'C:\Windows\System32\Setup',
+        r'C:\Windows\System32\SMI',
+        r'C:\Windows\System32\sru',
+        r'C:\Windows\System32\Tasks_Migrated',
+        r'C:\Windows\System32\TPM',
+        r'C:\Windows\System32\Vault',
+        r'C:\Windows\System32\WCN',
+        r'C:\Windows\System32\WindowsPowerShell\v1.0',
+        r'C:\Windows\System32\Winevt\Logs',
+        r'C:\Windows\System32\WinMetadata',
+        
+        # ========== WINDOWS DEFENDER ADDITIONNEL ==========
+        r'C:\Windows\System32\WindowsPowerShell\v1.0\Modules\Defender',
+        r'C:\Windows\System32\WindowsPowerShell\v1.0\Modules\ConfigDefender',
+        
+        # ========== MICROSOFT APPLICATIONS ADDITIONNELLES ==========
+        # PowerToys
+        r'C:\Program Files\PowerToys',
+        
+        # Windows Terminal
+        r'C:\Program Files\WindowsApps\Microsoft.WindowsTerminal',
+        
+        # Microsoft 365
+        r'C:\Program Files\Microsoft 365',
+        r'C:\Program Files (x86)\Microsoft 365',
+        
+        # Outlook
+        r'C:\Program Files\Microsoft Office\root\Office16',
+        r'C:\Program Files (x86)\Microsoft Office\root\Office16',
+        
+        # SharePoint
+        r'C:\Program Files\Microsoft Office\root\Office16\GROOVE',
+        
+        # ========== APPLICATIONS TIERCES ADDITIONNELLES ==========
+        # Zoom
+        r'C:\Program Files\Zoom',
+        r'C:\Program Files (x86)\Zoom',
+        
+        # Slack
+        r'C:\Program Files\Slack',
+        
+        # Discord
+        r'C:\Program Files\Discord',
+        
+        # Skype
+        r'C:\Program Files\Microsoft\Skype for Desktop',
+        r'C:\Program Files (x86)\Microsoft\Skype for Desktop',
+        
+        # VLC
+        r'C:\Program Files\VideoLAN\VLC',
+        r'C:\Program Files (x86)\VideoLAN\VLC',
+        
+        # OBS Studio
+        r'C:\Program Files\obs-studio',
+        r'C:\Program Files (x86)\obs-studio',
+        
+        # Steam
+        r'C:\Program Files\Steam',
+        r'C:\Program Files (x86)\Steam',
+        
+        # Epic Games
+        r'C:\Program Files\Epic Games',
+        r'C:\Program Files (x86)\Epic Games',
+        
+        # Battle.net
+        r'C:\Program Files\Battle.net',
+        r'C:\Program Files (x86)\Battle.net',
+        
+        # ========== OUTILS DÉVELOPPEMENT ==========
+        # Git
+        r'C:\Program Files\Git',
+        r'C:\Program Files (x86)\Git',
+        
+        # Node.js
+        r'C:\Program Files\nodejs',
+        r'C:\Program Files (x86)\nodejs',
+        
+        # Python
+        r'C:\Program Files\Python',
+        r'C:\Program Files (x86)\Python',
+        
+        # JetBrains
+        r'C:\Program Files\JetBrains',
+        r'C:\Program Files (x86)\JetBrains',
+        
+        # Docker
+        r'C:\Program Files\Docker',
+        
+        # ========== SÉCURITÉ ADDITIONNELLE ==========
+        # Windows Security
+        r'C:\Windows\System32\smartscreen.exe',
+        r'C:\Windows\System32\SecurityHealthSystray.exe',
+        
+        # Certificats
+        r'C:\Windows\System32\CertEnroll',
+        r'C:\Windows\System32\certenroll',
+        
+        # ========== VIRTUALISATION ADDITIONNELLE ==========
+        # VirtualBox
+        r'C:\Program Files\Oracle\VirtualBox',
+        r'C:\Program Files (x86)\Oracle\VirtualBox',
+        
+        # VMware
+        r'C:\Program Files\VMware',
+        r'C:\Program Files (x86)\VMware',
+        
+        # ========== BASES DE DONNÉES ==========
+        # MySQL
+        r'C:\Program Files\MySQL',
+        r'C:\Program Files (x86)\MySQL',
+        
+        # PostgreSQL
+        r'C:\Program Files\PostgreSQL',
+        r'C:\Program Files (x86)\PostgreSQL',
+        
+        # MongoDB
+        r'C:\Program Files\MongoDB',
+        
+        # ========== SERVEURS WEB ==========
+        # Apache
+        r'C:\Program Files\Apache Software Foundation',
+        r'C:\Program Files (x86)\Apache Software Foundation',
+        
+        # XAMPP
+        r'C:\xampp',
+        
+        # ========== PROTECTION DONNÉES UTILISATEUR ==========
+        # Documents par défaut
+        r'C:\Users\Public\Documents',
+        r'C:\Users\Public\Pictures',
+        r'C:\Users\Public\Music',
+        r'C:\Users\Public\Videos',
     })
     
     # Dossiers protégés (noms uniquement)
@@ -138,6 +443,60 @@ class WindowsSecurityCore:
         # Logs système importants
         'setupapi.dev.log', 'setupapi.app.log', 'windowsupdate.log',
         'cbs.log', 'dism.log', 'panther.log',
+        
+        # DLLs système additionnelles
+        'comctl32.dll', 'comdlg32.dll', 'ws2_32.dll', 'wsock32.dll',
+        'netapi32.dll', 'wininet.dll', 'urlmon.dll', 'shlwapi.dll',
+        'version.dll', 'psapi.dll', 'imagehlp.dll', 'dbghelp.dll',
+        'setupapi.dll', 'cfgmgr32.dll', 'devobj.dll', 'umpnpmgr.dll',
+        'rpcrt4.dll', 'secur32.dll', 'crypt32.dll', 'wintrust.dll',
+        'bcrypt.dll', 'ncrypt.dll', 'cryptsp.dll', 'rsaenh.dll',
+        
+        # Processus système additionnels
+        'winlogon.exe', 'userinit.exe', 'logonui.exe', 'wininit.exe',
+        'spoolsv.exe', 'lsm.exe', 'audiodg.exe', 'wuauclt.exe',
+        'taskmgr.exe', 'regedit.exe', 'cmd.exe', 'powershell.exe',
+        'mmc.exe', 'control.exe', 'rundll32.exe', 'regsvr32.exe',
+        
+        # Fichiers réseau
+        'tcpip.sys', 'afd.sys', 'netbt.sys', 'tdx.sys',
+        'wfplwfs.sys', 'ndis.sys', 'pacer.sys', 'netio.sys',
+        
+        # Fichiers audio/vidéo système
+        'ksecdd.sys', 'ksecpkg.sys', 'ksuser.dll', 'avrt.dll',
+        'audioses.dll', 'audioendpointbuilder.dll', 'audiosrv.dll',
+        
+        # Fichiers graphiques
+        'dxgi.dll', 'd3d11.dll', 'd3d12.dll', 'd3d9.dll',
+        'dxva2.dll', 'dwmapi.dll', 'dwmcore.dll', 'uxtheme.dll',
+        
+        # Fichiers de sécurité
+        'lsasrv.dll', 'samsrv.dll', 'msv1_0.dll', 'kerberos.dll',
+        'schannel.dll', 'credssp.dll', 'wdigest.dll', 'tspkg.dll',
+        
+        # Fichiers BitLocker
+        'fveapi.dll', 'fvecpl.dll', 'fvewiz.dll', 'bdesvc.dll',
+        'fvevol.sys', 'fveapibase.dll',
+        
+        # Fichiers Windows Update additionnels
+        'wuaueng.dll', 'wuauclt.exe', 'wuapp.exe', 'wusa.exe',
+        'trustedinstaller.exe', 'tiworker.exe', 'dismhost.exe',
+        
+        # Fichiers PowerShell
+        'powershell.exe', 'pwsh.exe', 'powershell_ise.exe',
+        'system.management.automation.dll',
+        
+        # Fichiers .NET
+        'mscorlib.dll', 'clr.dll', 'clrjit.dll', 'mscoree.dll',
+        'mscoreei.dll', 'fusion.dll', 'clrcompression.dll',
+        
+        # Fichiers COM/DCOM
+        'ole32.dll', 'oleaut32.dll', 'combase.dll', 'rpcss.dll',
+        'dcomlaunch', 'comsvcs.dll', 'clbcatq.dll',
+        
+        # Fichiers impression
+        'spoolss.dll', 'localspl.dll', 'win32spl.dll', 'printui.dll',
+        'winspool.drv', 'compstui.dll',
     })
     
     # Extensions ABSOLUMENT PROTÉGÉES

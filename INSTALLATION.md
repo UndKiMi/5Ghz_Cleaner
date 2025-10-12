@@ -1,4 +1,4 @@
-# Guide d'Installation - 5GH'z Cleaner v1.6.0
+# Guide d'Installation - 5GH'z Cleaner MAJOR UPDATE
 
 ## 📋 Prérequis
 
@@ -204,11 +204,11 @@ py main.py
 
 ### Utilisation des Ressources
 
-**Avant v1.6.0:**
+**Avant MAJOR UPDATE:**
 - Mémoire: ~150 MB
 - CPU: Variable
 
-**Après v1.6.0:**
+**Après MAJOR UPDATE:**
 - Mémoire: ~120 MB (-20%)
 - CPU: Optimisée (tous les cœurs)
 - Monitoring: < 1% CPU overhead
@@ -232,9 +232,9 @@ py main.py
 
 ## 🔄 Mise à Jour
 
-### Depuis v1.5.x
+### Mise à Jour
 
-1. Télécharger v1.6.0
+1. Télécharger MAJOR UPDATE
 2. Remplacer les fichiers
 3. Installer les dépendances (si nouvelles)
 4. Lancer l'application
@@ -251,7 +251,7 @@ Author: UndKiMi
 
 Dans le footer de l'application:
 ```
-5GH'z Cleaner v1.6.0
+5GH'z Cleaner MAJOR UPDATE
 ```
 
 ## 📞 Support
@@ -259,7 +259,7 @@ Dans le footer de l'application:
 ### Documentation
 - `README.md` - Guide général
 - `PRIVACY.md` - Politique de confidentialité
-- `CHANGELOG_v1.6.0.md` - Nouveautés v1.6.0
+- `CHANGELOG.md` - Nouveautés MAJOR UPDATE
 - `INSTALLATION.md` - Ce fichier
 
 ### Vérification
@@ -287,7 +287,6 @@ Dans le footer de l'application:
 
 ---
 
-**Version:** 1.6.0  
-**Date:** 2025-01-12  
+**Version:** MAJOR UPDATE  
 **Auteur:** UndKiMi  
 **Licence:** CC BY-NC-SA 4.0

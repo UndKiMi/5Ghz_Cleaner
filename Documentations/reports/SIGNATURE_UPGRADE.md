@@ -57,14 +57,14 @@
    {
      "version": "1.6.0",
      "author": "UndKiMi",
-     "generated_at": "2025-10-12T20:XX:XX",
+     "generated_at": "T20:XX:XX",
      "public_key_hash": "5GHZ_CLEANER_UNDKIMI_2025_OFFICIAL",
      "files": {
        "main.py": {
          "sha256": "...",
          "sha512": "...",
          "size": 8025,
-         "modified": "2025-10-12T..."
+         "modified": "T..."
        },
        ...
      },
@@ -272,5 +272,4 @@ La signature numérique a été **améliorée de 8/10 à 10/10**, apportant:
 ---
 
 **Auteur**: UndKiMi  
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0

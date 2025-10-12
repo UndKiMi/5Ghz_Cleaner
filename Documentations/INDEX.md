@@ -4,8 +4,8 @@
 
 Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
 
-**Version actuelle :** 1.5  
-**Score de sécurité :** 95/100 🟢 (Excellent)
+**Version actuelle :** MAJOR UPDATE  
+**Score de sécurité :** 83/100 🟢 (Très Bon)
 
 ---
 
@@ -61,7 +61,7 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
   - Point de restauration
   - Workflow GitHub Actions
   - API natives Windows
-- **Ajouté le :** 2025-10-12
+- **Ajouté le :** 
 - **Public :** Tous
 - **Priorité :** ⭐⭐⭐⭐⭐
 
@@ -72,7 +72,7 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
   - Installation étape par étape
   - Tests de sécurité
   - Dépannage
-- **Ajouté le :** 2025-10-12
+- **Ajouté le :** 
 - **Public :** Utilisateurs avancés
 - **Priorité :** ⭐⭐⭐
 
@@ -84,7 +84,7 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
   - Fonctions disponibles
   - Flux de décision
   - Tests
-- **Ajouté le :** 2025-10-12
+- **Ajouté le :** 
 - **Score :** +10 points (75/100)
 - **Public :** Développeurs
 - **Priorité :** ⭐⭐⭐⭐
@@ -97,7 +97,7 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
   - Opérations sans/avec admin
   - Exemples d'utilisation
   - Tests
-- **Ajouté le :** 2025-10-12
+- **Ajouté le :** 
 - **Score :** +11 points (86/100)
 - **Public :** Développeurs + Utilisateurs avancés
 - **Priorité :** ⭐⭐⭐⭐⭐
@@ -110,7 +110,7 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
   - États du bouton (grisé → vert)
   - Flux utilisateur
   - Protection anti-spam
-- **Ajouté le :** 2025-10-12
+- **Ajouté le :** 
 - **Score :** +2 points (88/100)
 - **Public :** Développeurs + UX designers
 - **Priorité :** ⭐⭐⭐⭐
@@ -122,7 +122,7 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
   - 3 protections implémentées
   - Tests de validation
   - Comparaison avant/après
-- **Ajouté le :** 2025-10-12
+- **Ajouté le :** 
 - **Type :** Bugfix
 - **Public :** Développeurs
 - **Priorité :** ⭐⭐⭐
@@ -135,7 +135,7 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
   - Dialogue de sécurité
   - Tests (7/7 passés)
   - Logs de sécurité
-- **Ajouté le :** 2025-10-12
+- **Ajouté le :** 
 - **Score :** +1 point (89/100)
 - **Public :** Développeurs + Auditeurs sécurité
 - **Priorité :** ⭐⭐⭐⭐⭐
@@ -144,14 +144,9 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
 
 ## 📊 Progression du Projet
 
-| Version | Documentation | Score | Date |
-|---------|---------------|-------|------|
-| 1.0 | - | 42/100 ❌ | - |
-| 1.1 | SERVICES_DEPENDENCIES.md | 75/100 🟡 | 2025-10-12 |
-| 1.2 | ELEVATION_DRYRUN.md | 86/100 🟢 | 2025-10-12 |
-| 1.3 | DRY_RUN_BUTTON.md | 88/100 🟢 | 2025-10-12 |
-| 1.4 | ANTI_BYPASS_SECURITY.md | 89/100 🟢 | 2025-10-12 |
-| 1.5 | SECURITY_TOOLS.md + SANDBOX | **95/100** 🟢 | 2025-10-12 |
+| Version | Documentation | Score |
+|---------|---------------|-------|
+| MAJOR UPDATE | Documentation complète | **83/100** 🟢 |
 
 ---
 
@@ -254,8 +249,7 @@ Documentations/
 - **Total documentations :** 11 fichiers (9 actifs + 2 nouveaux)
 - **Pages totales :** ~120 pages
 - **Lignes de documentation :** ~4,000 lignes
-- **Score actuel :** 95/100 🟢 (Excellent)
-- **Dernière mise à jour :** 2025-10-12
+- **Score actuel :** 85/100 🟢 (Très Bon)
 
 ---
 
@@ -285,11 +279,9 @@ R : Voir [SANDBOX_WIN32_ISOLATION.md](./SANDBOX_WIN32_ISOLATION.md)
 
 - **Repository :** https://github.com/UndKiMi/5Ghz_Cleaner
 - **Auteur :** UndKiMi
-- **Version :** 1.5
-- **Score :** 95/100 🟢
+- **Version :** MAJOR UPDATE
+- **Score :** 83/100 🟢
 
 ---
 
-**Index créé le :** 2025-10-12  
-**Dernière mise à jour :** 2025-10-12  
-**Version :** 1.5
+**Version :** MAJOR UPDATE

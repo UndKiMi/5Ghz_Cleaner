@@ -355,6 +355,5 @@ Puis exécutez 5GH'z Cleaner dans la sandbox Windows (environnement jetable).
 
 ---
 
-**Version**: 1.0  
-**Dernière mise à jour**: 2025-10-12  
+**Version**: MAJOR UPDATE  
 **Auteur**: UndKiMi

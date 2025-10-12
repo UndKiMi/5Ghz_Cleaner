@@ -349,6 +349,6 @@ Le bug de spam-click est maintenant **complètement résolu** avec une **triple 
 
 ---
 
-**Fix appliqué le:** 2025-10-12  
+**Fix appliqué le:**   
 **Version:** 1.3.1  
 **Type:** Bugfix (Anti-spam)

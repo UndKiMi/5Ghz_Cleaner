@@ -1,4 +1,4 @@
-# Résumé des Modifications v1.6.0
+# Résumé des Modifications - MAJOR UPDATE
 
 ## ✅ Tâches Accomplies
 
@@ -108,10 +108,10 @@ py backend\signature_manager.py --verify
 
 1. ✅ `backend/hardware_monitor.py` - Module de monitoring matériel (320 lignes)
 2. ✅ `PRIVACY.md` - Politique de confidentialité
-3. ✅ `CHANGELOG_v1.6.0.md` - Journal des modifications
+3. ✅ `CHANGELOG_MAJOR_UPDATE.md` - Journal des modifications
 4. ✅ `INSTALLATION.md` - Guide d'installation
 5. ✅ `test_hardware_monitor.py` - Script de test
-6. ✅ `SUMMARY_v1.6.0.md` - Ce fichier
+6. ✅ `SUMMARY_MAJOR_UPDATE.md` - Ce fichier
 
 ## 📝 Fichiers Modifiés
 
@@ -160,12 +160,12 @@ Utilise les bibliothèques déjà présentes:
 
 ## 📊 Performance
 
-### Avant v1.6.0
+### Avant MAJOR UPDATE
 - Mémoire: ~150 MB
 - CPU: Variable
 - Pas de monitoring matériel
 
-### Après v1.6.0
+### Après MAJOR UPDATE
 - Mémoire: ~120 MB (-20%)
 - CPU: Optimisée (tous les cœurs)
 - Monitoring: < 1% CPU overhead
@@ -255,9 +255,9 @@ Utilise les bibliothèques déjà présentes:
 ### Documentation
 - `README.md` - Guide général
 - `PRIVACY.md` - Politique de confidentialité
-- `CHANGELOG_v1.6.0.md` - Nouveautés
+- `CHANGELOG_MAJOR_UPDATE.md` - Nouveautés
 - `INSTALLATION.md` - Installation
-- `SUMMARY_v1.6.0.md` - Ce fichier
+- `SUMMARY_MAJOR_UPDATE.md` - Ce fichier
 
 ### Contact
 - GitHub: https://github.com/UndKiMi
@@ -279,7 +279,6 @@ Utilise les bibliothèques déjà présentes:
 
 ---
 
-**Version:** 1.6.0  
-**Date:** 2025-01-12  
+**Version:** MAJOR UPDATE  
 **Auteur:** UndKiMi  
 **Licence:** CC BY-NC-SA 4.0

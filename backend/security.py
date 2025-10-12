@@ -159,18 +159,114 @@ class SecurityManager:
     
     @staticmethod
     def get_file_signature(filepath):
-        """Vérifie la signature numérique d'un fichier"""
+        """
+        Vérifie la signature numérique d'un fichier via API native Windows (WinVerifyTrust)
+        SÉCURITÉ: Utilise ctypes pour appeler directement l'API Windows
+        
+        Note: Cette fonction est rarement utilisée et sert principalement à vérifier
+        l'intégrité des fichiers système. Elle retourne "Unknown" en cas d'erreur
+        pour ne pas bloquer l'application.
+        """
         try:
-            result = subprocess.run(
-                ['powershell', '-Command', 
-                 f'(Get-AuthenticodeSignature "{filepath}").Status'],
-                capture_output=True,
-                text=True,
-                timeout=10
+            import ctypes
+            from ctypes import wintypes
+            import uuid
+            
+            # Constantes WinVerifyTrust
+            WTD_UI_NONE = 2
+            WTD_REVOKE_NONE = 0
+            WTD_CHOICE_FILE = 1
+            WTD_STATEACTION_VERIFY = 1
+            WTD_STATEACTION_CLOSE = 2
+            
+            # GUID pour WINTRUST_ACTION_GENERIC_VERIFY_V2
+            class GUID(ctypes.Structure):
+                _fields_ = [
+                    ("Data1", wintypes.DWORD),
+                    ("Data2", wintypes.WORD),
+                    ("Data3", wintypes.WORD),
+                    ("Data4", wintypes.BYTE * 8)
+                ]
+            
+            # Structures Windows
+            class WINTRUST_FILE_INFO(ctypes.Structure):
+                _fields_ = [
+                    ("cbStruct", wintypes.DWORD),
+                    ("pcwszFilePath", wintypes.LPCWSTR),
+                    ("hFile", wintypes.HANDLE),
+                    ("pgKnownSubject", ctypes.POINTER(GUID))
+                ]
+            
+            class WINTRUST_DATA(ctypes.Structure):
+                _fields_ = [
+                    ("cbStruct", wintypes.DWORD),
+                    ("pPolicyCallbackData", ctypes.c_void_p),
+                    ("pSIPClientData", ctypes.c_void_p),
+                    ("dwUIChoice", wintypes.DWORD),
+                    ("fdwRevocationChecks", wintypes.DWORD),
+                    ("dwUnionChoice", wintypes.DWORD),
+                    ("pFile", ctypes.POINTER(WINTRUST_FILE_INFO)),
+                    ("dwStateAction", wintypes.DWORD),
+                    ("hWVTStateData", wintypes.HANDLE),
+                    ("pwszURLReference", wintypes.LPCWSTR),
+                    ("dwProvFlags", wintypes.DWORD),
+                    ("dwUIContext", wintypes.DWORD)
+                ]
+            
+            # Créer le GUID pour WINTRUST_ACTION_GENERIC_VERIFY_V2
+            action_guid = GUID()
+            action_guid.Data1 = 0x00AAC56B
+            action_guid.Data2 = 0xCD44
+            action_guid.Data3 = 0x11d0
+            action_guid.Data4 = (wintypes.BYTE * 8)(0x8C, 0xC2, 0x00, 0xC0, 0x4F, 0xC2, 0x95, 0xEE)
+            
+            # Initialiser les structures
+            file_info = WINTRUST_FILE_INFO()
+            file_info.cbStruct = ctypes.sizeof(WINTRUST_FILE_INFO)
+            file_info.pcwszFilePath = filepath
+            file_info.hFile = None
+            file_info.pgKnownSubject = None
+            
+            trust_data = WINTRUST_DATA()
+            trust_data.cbStruct = ctypes.sizeof(WINTRUST_DATA)
+            trust_data.pPolicyCallbackData = None
+            trust_data.pSIPClientData = None
+            trust_data.dwUIChoice = WTD_UI_NONE
+            trust_data.fdwRevocationChecks = WTD_REVOKE_NONE
+            trust_data.dwUnionChoice = WTD_CHOICE_FILE
+            trust_data.pFile = ctypes.pointer(file_info)
+            trust_data.dwStateAction = WTD_STATEACTION_VERIFY
+            trust_data.hWVTStateData = None
+            trust_data.pwszURLReference = None
+            trust_data.dwProvFlags = 0
+            trust_data.dwUIContext = 0
+            
+            # Appeler WinVerifyTrust
+            wintrust = ctypes.windll.wintrust
+            result = wintrust.WinVerifyTrust(
+                None,
+                ctypes.byref(action_guid),
+                ctypes.byref(trust_data)
             )
             
-            return result.stdout.strip()
-        except:
+            # Nettoyer (fermer le handle)
+            trust_data.dwStateAction = WTD_STATEACTION_CLOSE
+            wintrust.WinVerifyTrust(None, ctypes.byref(action_guid), ctypes.byref(trust_data))
+            
+            # Interpréter le résultat
+            if result == 0:
+                return "Valid"
+            elif result == 0x800B0100:
+                return "NotSigned"
+            elif result == 0x800B0109:
+                return "NotTrusted"
+            elif result == 0x80096010:
+                return "Invalid"
+            else:
+                return f"Error_{hex(result)}"
+                
+        except Exception as e:
+            print(f"[WARNING] Signature verification failed: {e}")
             return "Unknown"
 
 

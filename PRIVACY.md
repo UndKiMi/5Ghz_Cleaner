@@ -1,8 +1,10 @@
-# Politique de Confidentialité - 5GH'z Cleaner
+# 🔐 Politique de Confidentialité - 5GH'z Cleaner
 
-## 🔒 Engagement de Confidentialité
+## 📋 Vue d'ensemble
 
-**5GH'z Cleaner** est conçu avec la confidentialité comme priorité absolue.
+**5GH'z Cleaner respecte votre vie privée de manière absolue.**
+
+**NOTRE ENGAGEMENT:** Respect total de la vie privée de chaque utilisateur - c'est notre point d'honneur. **5GH'z Cleaner** est conçu avec la confidentialité comme priorité absolue.
 
 ### ✅ Garanties de Confidentialité
 
@@ -89,7 +91,6 @@ Pour toute question concernant la confidentialité:
 
 ---
 
-**Dernière mise à jour**: 2025-01-12  
-**Version**: 1.6.0
+**Version**: MAJOR UPDATE
 
 **Engagement**: Aucune donnée utilisateur ne sera jamais collectée, stockée ou transmise sans consentement explicite.

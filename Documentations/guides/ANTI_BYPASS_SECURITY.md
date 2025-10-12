@@ -380,6 +380,6 @@ La protection anti-contournement est maintenant **pleinement opérationnelle** a
 
 ---
 
-**Protection implémentée le:** 2025-10-12  
+**Protection implémentée le:**   
 **Version:** 1.4  
 **Type:** Sécurité Critique

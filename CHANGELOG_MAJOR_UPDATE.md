@@ -201,6 +201,5 @@ Aucune action requise. Les nouvelles fonctionnalités sont automatiquement dispo
 ---
 
 **Version**: 1.6.0  
-**Date**: 2025-01-12  
 **Auteur**: UndKiMi  
 **Licence**: CC BY-NC-SA 4.0

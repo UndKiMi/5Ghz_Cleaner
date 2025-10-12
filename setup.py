@@ -14,7 +14,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="5ghz-cleaner",
-    version="1.6.0",
+    version="MAJOR_UPDATE",
     author="UndKiMi",
     author_email="contact@example.com",
     description="Windows Cleaning and Optimization Tool with Maximum Security",

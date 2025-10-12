@@ -2,7 +2,7 @@
 
 ## ✅ SCORE PARFAIT: 115/115 (100%)
 
-Date: 12 Octobre 2025  
+  
 Auteur: UndKiMi  
 Version: 1.6.0
 
@@ -302,7 +302,6 @@ py main.py
 ---
 
 **Auteur**: UndKiMi  
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0  
 **Score**: 115/115 (100%) 🎯  
 **Status**: ✅ PERFECTION ATTEINTE

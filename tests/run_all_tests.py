@@ -36,7 +36,7 @@ def main():
     """Lance tous les tests"""
     print("\n")
     print("="*80)
-    print("SUITE DE TESTS COMPLETE - 5GHz Cleaner v1.6.0")
+    print("SUITE DE TESTS COMPLETE - 5GHz Cleaner MAJOR UPDATE")
     print("="*80)
     print()
     

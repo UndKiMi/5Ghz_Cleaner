@@ -2,7 +2,7 @@
 
 ## ✅ TOUTES LES AMÉLIORATIONS COMPLÉTÉES
 
-Date: 12 Octobre 2025  
+  
 Auteur: UndKiMi  
 Version: 1.6.0
 
@@ -332,7 +332,6 @@ py main.py --dry-run
 ---
 
 **Auteur**: UndKiMi  
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0  
 **Score**: 97/100 🟢  
 **Status**: ✅ PRODUCTION READY

@@ -394,6 +394,6 @@ Le système de **prévisualisation obligatoire** est maintenant implémenté et 
 
 ---
 
-**Documentation générée le:** 2025-10-12  
+**Documentation générée le:**   
 **Version:** 1.3  
 **Auteur:** 5GH'z Cleaner Team

@@ -2,7 +2,6 @@
 
 ## 🎯 Résumé Exécutif
 
-**Date**: 12 Octobre 2025  
 **Version Auditée**: 1.6.0  
 **Auditeur**: UndKiMi  
 **Durée de l'Audit**: 4 heures  
@@ -591,7 +590,6 @@ sphinx-apidoc -o docs/api src/
 ---
 
 **Auditeur**: UndKiMi  
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0  
 **Durée Audit**: 4 heures  
 **Score**: 115/115 (100%) 🎯  

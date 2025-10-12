@@ -2,7 +2,6 @@
 
 ## 📋 Informations
 
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0  
 **Auditeur**: UndKiMi  
 **Référence**: CVE 2024+, Microsoft Security Response Center
@@ -530,7 +529,6 @@ psutil==5.9.8
 ---
 
 **Auditeur**: UndKiMi  
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0  
 **Score**: 95/100 🟢  
 **Status**: ✅ APPROUVÉ

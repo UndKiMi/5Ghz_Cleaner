@@ -5,7 +5,12 @@ Vérifie qu'aucune donnée utilisateur n'est envoyée sans consentement
 import socket
 import os
 import sys
+import io
 from datetime import datetime
+
+# Configurer l'encodage UTF-8 pour la console Windows
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 
 class TelemetryChecker:

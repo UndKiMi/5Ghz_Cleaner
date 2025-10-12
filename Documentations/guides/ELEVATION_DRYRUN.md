@@ -444,6 +444,6 @@ Les fonctionnalités d'**élévation conditionnelle** et de **mode dry-run** son
 
 ---
 
-**Documentation générée le:** 2025-10-12  
+**Documentation générée le:**   
 **Version:** 1.2  
 **Auteur:** 5GH'z Cleaner Team

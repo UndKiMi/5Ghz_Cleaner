@@ -2,7 +2,7 @@
 
 ## ✅ TOUTES LES TÂCHES COMPLÉTÉES
 
-Date: 12 Octobre 2025  
+  
 Auteur: UndKiMi  
 Version: 1.6.0
 
@@ -364,6 +364,5 @@ L'application 5GHz Cleaner v1.6.0 est maintenant:
 ---
 
 **Auteur**: UndKiMi  
-**Date**: 12 Octobre 2025  
 **Version**: 1.6.0  
 **Status**: ✅ PRODUCTION READY

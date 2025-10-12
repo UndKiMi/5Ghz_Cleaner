@@ -68,7 +68,7 @@ def generate_checksums_for_dist():
     
     checksums = {
         "generated_at": datetime.now().isoformat(),
-        "generator_version": "1.0.0",
+        "generator_version": "MAJOR_UPDATE",
         "files": []
     }
     

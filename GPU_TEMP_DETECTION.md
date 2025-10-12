@@ -169,7 +169,7 @@ Cela évite le spam dans la console.
 
 ## 🎯 Résumé
 
-### Améliorations v1.6.0
+### Améliorations MAJOR UPDATE
 
 1. ✅ **3 méthodes** de détection GPU (au lieu de 1)
 2. ✅ **3 méthodes** de détection température CPU (au lieu de 1)
@@ -193,6 +193,5 @@ Cela évite le spam dans la console.
 
 ---
 
-**Version:** 1.6.0  
-**Date:** 2025-01-12  
+**Version:** MAJOR UPDATE  
 **Auteur:** UndKiMi
