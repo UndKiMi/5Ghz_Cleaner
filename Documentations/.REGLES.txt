@@ -1,0 +1,72 @@
+================================================================================
+                    RÈGLES DE DOCUMENTATION
+                         5GH'z Cleaner
+================================================================================
+
+RÈGLE #1 : EMPLACEMENT
+=======================
+
+TOUTES les documentations DOIVENT être créées dans ce dossier :
+    Documentations/
+
+Aucune exception.
+
+EXEMPLES
+========
+
+✅ CORRECT :
+    Documentations/NOUVELLE_FONCTIONNALITE.md
+    Documentations/FIX_BUG_XYZ.md
+    Documentations/GUIDE_UTILISATEUR.md
+
+❌ INCORRECT :
+    NOUVELLE_FONCTIONNALITE.md (à la racine)
+    docs/GUIDE.md (mauvais dossier)
+    documentation/README.md (mauvais nom de dossier)
+
+RÈGLE #2 : NOMMAGE
+===================
+
+Format : MAJUSCULES_AVEC_UNDERSCORES.md
+
+✅ CORRECT :
+    SERVICES_DEPENDENCIES.md
+    ANTI_BYPASS_SECURITY.md
+    FIX_ANTI_SPAM.md
+
+❌ INCORRECT :
+    services-dependencies.md
+    antiBypassSecurity.md
+    fix_anti_spam.txt
+
+RÈGLE #3 : MISE À JOUR INDEX
+=============================
+
+Après création d'un nouveau document :
+1. Ajouter une entrée dans INDEX.md
+2. Mettre à jour README.md (racine) si pertinent
+3. Commit Git avec message descriptif
+
+RÈGLE #4 : STRUCTURE
+=====================
+
+Chaque document doit contenir :
+- Titre avec emoji
+- Vue d'ensemble
+- Contenu détaillé
+- Tests (si applicable)
+- Impact sur le score
+- Conclusion
+- Footer (date, version, auteur)
+
+RÈGLE #5 : LIENS
+=================
+
+Utiliser des liens relatifs :
+    [Autre doc](./AUTRE_DOCUMENT.md)
+
+Pas de liens absolus.
+
+================================================================================
+Ces règles garantissent une documentation cohérente et maintenable.
+================================================================================

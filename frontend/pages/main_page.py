@@ -515,21 +515,13 @@ class MainPage:
             
             # Débloquer le bouton de nettoyage
             self.dry_run_completed = True
-            self.action_button.disabled = False
-            self.action_button.bgcolor = Colors.ACCENT_PRIMARY
-            self.action_button.color = "#ffffff"
             
-            # Réactiver le bouton dry-run
-            self.dry_run_button.disabled = False
-            self.dry_run_button.text = "Prévisualiser à nouveau"
+            # Sauvegarder les données de prévisualisation
+            self.preview_data = preview
             
-            # Mettre à jour le statut
-            total_files = preview['total_files']
-            total_size_mb = preview['total_size_mb']
-            self.status_text.value = f"✅ Prévisualisation terminée : {total_files} éléments, {total_size_mb:.2f} MB à libérer. Vous pouvez maintenant lancer le nettoyage."
-            self.status_text.color = Colors.SUCCESS
-            
-            self.page.update()
+            # Afficher la page de prévisualisation avec sélection
+            print("[INFO] Affichage de la page de prévisualisation...")
+            self._show_preview_page(preview)
             
         except Exception as ex:
             print(f"[ERROR] Dry-run failed: {ex}")
@@ -546,6 +538,39 @@ class MainPage:
         
         finally:
             self.cleaning_in_progress = False
+    
+    def _show_preview_page(self, preview_data):
+        """Affiche la page de prévisualisation avec sélection"""
+        try:
+            # Animation de sortie de la page actuelle
+            if hasattr(self, 'main_container'):
+                self.main_container.opacity = 0
+                self.page.update()
+            
+            import time
+            time.sleep(0.3)
+            
+            # Importer et créer la page de prévisualisation
+            from frontend.pages.preview_page import PreviewPage
+            
+            preview_page = PreviewPage(self.page, self.app, preview_data)
+            
+            # Remplacer le contenu de la page
+            self.page.controls.clear()
+            self.page.add(preview_page.build())
+            self.page.update()
+            
+            print("[SUCCESS] Page de prévisualisation affichée")
+            
+        except Exception as ex:
+            print(f"[ERROR] Failed to show preview page: {ex}")
+            import traceback
+            traceback.print_exc()
+            
+            # En cas d'erreur, réactiver les boutons
+            self.dry_run_button.disabled = False
+            self.dry_run_button.text = "Prévisualiser le nettoyage"
+            self.page.update()
     
     def _show_security_warning(self):
         """Affiche un avertissement de sécurité en cas de tentative de contournement"""
