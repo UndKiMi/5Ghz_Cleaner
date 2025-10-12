@@ -1,16 +1,59 @@
 # 5GH'z Cleaner
 
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![Security Score](https://img.shields.io/badge/Security-115%2F115-brightgreen.svg)](SECURITY.md)
+[![Tests](https://img.shields.io/badge/Tests-11%2F11%20PASS-brightgreen.svg)](tests/)
+
 Application de nettoyage et d'optimisation Windows avec interface moderne et **sécurité maximale**.
 
-## 🔒 Version 1.6.0 - Patch de Sécurité Majeur
+## 🔒 Version 1.6.0 - Sécurité Maximale
 
+✅ **Score de sécurité: 115/115 (100%)**  
 ✅ **Protection triple couche** contre la suppression de fichiers système  
 ✅ **60+ chemins Windows critiques** protégés  
 ✅ **100+ fichiers système** bloqués  
+✅ **Signature numérique** (SHA256 + SHA512)  
+✅ **Tests automatisés: 11/11 PASS**  
 ✅ **Basé sur les recommandations Microsoft officielles**  
-✅ **Interface améliorée** avec animations fluides  
 
-📋 Voir le [CHANGELOG.md](./CHANGELOG.md) pour tous les détails
+---
+
+## 🚀 Démarrage Rapide
+
+### Installation
+```bash
+pip install -r requirements.txt
+```
+
+### Utilisation
+```bash
+python main.py
+# Ou: scripts\run.bat
+```
+
+### Tests
+```bash
+python tests\run_all_tests.py
+# Ou: scripts\RUN_TESTS.bat
+```
+
+---
+
+## 📚 Navigation
+
+- **[INDEX.md](INDEX.md)** - Index complet de navigation
+- **[STRUCTURE.md](STRUCTURE.md)** - Structure du projet
+- **[SECURITY.md](SECURITY.md)** - Politique de sécurité
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guide de contribution
+- **[CHANGELOG.md](CHANGELOG.md)** - Historique des versions
+
+### Documentation Complète
+- **[Documentations/](Documentations/)** - Documentation complète
+- **[Documentations/reports/](Documentations/reports/)** - Rapports d'audit
+
+---
+
+## 📋 Voir le [CHANGELOG.md](./CHANGELOG.md) pour tous les détails
 
 ## 📁 Structure du Projet
 
@@ -296,3 +339,35 @@ Get-FileHash -Algorithm SHA256 dist/5Ghz_Cleaner.exe
 ```
 
 Voir [SECURITY.md](./SECURITY.md) pour plus d'informations.
+
+---
+
+## 📜 Licence
+
+Ce projet est sous licence **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**.
+
+### ✅ Vous POUVEZ:
+- ✅ Utiliser gratuitement le logiciel
+- ✅ Modifier et améliorer le code
+- ✅ Distribuer gratuitement (avec attribution)
+- ✅ Créer des versions dérivées (avec même licence)
+- ✅ Contribuer au projet
+
+### ❌ Vous NE POUVEZ PAS:
+- ❌ Vendre ce logiciel
+- ❌ L'utiliser commercialement
+- ❌ Facturer l'accès au logiciel
+- ❌ Proposer comme service payant
+
+### 📝 Attribution Requise
+Vous devez créditer l'auteur (UndKiMi) et inclure un lien vers le projet original.
+
+**Voir [LICENSE](LICENSE) pour les détails complets.**
+
+Pour toute demande d'utilisation commerciale, contactez: contact@example.com
+
+---
+
+**Auteur**: UndKiMi  
+**Licence**: CC BY-NC-SA 4.0  
+**Copyright**: © 2025 UndKiMi

@@ -1,13 +1,29 @@
 """
 5GH'z Cleaner - Main Entry Point
 Windows Cleaning & Optimization Tool
+
 Author: UndKiMi
+Copyright (c) 2025 UndKiMi
+License: CC BY-NC-SA 4.0
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+You are free to:
+- Share and adapt this work for non-commercial purposes
+- You must give appropriate credit and indicate if changes were made
+- You must distribute your contributions under the same license
+
+You may NOT:
+- Use this work for commercial purposes
+- Sell this software or any derivative works
 """
 import sys
 import os
+import ctypes
 import flet as ft
 from frontend.app import CleanerApp
-from backend.elevation import is_admin, elevate_if_needed
+from backend.elevation import is_admin, elevate_if_needed, elevate
 
 # Vérification de la signature au démarrage (optionnel)
 VERIFY_SIGNATURE_ON_STARTUP = False  # Mettre à True pour activer  
@@ -15,9 +31,9 @@ VERIFY_SIGNATURE_ON_STARTUP = False  # Mettre à True pour activer
 def request_admin_if_needed():
     """Demande les privilèges admin si nécessaire"""
     try:
-        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        is_admin_check = ctypes.windll.shell32.IsUserAnAdmin() != 0
         
-        if not is_admin:
+        if not is_admin_check:
             print("[INFO] Application lancée sans privilèges administrateur")
             print("[INFO] Demande d'élévation des privilèges...")
             
@@ -74,9 +90,28 @@ def check_windows_version():
 
 
 def create_restore_point():
-    """Crée un point de restauration système avant le nettoyage - API NATIVE"""
+    """
+    Crée un point de restauration système avant le nettoyage - API NATIVE
+    SÉCURITÉ: Vérifie l'espace disque avant de créer le point
+    
+    Returns:
+        bool: True si succès, False sinon
+    """
     try:
+        # Vérifier l'espace disque disponible
+        import shutil
+        c_drive = "C:\\"
+        usage = shutil.disk_usage(c_drive)
+        free_gb = usage.free / (1024**3)
+        
+        if free_gb < 10:  # Moins de 10 GB
+            print(f"[WARNING] Insufficient disk space for restore point: {free_gb:.2f} GB free")
+            print("[WARNING] At least 10 GB recommended for restore point")
+            print("[INFO] Skipping restore point creation...")
+            return False
+        
         print("[INFO] Creating system restore point...")
+        print(f"[INFO] Available disk space: {free_gb:.2f} GB")
         import ctypes
         from ctypes import wintypes
         
@@ -219,6 +254,11 @@ if __name__ == "__main__":
     
     # Lancer l'application Flet
     print("[INFO] Launching Flet application...")
+    
+    def main(page: ft.Page):
+        """Point d'entrée de l'application Flet"""
+        app = CleanerApp(page)
+    
     try:
         ft.app(target=main)
     except Exception as e:

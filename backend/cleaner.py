@@ -463,12 +463,34 @@ def clear_windows_update_cache(progress_callback=None):
     return {"update_deleted": deleted, "skipped": skipped}
 
 
-def empty_recycle_bin(progress_callback=None):
-    """Empty the Windows recycle bin using native Windows API"""
+def empty_recycle_bin(progress_callback=None, confirmed=False):
+    """
+    Empty the Windows recycle bin using native Windows API
+    
+    Args:
+        progress_callback: Callback pour progression
+        confirmed: Si True, le vidage est confirmé par l'utilisateur
+        
+    Returns:
+        dict: Résultat avec warning si non confirmé
+    """
     before = get_recycle_bin_count()
+    
+    # SÉCURITÉ: Demander confirmation explicite
+    if not confirmed:
+        print("[WARNING] Recycle bin emptying requires explicit confirmation!")
+        print(f"[WARNING] This will permanently delete {before} items!")
+        print("[WARNING] Files cannot be recovered after this operation!")
+        return {
+            'recycle_bin_deleted': 0,
+            'error': 'User confirmation required',
+            'warning': f'Vidage annulé - Confirmation requise ({before} éléments)'
+        }
+    
     try:
         # Utiliser l'API Windows native au lieu de PowerShell (SÉCURITÉ)
         # SHEmptyRecycleBin avec flag SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND
+        print(f"[INFO] Emptying recycle bin: {before} items")
         result = ctypes.windll.shell32.SHEmptyRecycleBinW(None, None, 0x0001 | 0x0002 | 0x0004)
         if result == 0:
             print(f"[SUCCESS] Recycle bin emptied: {before} items")
@@ -720,17 +742,40 @@ def clear_crash_dumps(progress_callback=None):
     return {"dumps_deleted": deleted}
 
 
-def clear_windows_old(progress_callback=None):
-    """Remove Windows.old folder from previous installations"""
+def clear_windows_old(progress_callback=None, confirmed=False):
+    """
+    Remove Windows.old folder from previous installations
+    
+    Args:
+        progress_callback: Callback pour progression
+        confirmed: Si True, la suppression est confirmée par l'utilisateur
+        
+    Returns:
+        dict: Résultat avec warning si non confirmé
+    """
     folder = os.path.normpath(os.path.join(os.getenv('WINDIR'), '..', 'Windows.old'))
     deleted = 0
     
+    # SÉCURITÉ: Demander confirmation explicite
+    if not confirmed:
+        print("[WARNING] Windows.old suppression requires explicit confirmation!")
+        print("[WARNING] This will remove the ability to rollback Windows updates!")
+        return {
+            'windows_old_deleted': 0,
+            'error': 'User confirmation required',
+            'warning': 'Suppression annulée - Confirmation utilisateur requise'
+        }
+    
     if os.path.isdir(folder):
         try:
+            print(f"[INFO] Deleting Windows.old folder: {folder}")
             shutil.rmtree(folder, ignore_errors=True)
             deleted = 1
-        except:
-            pass
+            print("[SUCCESS] Windows.old deleted successfully")
+        except Exception as e:
+            print(f"[ERROR] Failed to delete Windows.old: {e}")
+    else:
+        print("[INFO] Windows.old folder not found")
     
     return {'windows_old_deleted': deleted}
 
