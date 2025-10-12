@@ -61,13 +61,14 @@ class Caption(ft.Text):
         text: str,
         color: str = None,
         size: int = None,
+        weight=None,
         **kwargs
     ):
         super().__init__(
             text,
             size=size or Typography.SIZE_SM,
             color=color or Colors.FG_SECONDARY,
-            weight=Typography.WEIGHT_REGULAR,
+            weight=weight or Typography.WEIGHT_REGULAR,
             **kwargs
         )
 

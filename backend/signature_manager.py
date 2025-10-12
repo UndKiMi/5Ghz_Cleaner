@@ -69,6 +69,7 @@ class SignatureManager:
             "backend/dry_run.py",
             "backend/logger.py",
             "backend/telemetry_checker.py",
+            "backend/hardware_monitor.py",
             "frontend/app.py",
             "frontend/pages/main_page.py",
             "frontend/pages/preview_page.py",

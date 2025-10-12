@@ -21,9 +21,14 @@ You may NOT:
 import sys
 import os
 import ctypes
+import gc
 import flet as ft
 from frontend.app import CleanerApp
 from backend.elevation import is_admin, elevate_if_needed, elevate
+
+# Optimisation mémoire: Activer le garbage collector agressif
+gc.enable()
+gc.set_threshold(700, 10, 10)  # Plus agressif pour libérer la mémoire rapidement
 
 # Vérification de la signature au démarrage (optionnel)
 VERIFY_SIGNATURE_ON_STARTUP = False  # Mettre à True pour activer  
@@ -203,11 +208,58 @@ def verify_disk_space():
         return True
 
 
+def optimize_process():
+    """Optimise l'utilisation des ressources CPU et mémoire"""
+    try:
+        import psutil
+        current_process = psutil.Process()
+        
+        # Optimisation CPU: Utiliser tous les cœurs disponibles
+        cpu_count = psutil.cpu_count(logical=True)
+        print(f"[INFO] CPU cores available: {cpu_count}")
+        
+        # Définir l'affinité CPU pour utiliser tous les cœurs
+        # Windows: affinity_mask avec tous les bits à 1
+        if sys.platform == 'win32':
+            try:
+                # Créer un masque avec tous les cœurs activés
+                affinity_mask = (1 << cpu_count) - 1
+                current_process.cpu_affinity(list(range(cpu_count)))
+                print(f"[INFO] CPU affinity set to use all {cpu_count} cores")
+            except Exception as e:
+                print(f"[WARNING] Could not set CPU affinity: {e}")
+        
+        # Optimisation mémoire: Limiter l'utilisation mémoire si nécessaire
+        mem = psutil.virtual_memory()
+        print(f"[INFO] Memory available: {mem.available / (1024**3):.2f} GB / {mem.total / (1024**3):.2f} GB")
+        
+        # Priorité normale pour ne pas impacter les autres processus
+        try:
+            current_process.nice(psutil.NORMAL_PRIORITY_CLASS)
+            print("[INFO] Process priority set to NORMAL")
+        except Exception as e:
+            print(f"[WARNING] Could not set process priority: {e}")
+        
+        # Forcer un garbage collection initial
+        gc.collect()
+        print("[INFO] Initial garbage collection completed")
+        
+    except ImportError:
+        print("[WARNING] psutil not available, skipping process optimization")
+    except Exception as e:
+        print(f"[WARNING] Process optimization failed: {e}")
+
+
 if __name__ == "__main__":
     print("=" * 60)
     print("5Gh'z Cleaner - Windows Cleaning & Optimisation Tool")
     print("Author: UndKiMi")
     print("=" * 60)
+    print()
+    
+    # OPTIMISATION: Optimiser l'utilisation des ressources
+    print("[INFO] Optimizing process resources...")
+    optimize_process()
     print()
     
     # SÉCURITÉ 0: Demander les privilèges admin dès le démarrage
