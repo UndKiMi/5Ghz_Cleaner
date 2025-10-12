@@ -805,6 +805,40 @@ class CleanerApp:
         self.page.update()
 
 
+    def show_main_page(self):
+        """Affiche la page principale"""
+        print("[DEBUG] Retour à la page principale")
+        self.page.controls.clear()
+        
+        # Recréer la page principale
+        from .pages import MainPage
+        main_page = MainPage(self.page, self)
+        self.page.add(main_page.build())
+        self.page.update()
+    
+    def start_real_cleaning(self, selected_operations):
+        """Lance le nettoyage réel avec les opérations sélectionnées"""
+        print(f"[INFO] Démarrage du nettoyage avec {len(selected_operations)} opérations")
+        print(f"[INFO] Opérations: {selected_operations}")
+        
+        # TODO: Implémenter le nettoyage réel
+        # Pour l'instant, afficher un message
+        self.page.controls.clear()
+        self.page.add(
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Nettoyage en cours...", size=24),
+                        ft.ProgressRing(),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                padding=50,
+            )
+        )
+        self.page.update()
+
+
 def main(page: ft.Page):
     """Main entry point for Flet app"""
     app = CleanerApp(page)

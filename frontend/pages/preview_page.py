@@ -4,7 +4,7 @@ Permet à l'utilisateur de sélectionner les opérations à effectuer
 """
 import flet as ft
 from frontend.design_system.theme import Colors, Spacing, BorderRadius, Typography
-from frontend.design_system.text import Heading, Body, Caption
+from frontend.design_system.text import Heading, BodyText, Caption
 from frontend.design_system.buttons import PrimaryButton, SecondaryButton
 
 
@@ -24,7 +24,7 @@ class PreviewPage:
     
     def build(self):
         """Construit la page de prévisualisation"""
-        # Container principal avec animation
+        # Container principal avec animation et scroll
         self.main_container = ft.Container(
             content=ft.Column(
                 [
@@ -37,11 +37,13 @@ class PreviewPage:
                     self._build_actions(),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                scroll=ft.ScrollMode.AUTO,
+                scroll=ft.ScrollMode.ALWAYS,  # Toujours afficher la scrollbar
+                spacing=0,
             ),
             padding=Spacing.XXL,
             opacity=0,  # Pour animation d'entrée
             animate_opacity=ft.Animation(300, ft.AnimationCurve.EASE_IN_OUT),
+            expand=True,  # Prend toute la hauteur disponible
         )
         
         # Animation d'entrée
@@ -114,7 +116,7 @@ class PreviewPage:
                 [
                     ft.Icon(icon, size=32, color=color),
                     ft.Container(height=Spacing.SM),
-                    Body(value, size=24, weight=ft.FontWeight.BOLD, color=color),
+                    BodyText(value, size=24, weight=ft.FontWeight.BOLD, color=color),
                     Caption(label, color=Colors.FG_SECONDARY),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -142,7 +144,7 @@ class PreviewPage:
                 [
                     ft.Row(
                         [
-                            Body("Opérations à effectuer", weight=ft.FontWeight.BOLD),
+                            BodyText("Opérations à effectuer", weight=ft.FontWeight.BOLD),
                             ft.Container(expand=True),
                             ft.TextButton(
                                 "Tout sélectionner",
@@ -158,9 +160,13 @@ class PreviewPage:
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     ),
                     ft.Container(height=Spacing.MD),
-                    ft.Column(
-                        operation_cards,
-                        scroll=ft.ScrollMode.AUTO,
+                    ft.Container(
+                        content=ft.Column(
+                            operation_cards,
+                            scroll=ft.ScrollMode.ALWAYS,
+                            spacing=0,
+                        ),
+                        height=400,  # Hauteur maximale pour la liste
                     ),
                 ],
                 spacing=0,
@@ -205,7 +211,7 @@ class PreviewPage:
                     ft.Container(width=Spacing.MD),
                     ft.Column(
                         [
-                            Body(name, weight=ft.FontWeight.BOLD),
+                            BodyText(name, weight=ft.FontWeight.BOLD),
                             ft.Container(height=Spacing.XS),
                             ft.Row(
                                 [
