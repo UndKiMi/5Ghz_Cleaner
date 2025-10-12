@@ -123,16 +123,19 @@ if __name__ == "__main__":
     # SÉCURITÉ 3: Vérifier les processus critiques
     check_critical_processes()
     
-    # SÉCURITÉ 4: Demander les privilèges administrateur
+    # SÉCURITÉ 4: Vérifier les privilèges administrateur (élévation conditionnelle)
     print("[INFO] Checking administrator privileges...")
     try:
-        elevate()
-        print("[INFO] Administrator privileges confirmed")
+        # Ne force PAS l'élévation - l'utilisateur peut choisir le mode
+        has_admin = elevate(force=False)
+        if has_admin:
+            print("[INFO] Administrator privileges confirmed - Full cleaning mode available")
+        else:
+            print("[INFO] Running in standard user mode - Limited cleaning available")
+            print("[INFO] For full system cleaning, restart as administrator")
     except Exception as e:
-        print(f"[ERROR] Failed to obtain administrator privileges: {e}")
-        print("[ERROR] This application requires administrator rights")
-        input("Press Enter to exit...")
-        sys.exit(1)
+        print(f"[WARNING] Privilege check failed: {e}")
+        print("[INFO] Continuing in standard user mode...")
     
     print()
     

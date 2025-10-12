@@ -96,6 +96,25 @@ SAFE_TEMP_EXTENSIONS = {
     '.tmp', '.temp', '.bak', '.old', '.cache',
 }
 
+# Services à arrêter (Spooler retiré pour préserver l'impression)
+SERVICES_TO_STOP = ["Fax", "MapsBroker", "WMPNetworkSvc", "RemoteRegistry"]
+
+# Services protégés - NE JAMAIS ARRÊTER
+PROTECTED_SERVICES = [
+    "Spooler",          # Service d'impression - CRITIQUE
+    "wuauserv",         # Windows Update
+    "BITS",             # Background Intelligent Transfer Service
+    "CryptSvc",         # Cryptographic Services
+    "Winmgmt",          # Windows Management Instrumentation
+    "EventLog",         # Windows Event Log
+    "RpcSs",            # Remote Procedure Call (RPC)
+    "DcomLaunch",       # DCOM Server Process Launcher
+    "PlugPlay",         # Plug and Play
+    "Power",            # Power Service
+    "LanmanServer",     # Server (partage fichiers)
+    "LanmanWorkstation",# Workstation (accès réseau)
+]
+
 
 def run_hidden(cmd):
     """Execute a command without showing a window"""
@@ -238,10 +257,21 @@ def is_path_in_allowed_temp(filepath):
     
     return False
 
-def clear_temp(progress_callback=None):
-    """Clear temporary files - SÉCURITÉ MAXIMALE - Ne touche JAMAIS aux fichiers système"""
+def clear_temp(progress_callback=None, dry_run=False):
+    """
+    Clear temporary files - SÉCURITÉ MAXIMALE - Ne touche JAMAIS aux fichiers système
+    
+    Args:
+        progress_callback: Callback optionnel pour progression
+        dry_run (bool): Si True, simule sans supprimer (prévisualisation)
+    
+    Returns:
+        dict: Statistiques de nettoyage
+    """
     total = 0
     skipped = 0
+    preview_files = []
+    total_size = 0
     
     # Uniquement les dossiers temp autorisés
     temp_dirs = [
@@ -273,8 +303,20 @@ def clear_temp(progress_callback=None):
                         # Vérifications de sécurité multiples
                         if is_file_safe_to_delete(fpath, f):
                             try:
-                                os.unlink(fpath)
-                                total += 1
+                                file_size = os.path.getsize(fpath)
+                                if dry_run:
+                                    # Mode prévisualisation
+                                    preview_files.append({
+                                        'path': fpath,
+                                        'size': file_size,
+                                        'type': 'file'
+                                    })
+                                    total_size += file_size
+                                    total += 1
+                                else:
+                                    # Mode réel
+                                    os.unlink(fpath)
+                                    total += 1
                             except Exception as e:
                                 skipped += 1
                         else:
@@ -284,8 +326,22 @@ def clear_temp(progress_callback=None):
                         # Vérifications de sécurité pour dossiers
                         if is_folder_safe_to_delete(f, fpath):
                             try:
-                                shutil.rmtree(fpath, ignore_errors=True)
-                                total += 1
+                                if dry_run:
+                                    # Mode prévisualisation - calculer taille
+                                    dir_size = sum(os.path.getsize(os.path.join(dirpath, filename))
+                                                 for dirpath, dirnames, filenames in os.walk(fpath)
+                                                 for filename in filenames)
+                                    preview_files.append({
+                                        'path': fpath,
+                                        'size': dir_size,
+                                        'type': 'directory'
+                                    })
+                                    total_size += dir_size
+                                    total += 1
+                                else:
+                                    # Mode réel
+                                    shutil.rmtree(fpath, ignore_errors=True)
+                                    total += 1
                             except Exception as e:
                                 skipped += 1
                         else:
@@ -299,8 +355,22 @@ def clear_temp(progress_callback=None):
             print(f"[ERROR] Failed to access temp directory: {e}")
             continue
     
-    print(f"[INFO] Temp cleanup: {total} deleted, {skipped} skipped (protected)")
-    return {"temp_deleted": total, "skipped": skipped}
+    mode_text = "DRY-RUN" if dry_run else "REAL"
+    print(f"[{mode_text}] Temp cleanup: {total} items, {skipped} skipped (protected)")
+    
+    result = {
+        "temp_deleted": total,
+        "skipped": skipped,
+        "dry_run": dry_run
+    }
+    
+    if dry_run:
+        result["preview_files"] = preview_files
+        result["total_size_bytes"] = total_size
+        result["total_size_mb"] = total_size / (1024 * 1024)
+        print(f"[DRY-RUN] Would free: {result['total_size_mb']:.2f} MB")
+    
+    return result
 
 
 def clear_windows_update_cache(progress_callback=None):
@@ -371,13 +441,116 @@ def empty_recycle_bin(progress_callback=None):
     return {"recycle_bin_deleted": before}
 
 
-def stop_services(services, progress_callback=None):
-    """Stop specified Windows services"""
+def get_service_dependencies(service_name):
+    """Récupère les dépendances d'un service Windows"""
+    try:
+        result = run_hidden(['sc', 'enumdepend', service_name])
+        if result.returncode == 0:
+            output = result.stdout.decode('utf-8', errors='ignore')
+            dependencies = []
+            
+            # Parser la sortie pour extraire les noms de services
+            lines = output.split('\n')
+            for line in lines:
+                if 'SERVICE_NAME:' in line:
+                    dep_name = line.split('SERVICE_NAME:')[1].strip()
+                    if dep_name:
+                        dependencies.append(dep_name)
+            
+            return dependencies
+        return []
+    except Exception as e:
+        print(f"[WARNING] Impossible de récupérer les dépendances de {service_name}: {e}")
+        return []
+
+
+def check_service_status(service_name):
+    """Vérifie le statut d'un service"""
+    try:
+        result = run_hidden(['sc', 'query', service_name])
+        if result.returncode == 0:
+            output = result.stdout.decode('utf-8', errors='ignore')
+            if 'RUNNING' in output:
+                return 'RUNNING'
+            elif 'STOPPED' in output:
+                return 'STOPPED'
+            elif 'PAUSED' in output:
+                return 'PAUSED'
+        return 'UNKNOWN'
+    except:
+        return 'UNKNOWN'
+
+
+def stop_services(services, progress_callback=None, check_dependencies=True):
+    """
+    Stop specified Windows services with protection against critical services
+    
+    Args:
+        services: Liste des services à arrêter
+        progress_callback: Callback optionnel pour progression
+        check_dependencies: Si True, vérifie les dépendances avant arrêt
+    
+    Returns:
+        Dict avec services arrêtés, ignorés et dépendances détectées
+    """
     stopped = []
+    skipped = []
+    dependencies_detected = {}
+    
     for s in services:
-        if run_hidden(['sc', 'stop', s]).returncode == 0:
-            stopped.append(s)
-    return {"services_stopped": stopped}
+        # SÉCURITÉ 1: Vérifier que le service n'est pas dans la liste protégée
+        if s in PROTECTED_SERVICES:
+            print(f"[SECURITY] Service protégé ignoré: {s}")
+            skipped.append(s)
+            continue
+        
+        # SÉCURITÉ 2: Vérifier le statut du service
+        status = check_service_status(s)
+        if status == 'STOPPED':
+            print(f"[INFO] Service {s} déjà arrêté")
+            skipped.append(s)
+            continue
+        elif status == 'UNKNOWN':
+            print(f"[WARNING] Service {s} introuvable ou inaccessible")
+            skipped.append(s)
+            continue
+        
+        # SÉCURITÉ 3: Vérifier les dépendances si demandé
+        if check_dependencies:
+            deps = get_service_dependencies(s)
+            if deps:
+                # Filtrer les dépendances protégées
+                protected_deps = [d for d in deps if d in PROTECTED_SERVICES]
+                if protected_deps:
+                    print(f"[SECURITY] Service {s} a des dépendances protégées: {', '.join(protected_deps)}")
+                    print(f"[SECURITY] Arrêt de {s} annulé pour préserver les dépendances critiques")
+                    skipped.append(s)
+                    dependencies_detected[s] = protected_deps
+                    continue
+                elif deps:
+                    print(f"[INFO] Service {s} a {len(deps)} dépendance(s): {', '.join(deps)}")
+                    dependencies_detected[s] = deps
+        
+        # Arrêter le service
+        try:
+            print(f"[INFO] Arrêt du service {s}...")
+            result = run_hidden(['sc', 'stop', s])
+            if result.returncode == 0:
+                stopped.append(s)
+                print(f"[SUCCESS] Service {s} arrêté avec succès")
+            else:
+                error_output = result.stderr.decode('utf-8', errors='ignore')
+                print(f"[WARNING] Impossible d'arrêter le service {s}: {error_output}")
+                skipped.append(s)
+        except Exception as e:
+            print(f"[ERROR] Erreur lors de l'arrêt du service {s}: {e}")
+            skipped.append(s)
+    
+    return {
+        "services_stopped": stopped,
+        "services_skipped": skipped,
+        "dependencies_detected": dependencies_detected
+    }
 
 
 def clear_prefetch(progress_callback=None):
@@ -585,10 +758,6 @@ def clear_large_logs(progress_callback=None):
                         pass
     
     return {"logs_deleted": deleted}
-
-
-# Services to stop
-SERVICES_TO_STOP = ["Fax", "MapsBroker", "WMPNetworkSvc", "Spooler", "RemoteRegistry"]
 
 
 # Wrapper functions for main page compatibility

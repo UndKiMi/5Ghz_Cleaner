@@ -18,6 +18,8 @@ class MainPage:
         self.progress_bar = None
         self.status_text = None
         self.action_button = None
+        self.dry_run_button = None
+        self.dry_run_completed = False  # Bloque le nettoyage jusqu'au dry-run
         self.current_tab = "quick"  # "quick" or "advanced"
         
     def build(self):
@@ -215,9 +217,9 @@ class MainPage:
         )
     
     def _build_action_button(self):
-        """Construit le bouton d'action principal"""
+        """Construit les boutons d'action (Dry-Run + Nettoyage)"""
         self.status_text = Caption(
-            "Le nettoyage peut prendre quelques secondes pour nettoyer votre système. Veuillez patienter jusqu'à ce que le processus soit terminé.",
+            "⚠️ Vous devez d'abord prévisualiser le nettoyage avant de pouvoir l'exécuter.",
             text_align=ft.TextAlign.CENTER,
             color=Colors.FG_SECONDARY,
         )
@@ -230,19 +232,42 @@ class MainPage:
             visible=False,
         )
         
-        # Créer un bouton simple qui fonctionne
+        # Bouton Dry-Run (Prévisualisation)
+        def on_dry_run_click(e):
+            print("[DEBUG] Dry-Run button clicked!")
+            self._start_dry_run(e)
+        
+        self.dry_run_button = ft.ElevatedButton(
+            text="Prévisualiser le nettoyage",
+            icon=ft.Icons.PREVIEW_ROUNDED,
+            on_click=on_dry_run_click,
+            bgcolor=Colors.BG_SECONDARY,
+            color=Colors.ACCENT_PRIMARY,
+            height=50,
+            width=300,
+            style=ft.ButtonStyle(
+                shape=ft.RoundedRectangleBorder(radius=BorderRadius.MD),
+                side=ft.BorderSide(2, Colors.ACCENT_PRIMARY),
+            ),
+        )
+        
+        # Bouton Nettoyage (Bloqué par défaut)
         def on_button_click(e):
-            print("[DEBUG] Button clicked!")
+            if not self.dry_run_completed:
+                print("[DEBUG] Cleaning blocked - Dry-run required first")
+                return
+            print("[DEBUG] Cleaning button clicked!")
             self._start_cleaning(e)
         
         self.action_button = ft.ElevatedButton(
             text="Lancer le nettoyage",
             icon=ft.Icons.PLAY_ARROW_ROUNDED,
             on_click=on_button_click,
-            bgcolor=Colors.ACCENT_PRIMARY,
-            color="#ffffff",
+            bgcolor=Colors.BG_SECONDARY,  # Grisé par défaut
+            color=Colors.FG_TERTIARY,     # Texte grisé
             height=50,
             width=300,
+            disabled=True,  # Bloqué par défaut
             style=ft.ButtonStyle(
                 shape=ft.RoundedRectangleBorder(radius=BorderRadius.MD),
             ),
@@ -254,6 +279,8 @@ class MainPage:
                 Spacer(height=Spacing.XXL),
                 self.progress_bar,
                 Spacer(height=Spacing.MD),
+                self.dry_run_button,
+                Spacer(height=Spacing.SM),
                 self.action_button,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -428,15 +455,212 @@ class MainPage:
             text_widget.color = Colors.FG_PRIMARY if is_active else Colors.FG_SECONDARY
             text_widget.weight = Typography.WEIGHT_MEDIUM if is_active else Typography.WEIGHT_REGULAR
     
+    def _start_dry_run(self, e):
+        """Lance la prévisualisation (Dry-Run)"""
+        print("[DEBUG] _start_dry_run called!")
+        
+        # PROTECTION ANTI-SPAM: Bloquer si une opération est en cours
+        if self.cleaning_in_progress:
+            print("[DEBUG] Operation already in progress - SPAM BLOCKED")
+            return
+        
+        # PROTECTION ANTI-SPAM: Bloquer si le bouton est désactivé
+        if self.dry_run_button and self.dry_run_button.disabled:
+            print("[DEBUG] Button disabled - SPAM BLOCKED")
+            return
+        
+        print("[DEBUG] Starting dry-run preview...")
+        self.cleaning_in_progress = True
+        
+        try:
+            # Désactiver le bouton dry-run pendant l'analyse
+            self.dry_run_button.disabled = True
+            self.dry_run_button.text = "Analyse en cours..."
+            self.page.update()
+            
+            # Lancer le dry-run dans un thread
+            import threading
+            threading.Thread(target=self._run_dry_run, daemon=True).start()
+            print("[DEBUG] Dry-run thread started")
+        except Exception as ex:
+            print(f"[ERROR] Failed to start dry-run: {ex}")
+            import traceback
+            traceback.print_exc()
+            self.cleaning_in_progress = False
+            # Réactiver le bouton en cas d'erreur
+            if self.dry_run_button:
+                self.dry_run_button.disabled = False
+                self.dry_run_button.text = "Prévisualiser le nettoyage"
+                self.page.update()
+    
+    def _run_dry_run(self):
+        """Exécute le dry-run dans un thread séparé"""
+        import time
+        from backend.dry_run import dry_run_manager
+        
+        print("[DEBUG] _run_dry_run started in thread")
+        
+        try:
+            # Mettre à jour le statut
+            self.status_text.value = "Analyse en cours... Veuillez patienter."
+            self.status_text.color = Colors.ACCENT_PRIMARY
+            self.page.update()
+            
+            # Exécuter le dry-run
+            print("[INFO] Running dry-run preview...")
+            preview = dry_run_manager.preview_full_cleaning(self.app.advanced_options)
+            
+            # Dry-run terminé avec succès
+            print("[SUCCESS] Dry-run completed successfully")
+            
+            # Débloquer le bouton de nettoyage
+            self.dry_run_completed = True
+            self.action_button.disabled = False
+            self.action_button.bgcolor = Colors.ACCENT_PRIMARY
+            self.action_button.color = "#ffffff"
+            
+            # Réactiver le bouton dry-run
+            self.dry_run_button.disabled = False
+            self.dry_run_button.text = "Prévisualiser à nouveau"
+            
+            # Mettre à jour le statut
+            total_files = preview['total_files']
+            total_size_mb = preview['total_size_mb']
+            self.status_text.value = f"✅ Prévisualisation terminée : {total_files} éléments, {total_size_mb:.2f} MB à libérer. Vous pouvez maintenant lancer le nettoyage."
+            self.status_text.color = Colors.SUCCESS
+            
+            self.page.update()
+            
+        except Exception as ex:
+            print(f"[ERROR] Dry-run failed: {ex}")
+            import traceback
+            traceback.print_exc()
+            
+            # Réactiver le bouton dry-run
+            self.dry_run_button.disabled = False
+            self.dry_run_button.text = "Prévisualiser le nettoyage"
+            
+            self.status_text.value = f"❌ Erreur lors de la prévisualisation : {str(ex)}"
+            self.status_text.color = Colors.ERROR
+            self.page.update()
+        
+        finally:
+            self.cleaning_in_progress = False
+    
+    def _show_security_warning(self):
+        """Affiche un avertissement de sécurité en cas de tentative de contournement"""
+        try:
+            # Créer une alerte de sécurité
+            def close_alert(e):
+                alert_dialog.open = False
+                self.page.update()
+            
+            alert_dialog = ft.AlertDialog(
+                modal=True,
+                title=ft.Row(
+                    [
+                        ft.Icon(ft.Icons.SECURITY, color=Colors.ERROR, size=32),
+                        ft.Container(width=Spacing.SM),
+                        ft.Text("Avertissement de Sécurité", size=20, weight=ft.FontWeight.BOLD, color=Colors.ERROR),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+                content=ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Text(
+                                "⚠️ TENTATIVE DE CONTOURNEMENT DÉTECTÉE",
+                                size=16,
+                                weight=ft.FontWeight.BOLD,
+                                color=Colors.ERROR,
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                            ft.Container(height=Spacing.MD),
+                            ft.Text(
+                                "Pour des raisons de sécurité, vous DEVEZ prévisualiser le nettoyage avant de pouvoir l'exécuter.",
+                                size=14,
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                            ft.Container(height=Spacing.SM),
+                            ft.Text(
+                                "Cette mesure vous protège contre les suppressions accidentelles.",
+                                size=13,
+                                color=Colors.FG_SECONDARY,
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                            ft.Container(height=Spacing.MD),
+                            ft.Container(
+                                content=ft.Text(
+                                    "Veuillez cliquer sur 'Prévisualiser le nettoyage' d'abord.",
+                                    size=13,
+                                    weight=ft.FontWeight.BOLD,
+                                    color=Colors.ACCENT_PRIMARY,
+                                ),
+                                bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
+                                padding=Spacing.MD,
+                                border_radius=BorderRadius.SM,
+                            ),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=0,
+                    ),
+                    width=400,
+                ),
+                actions=[
+                    ft.TextButton(
+                        "J'ai compris",
+                        on_click=close_alert,
+                        style=ft.ButtonStyle(
+                            color=Colors.ACCENT_PRIMARY,
+                        ),
+                    ),
+                ],
+                actions_alignment=ft.MainAxisAlignment.CENTER,
+                bgcolor=Colors.BG_SECONDARY,
+            )
+            
+            self.page.dialog = alert_dialog
+            alert_dialog.open = True
+            self.page.update()
+            
+            print("[SECURITY] Security warning displayed to user")
+            
+        except Exception as ex:
+            print(f"[ERROR] Failed to show security warning: {ex}")
+    
     def _start_cleaning(self, e):
         """Lance le processus de nettoyage"""
         print("[DEBUG] _start_cleaning called!")
+        
+        # ========================================================================
+        # SÉCURITÉ CRITIQUE: ANTI-CONTOURNEMENT
+        # ========================================================================
+        # Cette vérification DOIT être la première chose exécutée
+        # Elle empêche tout contournement de la sécurité
+        
+        if not self.dry_run_completed:
+            print("[SECURITY] TENTATIVE DE CONTOURNEMENT DÉTECTÉE!")
+            print("[SECURITY] Le nettoyage est BLOQUÉ - Dry-run obligatoire")
+            
+            # Afficher un avertissement de sécurité à l'utilisateur
+            self._show_security_warning()
+            return
+        
+        # Vérification supplémentaire: le bouton doit être débloqué
+        if self.action_button and self.action_button.disabled:
+            print("[SECURITY] TENTATIVE DE CONTOURNEMENT DÉTECTÉE!")
+            print("[SECURITY] Le bouton est désactivé - Accès refusé")
+            self._show_security_warning()
+            return
+        
+        # ========================================================================
         
         if self.cleaning_in_progress:
             print("[DEBUG] Cleaning already in progress, returning")
             return
         
         print("[DEBUG] Starting cleaning process...")
+        print("[SECURITY] Dry-run completed - Cleaning authorized")
         self.cleaning_in_progress = True
         
         try:
