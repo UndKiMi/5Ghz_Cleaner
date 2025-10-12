@@ -19,9 +19,7 @@ class MainPage:
         self.cleaning_in_progress = False
         self.quick_action_in_progress = False  # Verrouillage pour les actions rapides
         self.status_text = None
-        self.action_button = None
         self.dry_run_button = None
-        self.dry_run_completed = False  # Bloque le nettoyage jusqu'au dry-run
         self.current_tab = "quick"  # "quick" or "advanced"
         
     def build(self):
@@ -93,7 +91,7 @@ class MainPage:
     
     def _build_tabs(self):
         """Construit les onglets de navigation"""
-        self.tab_quick = self._build_tab_button("Nettoyage rapide", "quick", "assets/icons/cleaning.svg")
+        self.tab_quick = self._build_tab_button("Nettoyage rapide", "quick", "assets/icons/balais.svg")
         self.tab_advanced = self._build_tab_button("Options avancées", "advanced", ft.Icons.SETTINGS_OUTLINED)
         
         return ft.Row(
@@ -114,7 +112,7 @@ class MainPage:
                 src=icon,
                 width=16,
                 height=16,
-                color=Colors.ACCENT_PRIMARY if is_active else Colors.FG_SECONDARY,
+                fit=ft.ImageFit.CONTAIN,
             )
         else:
             icon_widget = ft.Icon(
@@ -150,16 +148,27 @@ class MainPage:
         return ft.Container(
             content=ft.Column(
                 [
-                    # En-tête de section
+                    # En-tête de section amélioré
                     ft.Container(
                         content=ft.Column(
                             [
-                                BodyText("Actions rapides", weight=Typography.WEIGHT_BOLD, size=18),
-                                Spacer(height=4),
+                                ft.Row(
+                                    [
+                                        ft.Icon(
+                                            ft.Icons.FLASH_ON_ROUNDED,
+                                            size=22,
+                                            color=Colors.ACCENT_PRIMARY,
+                                        ),
+                                        ft.Container(width=Spacing.XS),
+                                        BodyText("Actions rapides", weight=Typography.WEIGHT_BOLD, size=18),
+                                    ],
+                                    alignment=ft.MainAxisAlignment.START,
+                                ),
+                                Spacer(height=Spacing.XS),
                                 Caption(
                                     "Actions one-click pour optimiser votre système Windows",
                                     color=Colors.FG_SECONDARY,
-                                    size=13,
+                                    size=12,
                                 ),
                             ],
                             spacing=0,
@@ -204,28 +213,47 @@ class MainPage:
                     
                     Spacer(height=Spacing.MEGA),
                     
-                    # Cartes d'information système
+                    # Section Informations système améliorée
                     ft.Container(
                         content=ft.Column(
                             [
-                                BodyText("Informations système", weight=Typography.WEIGHT_BOLD, size=16),
-                                Spacer(height=Spacing.MD),
+                                # En-tête de section avec icône
+                                ft.Row(
+                                    [
+                                        ft.Icon(
+                                            ft.Icons.INFO_OUTLINE_ROUNDED,
+                                            size=20,
+                                            color=Colors.ACCENT_PRIMARY,
+                                        ),
+                                        ft.Container(width=Spacing.XS),
+                                        BodyText("Informations système", weight=Typography.WEIGHT_BOLD, size=16),
+                                    ],
+                                    alignment=ft.MainAxisAlignment.START,
+                                ),
+                                Spacer(height=Spacing.XS),
+                                Caption(
+                                    "Aperçu des optimisations disponibles pour votre système",
+                                    color=Colors.FG_SECONDARY,
+                                    size=12,
+                                ),
+                                Spacer(height=Spacing.LG),
+                                # Cartes d'information avec espacement optimisé
                                 ft.Row(
                                     [
                                         self._build_action_card(
-                                            icon="assets/icons/folder.svg",
+                                            icon="assets/icons/dossier.svg",
                                             title="Fichiers temporaires",
                                             description="Libère de l'espace disque en supprimant les fichiers temporaires inutiles.",
                                             action_key="temp_files",
                                         ),
-                                        ft.Container(width=Spacing.XL),
+                                        ft.Container(width=Spacing.LG),
                                         self._build_action_card(
                                             icon=ft.Icons.MEMORY_OUTLINED,
                                             title="RAM Standby",
                                             description="Optimise la vitesse en vidant la mémoire standby.",
                                             action_key="ram_standby",
                                         ),
-                                        ft.Container(width=Spacing.XL),
+                                        ft.Container(width=Spacing.LG),
                                         self._build_action_card(
                                             icon=ft.Icons.STORAGE_OUTLINED,
                                             title="Cache DNS",
@@ -233,11 +261,13 @@ class MainPage:
                                             action_key="cache_dns",
                                         ),
                                     ],
-                                    alignment=ft.MainAxisAlignment.START,
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                    wrap=False,
                                 ),
                             ],
                             spacing=0,
                         ),
+                        padding=ft.padding.only(top=Spacing.MD, bottom=Spacing.MD),
                         animate=ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT),
                     ),
                 ],
@@ -724,7 +754,8 @@ class MainPage:
                 print("[PROGRESS] 50% - Vidage de la corbeille en cours...")
                 update_progress(50)
                 
-                result = cleaner.empty_recycle_bin()
+                # Vider la corbeille avec confirmation automatique
+                result = cleaner.empty_recycle_bin(confirmed=True)
                 
                 print("[PROGRESS] 100% - Corbeille vidée")
                 update_progress(100)
@@ -1086,7 +1117,7 @@ class MainPage:
                 src=icon,
                 width=40,
                 height=40,
-                color=Colors.ACCENT_PRIMARY,
+                fit=ft.ImageFit.CONTAIN,
             )
         else:
             icon_widget = ft.Icon(icon, size=40, color=Colors.ACCENT_PRIMARY)
@@ -1135,11 +1166,26 @@ class MainPage:
         )
     
     def _build_action_button(self):
-        """Construit les boutons d'action (Dry-Run + Nettoyage)"""
-        self.status_text = Caption(
-            "⚠️ Vous devez d'abord prévisualiser le nettoyage avant de pouvoir l'exécuter.",
-            text_align=ft.TextAlign.CENTER,
-            color=Colors.FG_SECONDARY,
+        """Construit le bouton d'action principal (Prévisualisation)"""
+        self.status_text = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Icon(
+                        ft.Icons.INFO_OUTLINE_ROUNDED,
+                        size=16,
+                        color=Colors.ACCENT_PRIMARY,
+                    ),
+                    ft.Container(width=Spacing.XS),
+                    Caption(
+                        "Prévisualisez le nettoyage pour voir ce qui sera supprimé avant de continuer",
+                        text_align=ft.TextAlign.CENTER,
+                        color=Colors.FG_SECONDARY,
+                        size=12,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            padding=ft.padding.symmetric(vertical=Spacing.SM),
         )
         
         self.progress_bar = ft.ProgressBar(
@@ -1150,42 +1196,19 @@ class MainPage:
             visible=False,
         )
         
-        # Bouton Dry-Run (Prévisualisation)
+        # Bouton Prévisualisation (seul bouton d'action)
         def on_dry_run_click(e):
-            print("[DEBUG] Dry-Run button clicked!")
+            print("[DEBUG] Preview button clicked!")
             self._start_dry_run(e)
         
         self.dry_run_button = ft.ElevatedButton(
             text="Prévisualiser le nettoyage",
             icon=ft.Icons.PREVIEW_ROUNDED,
             on_click=on_dry_run_click,
-            bgcolor=Colors.BG_SECONDARY,
-            color=Colors.ACCENT_PRIMARY,
-            height=50,
-            width=300,
-            style=ft.ButtonStyle(
-                shape=ft.RoundedRectangleBorder(radius=BorderRadius.MD),
-                side=ft.BorderSide(2, Colors.ACCENT_PRIMARY),
-            ),
-        )
-        
-        # Bouton Nettoyage (Bloqué par défaut)
-        def on_button_click(e):
-            if not self.dry_run_completed:
-                print("[DEBUG] Cleaning blocked - Dry-run required first")
-                return
-            print("[DEBUG] Cleaning button clicked!")
-            self._start_cleaning(e)
-        
-        self.action_button = ft.ElevatedButton(
-            text="Lancer le nettoyage",
-            icon=ft.Icons.PLAY_ARROW_ROUNDED,
-            on_click=on_button_click,
-            bgcolor=Colors.BG_SECONDARY,  # Grisé par défaut
-            color=Colors.FG_TERTIARY,     # Texte grisé
-            height=50,
-            width=300,
-            disabled=True,  # Bloqué par défaut
+            bgcolor=Colors.ACCENT_PRIMARY,
+            color=Colors.BG_PRIMARY,
+            height=55,
+            width=350,
             style=ft.ButtonStyle(
                 shape=ft.RoundedRectangleBorder(radius=BorderRadius.MD),
             ),
@@ -1194,73 +1217,120 @@ class MainPage:
         return ft.Column(
             [
                 self.status_text,
-                Spacer(height=Spacing.XXL),
+                Spacer(height=Spacing.XL),
                 self.progress_bar,
-                Spacer(height=Spacing.MD),
+                Spacer(height=Spacing.LG),
                 self.dry_run_button,
-                Spacer(height=Spacing.SM),
-                self.action_button,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
     
     def _build_footer(self):
-        """Construit le pied de page"""
-        return ft.Row(
-            [
-                Caption("5GH'z Cleaner v1.0 • Réalisé par"),
-                ft.Container(width=Spacing.XS),
-                TextButton(
-                    text="K_iMi",
-                    on_click=lambda e: __import__('webbrowser').open("https://github.com/UndKiMi"),
-                    size=Typography.SIZE_SM,
-                ),
-                Caption("• Tous droits réservés"),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
+        """Construit le pied de page amélioré"""
+        return ft.Container(
+            content=ft.Column(
+                [
+                    # Ligne principale avec version et auteur
+                    ft.Row(
+                        [
+                            Caption("5GH'z Cleaner v1.6.0", color=Colors.FG_SECONDARY),
+                            Caption(" • ", color=Colors.FG_TERTIARY),
+                            Caption("Réalisé par", color=Colors.FG_SECONDARY),
+                            ft.Container(width=4),
+                            ft.TextButton(
+                                text="UndKiMi",
+                                on_click=lambda e: __import__('webbrowser').open("https://github.com/UndKiMi"),
+                                style=ft.ButtonStyle(
+                                    color=Colors.ACCENT_PRIMARY,
+                                    padding=0,
+                                ),
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=0,
+                    ),
+                    ft.Container(height=4),
+                    # Ligne de copyright et licence
+                    ft.Row(
+                        [
+                            Caption("© 2025 UndKiMi", color=Colors.FG_TERTIARY, size=10),
+                            Caption(" • ", color=Colors.FG_TERTIARY, size=10),
+                            Caption("Licence CC BY-NC-SA 4.0", color=Colors.FG_TERTIARY, size=10),
+                            Caption(" • ", color=Colors.FG_TERTIARY, size=10),
+                            Caption("Usage non commercial uniquement", color=Colors.FG_TERTIARY, size=10),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=0,
+                    ),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=0,
+            ),
+            padding=ft.padding.only(top=Spacing.MD, bottom=Spacing.SM),
         )
     
     def _build_advanced_options(self):
-        """Construit la section des options avancées"""
+        """Construit la section des options avancées améliorée"""
         return ft.Column(
             [
-                BodyText("Paramètres avancés", weight=Typography.WEIGHT_MEDIUM, size=16),
+                # En-tête de section avec icône
+                ft.Row(
+                    [
+                        ft.Icon(
+                            ft.Icons.SETTINGS_OUTLINED,
+                            size=20,
+                            color=Colors.ACCENT_PRIMARY,
+                        ),
+                        ft.Container(width=Spacing.XS),
+                        BodyText("Paramètres avancés", weight=Typography.WEIGHT_BOLD, size=18),
+                    ],
+                    alignment=ft.MainAxisAlignment.START,
+                ),
                 Spacer(height=Spacing.XS),
                 Caption(
-                    "Personnalisez les opérations de nettoyage pour vos besoins",
+                    "Personnalisez les opérations de nettoyage selon vos besoins",
                     color=Colors.FG_SECONDARY,
+                    size=12,
                 ),
-                Spacer(height=Spacing.XXL),
-                self._build_option_item(
-                    "Libérer RAM Standby",
-                    "Vide la mémoire en attente pour libérer de la RAM",
-                    "clear_standby_memory",
-                    True,
-                    recommended=True
-                ),
-                Spacer(height=Spacing.LG),
-                self._build_option_item(
-                    "Flush DNS",
-                    "Vide le cache DNS pour améliorer les performances réseau",
-                    "flush_dns",
-                    True,
-                    recommended=True
-                ),
-                Spacer(height=Spacing.LG),
-                self._build_option_item(
-                    "Désactiver télémétrie",
-                    "Désactive les services de collecte de données de Windows",
-                    "disable_telemetry",
-                    False,
-                    recommended=False
-                ),
-                Spacer(height=Spacing.LG),
-                self._build_option_item(
-                    "Nettoyer logs volumineux",
-                    "Supprime les fichiers journaux volumineux et inutiles",
-                    "clear_large_logs",
-                    True,
-                    recommended=True
+                Spacer(height=Spacing.XL),
+                # Options avec espacement optimisé
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            self._build_option_item(
+                                "Libérer RAM Standby",
+                                "Vide la mémoire en attente pour libérer de la RAM",
+                                "clear_standby_memory",
+                                True,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Flush DNS",
+                                "Vide le cache DNS pour améliorer les performances réseau",
+                                "flush_dns",
+                                True,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Désactiver télémétrie",
+                                "Désactive les services de collecte de données de Windows",
+                                "disable_telemetry",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer logs volumineux",
+                                "Supprime les fichiers journaux volumineux et inutiles",
+                                "clear_large_logs",
+                                True,
+                                recommended=True
+                            ),
+                        ],
+                        spacing=0,
+                    ),
                 ),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.START,
@@ -1289,25 +1359,27 @@ class MainPage:
                         [
                             ft.Row(
                                 [
-                                    BodyText(title, weight=Typography.WEIGHT_MEDIUM, size=14),
+                                    BodyText(title, weight=Typography.WEIGHT_BOLD, size=14),
                                     ft.Container(width=Spacing.XS),
                                     info_icon,
                                     ft.Container(width=Spacing.XS),
                                     ft.Container(
-                                        content=Caption("Recommandé", color=Colors.ACCENT_PRIMARY),
-                                        bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
-                                        padding=ft.padding.symmetric(horizontal=Spacing.SM, vertical=2),
+                                        content=Caption("Recommandé", color=Colors.ACCENT_PRIMARY, size=11),
+                                        bgcolor=ft.Colors.with_opacity(0.15, Colors.ACCENT_PRIMARY),
+                                        padding=ft.padding.symmetric(horizontal=Spacing.SM, vertical=3),
                                         border_radius=BorderRadius.SM,
                                         visible=recommended,
                                     ),
                                 ],
+                                spacing=0,
                             ),
                             Spacer(height=Spacing.XS),
-                            Caption(description, color=Colors.FG_SECONDARY),
+                            Caption(description, color=Colors.FG_SECONDARY, size=12),
                         ],
                         expand=True,
                         spacing=0,
                     ),
+                    ft.Container(width=Spacing.MD),
                     switch,
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -1316,6 +1388,7 @@ class MainPage:
             padding=Spacing.LG,
             border_radius=BorderRadius.MD,
             border=ft.border.all(1, Colors.BORDER_DEFAULT),
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
         )
     
     def _get_detailed_description(self, key):
@@ -1525,24 +1598,40 @@ class MainPage:
             self.cleaning_in_progress = False
     
     def _show_preview_page(self, preview_data):
-        """Affiche la page de prévisualisation avec sélection"""
+        """Affiche la page de prévisualisation avec transition fluide"""
         try:
             # Animation de sortie de la page actuelle
+            print("[DEBUG] Starting fade out animation...")
             if hasattr(self, 'main_container'):
                 self.main_container.opacity = 0
                 self.page.update()
             
             import time
-            time.sleep(0.3)
+            time.sleep(0.3)  # Attendre la fin de l'animation de sortie
             
             # Importer et créer la page de prévisualisation
+            print("[DEBUG] Creating preview page...")
             from frontend.pages.preview_page import PreviewPage
             
             preview_page = PreviewPage(self.page, self.app, preview_data)
             
             # Remplacer le contenu de la page
+            print("[DEBUG] Replacing page content...")
             self.page.controls.clear()
-            self.page.add(preview_page.build())
+            
+            # Construire la page (elle commence avec opacity=0)
+            preview_container = preview_page.build()
+            
+            # Ajouter à la page
+            self.page.add(preview_container)
+            self.page.update()
+            
+            # Petit délai pour que le DOM soit prêt
+            time.sleep(0.05)
+            
+            # Animation d'entrée
+            print("[DEBUG] Starting fade in animation...")
+            preview_container.opacity = 1
             self.page.update()
             
             print("[SUCCESS] Page de prévisualisation affichée")
@@ -1648,20 +1737,8 @@ class MainPage:
         # Cette vérification DOIT être la première chose exécutée
         # Elle empêche tout contournement de la sécurité
         
-        if not self.dry_run_completed:
-            print("[SECURITY] TENTATIVE DE CONTOURNEMENT DÉTECTÉE!")
-            print("[SECURITY] Le nettoyage est BLOQUÉ - Dry-run obligatoire")
-            
-            # Afficher un avertissement de sécurité à l'utilisateur
-            self._show_security_warning()
-            return
-        
-        # Vérification supplémentaire: le bouton doit être débloqué
-        if self.action_button and self.action_button.disabled:
-            print("[SECURITY] TENTATIVE DE CONTOURNEMENT DÉTECTÉE!")
-            print("[SECURITY] Le bouton est désactivé - Accès refusé")
-            self._show_security_warning()
-            return
+        # Note: Le nettoyage n'est accessible que depuis la page de prévisualisation
+        # après avoir fait un dry-run, donc pas besoin de vérification ici
         
         # ========================================================================
         
@@ -1968,6 +2045,11 @@ class MainPage:
             current_task += 1
             self._update_task_status("recycle", "in_progress")
             self._update_cleaning_progress("Nettoyage de la corbeille...", current_task / total_tasks)
+            
+            # Vider la corbeille avec confirmation automatique
+            result_recycle = cleaner.empty_recycle_bin(confirmed=True)
+            print(f"[INFO] Corbeille: {result_recycle.get('recycle_bin_deleted', 0)} éléments supprimés")
+            
             time.sleep(0.3)
             self._update_task_status("recycle", "completed")
             

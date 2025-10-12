@@ -942,7 +942,8 @@ def run_full_cleanup(options=None):
     if options.get("clear_large_logs"):
         results['logs'] = clear_large_logs()
     
-    # Empty recycle bin
-    results['recycle'] = empty_recycle_bin()
+    # Empty recycle bin (seulement si sélectionné par l'utilisateur)
+    if options.get("empty_recycle_bin"):
+        results['recycle'] = empty_recycle_bin(confirmed=True)
     
     return results

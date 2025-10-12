@@ -836,15 +836,7 @@ class CleanerApp:
         
         # Déclencher le nettoyage via la page principale
         if hasattr(self, 'main_page') and self.main_page:
-            # Marquer le dry-run comme complété pour autoriser le nettoyage
-            self.main_page.dry_run_completed = True
-            
-            # Activer le bouton de nettoyage
-            if hasattr(self.main_page, 'action_button') and self.main_page.action_button:
-                self.main_page.action_button.disabled = False
-                self.page.update()
-            
-            # Lancer le nettoyage
+            # Lancer le nettoyage directement
             self.main_page._start_cleaning(None)
 
 

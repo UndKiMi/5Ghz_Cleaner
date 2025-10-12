@@ -31,7 +31,7 @@ class PreviewPage:
             self.selected_operations[op['name']] = True
     
     def build(self):
-        """Construit la page de prévisualisation optimisée"""
+        """Construit la page de prévisualisation optimisée avec transition fluide"""
         # Container principal avec animation et scroll auto
         self.main_container = ft.Container(
             content=ft.Column(
@@ -49,15 +49,13 @@ class PreviewPage:
                 spacing=0,
             ),
             padding=Spacing.XL,
-            opacity=0,  # Pour animation d'entrée
-            animate_opacity=ft.Animation(300, ft.AnimationCurve.EASE_IN_OUT),
+            opacity=0,  # Commence invisible pour animation d'entrée
+            animate_opacity=ft.Animation(400, ft.AnimationCurve.EASE_IN_OUT),
             expand=True,
         )
         
-        # Animation d'entrée
-        self.page.update()
-        self.main_container.opacity = 1
-        self.page.update()
+        # L'animation d'entrée sera gérée par la page appelante
+        # pour une transition plus fluide
         
         return self.main_container
     
