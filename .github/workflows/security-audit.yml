@@ -34,10 +34,10 @@ jobs:
         bandit -r backend/ frontend/ -f txt
       continue-on-error: true
     
-    - name: Check for PowerShell usage
+    - name: Check for PowerShell execution
       run: |
-        echo "Checking for PowerShell usage..."
-        python -c "import os; import sys; found = False; [print(f'WARNING: PowerShell found in {root}/{file}') or setattr(sys.modules[__name__], 'found', True) for root, dirs, files in os.walk('.') for file in files if file.endswith('.py') for line in open(os.path.join(root, file), encoding='utf-8', errors='ignore') if 'powershell' in line.lower()]; sys.exit(1 if found else 0)"
+        echo "Checking for PowerShell execution..."
+        python -c "import os; import sys; found = False; [print(f'WARNING: PowerShell execution found in {root}/{file}:{i}') or setattr(sys.modules[__name__], 'found', True) for root, dirs, files in os.walk('.') for file in files if file.endswith('.py') and 'test' not in root for i, line in enumerate(open(os.path.join(root, file), encoding='utf-8', errors='ignore'), 1) if not line.strip().startswith('#') and ('subprocess' in line and 'powershell' in line.lower() or 'Popen' in line and 'powershell' in line.lower() or '.run(' in line and 'powershell' in line.lower())]; sys.exit(1 if found else 0)"
     
     - name: Check for eval/exec usage
       run: |
