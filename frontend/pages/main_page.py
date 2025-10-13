@@ -500,39 +500,35 @@ class MainPage:
                 print("[PROGRESS] 20% - Préparation de la création...")
                 update_progress(20, "Préparation")
                 
-                # Utiliser subprocess pour créer le point via PowerShell (plus fiable)
-                import subprocess
+                # Utiliser l'API Windows native (COM) au lieu de PowerShell (SÉCURITÉ)
+                import win32com.client
                 
-                print("[PROGRESS] 40% - Exécution de la commande...")
-                update_progress(40, "Exécution")
+                print("[PROGRESS] 40% - Initialisation de l'API Windows...")
+                update_progress(40, "Initialisation")
                 
                 print("[PROGRESS] 60% - Création du point de restauration en cours...")
                 print("[INFO] Cette opération peut prendre 1-2 minutes...")
                 update_progress(60, "Création en cours (1-2 min)")
                 
-                # Commande PowerShell pour créer un point de restauration
-                ps_command = 'Checkpoint-Computer -Description "5GHz Cleaner - Manual Restore Point" -RestorePointType "MODIFY_SETTINGS"'
-                
-                result_process = subprocess.run(
-                    ["powershell", "-Command", ps_command],
-                    capture_output=True,
-                    text=True,
-                    timeout=120  # 2 minutes max
-                )
-                
-                # Vérifier le résultat
-                result = 0 if result_process.returncode == 0 else result_process.returncode
-                
-                if result_process.stderr:
-                    print(f"[DEBUG] PowerShell stderr: {result_process.stderr}")
-                if result_process.stdout:
-                    print(f"[DEBUG] PowerShell stdout: {result_process.stdout}")
-                
-                # Vérifier si c'est une limitation de fréquence
-                is_frequency_limit = False
-                if result_process.stdout and ("1440 minutes" in result_process.stdout or "derniŠres" in result_process.stdout):
-                    is_frequency_limit = True
-                    result = 0  # Considérer comme succès (point déjà créé récemment)
+                # Créer un point de restauration via COM (API native Windows)
+                try:
+                    restore_point = win32com.client.Dispatch("SystemRestore.SystemRestore")
+                    result = restore_point.CreateRestorePoint(
+                        "5GHz Cleaner - Manual Restore Point",  # Description
+                        0,  # Type: APPLICATION_INSTALL
+                        100  # Event type: BEGIN_SYSTEM_CHANGE
+                    )
+                    is_frequency_limit = False
+                except Exception as e:
+                    error_msg = str(e).lower()
+                    # Vérifier si c'est une limitation de fréquence (24h)
+                    if "1440" in error_msg or "frequency" in error_msg or "fréquence" in error_msg:
+                        is_frequency_limit = True
+                        result = 0  # Considérer comme succès (point déjà créé récemment)
+                        print(f"[INFO] Point de restauration déjà créé récemment (limitation 24h)")
+                    else:
+                        result = -1
+                        print(f"[ERROR] Erreur lors de la création: {e}")
                 
                 print("[PROGRESS] 100% - Opération terminée")
                 update_progress(100, "Terminé")
