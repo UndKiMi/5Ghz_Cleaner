@@ -5,8 +5,10 @@
 ![5GHz Cleaner Logo](https://img.shields.io/badge/5GHz-Cleaner-blue?style=for-the-badge&logo=windows&logoColor=white)
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Security Score](https://img.shields.io/badge/Security-85%2F100-brightgreen.svg?style=flat-square&logo=shield)](SECURITY.md)
-[![Tests](https://img.shields.io/badge/Tests-10%20Suites-brightgreen.svg?style=flat-square&logo=checkmarx)](tests/)
+[![Security Audit](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security-audit.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security-audit.yml)
+[![Security Score](https://img.shields.io/badge/Security-89%2F100-brightgreen.svg?style=flat-square&logo=shield)](SECURITY.md)
+[![Tests](https://img.shields.io/badge/Tests-45%2F45%20%E2%9C%93-brightgreen.svg?style=flat-square&logo=checkmarx)](tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-92%25-brightgreen.svg?style=flat-square&logo=codecov)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?style=flat-square&logo=python)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2011%20ONLY-0078D6.svg?style=flat-square&logo=windows)](WINDOWS_11_ONLY.md)
 [![Version](https://img.shields.io/badge/Version-MAJOR%20UPDATE-orange.svg?style=flat-square)](CHANGELOG.md)
