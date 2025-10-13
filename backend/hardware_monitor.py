@@ -58,22 +58,71 @@ class HardwareMonitor:
             }
     
     def get_memory_info(self) -> Dict:
-        """Récupère les informations mémoire"""
+        """Récupère les informations mémoire avec détails DDR"""
         try:
             mem = psutil.virtual_memory()
             
+            # Récupérer les détails de la RAM via WMI
+            ram_type = "Unknown"
+            ram_speed = 0
+            ram_modules = []
+            
+            try:
+                import win32com.client
+                wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\cimv2")
+                memory_chips = wmi.ExecQuery("SELECT * FROM Win32_PhysicalMemory")
+                
+                for chip in memory_chips:
+                    # Type de mémoire (SMBIOSMemoryType est plus précis)
+                    memory_type = chip.SMBIOSMemoryType
+                    if memory_type == 26:
+                        ram_type = "DDR4"
+                    elif memory_type == 34:
+                        ram_type = "DDR5"
+                    elif memory_type == 24:
+                        ram_type = "DDR3"
+                    elif memory_type == 21:
+                        ram_type = "DDR2"
+                    elif memory_type == 20:
+                        ram_type = "DDR"
+                    
+                    # Vitesse de la RAM
+                    if chip.Speed:
+                        ram_speed = chip.Speed
+                    
+                    # Capacité du module
+                    if chip.Capacity:
+                        capacity_gb = int(chip.Capacity) / (1024**3)
+                        ram_modules.append(capacity_gb)
+            except Exception:
+                pass
+            
+            # Construire le nom avec le type DDR
+            if ram_type != "Unknown":
+                name = f"RAM {ram_type}"
+                if ram_speed > 0:
+                    name += f" {ram_speed} MHz"
+            else:
+                name = "RAM"
+            
             return {
-                "name": "RAM",
+                "name": name,
+                "type": ram_type,
+                "speed": ram_speed,
+                "modules": ram_modules,
                 "total": mem.total,
                 "available": mem.available,
                 "used": mem.used,
                 "percent": mem.percent,
-                "temperature": None,  # La RAM n'a généralement pas de capteur de température
+                "temperature": None,
             }
         except Exception as e:
             print(f"[ERROR] Failed to get memory info: {e}")
             return {
                 "name": "RAM",
+                "type": "Unknown",
+                "speed": 0,
+                "modules": [],
                 "total": 0,
                 "available": 0,
                 "used": 0,
@@ -82,10 +131,40 @@ class HardwareMonitor:
             }
     
     def get_disk_info(self) -> List[Dict]:
-        """Récupère les informations disques"""
+        """Récupère les informations disques avec type (HDD/SSD/NVMe)"""
         disks = []
         try:
             partitions = psutil.disk_partitions()
+            
+            # Récupérer les informations des disques physiques via WMI
+            disk_models = {}
+            disk_types = {}
+            try:
+                import win32com.client
+                wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\cimv2")
+                
+                # Récupérer les disques physiques
+                physical_disks = wmi.ExecQuery("SELECT * FROM Win32_DiskDrive")
+                for disk in physical_disks:
+                    device_id = disk.DeviceID.replace("\\\\\\\\.\\\\PHYSICALDRIVE", "")
+                    model = disk.Model if disk.Model else "Unknown"
+                    
+                    # Déterminer le type de disque
+                    media_type = disk.MediaType if hasattr(disk, 'MediaType') else ""
+                    if "SSD" in model.upper() or "NVMe" in model.upper():
+                        if "NVMe" in model.upper():
+                            disk_type = "SSD NVMe"
+                        else:
+                            disk_type = "SSD"
+                    elif media_type and "SSD" in media_type.upper():
+                        disk_type = "SSD"
+                    else:
+                        disk_type = "HDD"
+                    
+                    disk_models[device_id] = model
+                    disk_types[device_id] = disk_type
+            except Exception:
+                pass
             
             for partition in partitions:
                 try:
@@ -94,8 +173,22 @@ class HardwareMonitor:
                     # Température disque (si disponible via SMART)
                     temp = self._get_disk_temperature(partition.device)
                     
+                    # Extraire le numéro de disque physique
+                    device_num = partition.device.replace(":", "").replace("\\", "")
+                    disk_model = "Unknown"
+                    disk_type = "Unknown"
+                    
+                    # Essayer de trouver le modèle et le type
+                    for key in disk_models:
+                        disk_model = disk_models.get(key, "Unknown")
+                        disk_type = disk_types.get(key, "Unknown")
+                        break
+                    
                     disks.append({
-                        "name": f"{partition.device} ({partition.fstype})",
+                        "name": f"{partition.device}",
+                        "model": disk_model,
+                        "type": disk_type,
+                        "fstype": partition.fstype,
                         "mountpoint": partition.mountpoint,
                         "total": usage.total,
                         "used": usage.used,
@@ -114,7 +207,7 @@ class HardwareMonitor:
         return disks
     
     def get_gpu_info(self) -> List[Dict]:
-        """Récupère les informations GPU (si disponible)"""
+        """Récupère les informations GPU avec utilisation et version du pilote"""
         gpus = []
         
         # Liste des adaptateurs à filtrer (virtuels, logiciels externes, etc.)
@@ -142,9 +235,19 @@ class HardwareMonitor:
                     # Température GPU
                     temp = self._get_gpu_temperature(gpu_name)
                     
+                    # Version du pilote
+                    driver_version = gpu.DriverVersion if gpu.DriverVersion else "N/A"
+                    driver_date = gpu.DriverDate if gpu.DriverDate else "N/A"
+                    
+                    # Utilisation GPU (via nvidia-smi ou autres)
+                    usage = self._get_gpu_usage(gpu_name)
+                    
                     gpus.append({
                         "name": gpu_name,
                         "temperature": temp,
+                        "driver_version": driver_version,
+                        "driver_date": driver_date,
+                        "usage": usage,
                     })
             
             if gpus:
@@ -167,10 +270,14 @@ class HardwareMonitor:
                     if gpu_name and not any(keyword in gpu_name for keyword in excluded_keywords):
                         # Température GPU
                         temp = self._get_gpu_temperature(gpu_name)
+                        usage = self._get_gpu_usage(gpu_name)
                         
                         gpus.append({
                             "name": gpu_name,
                             "temperature": temp,
+                            "driver_version": "N/A",
+                            "driver_date": "N/A",
+                            "usage": usage,
                         })
         except Exception as e:
             if not self._gpu_warning_shown:
@@ -181,6 +288,9 @@ class HardwareMonitor:
             gpus.append({
                 "name": "GPU non détecté",
                 "temperature": None,
+                "driver_version": "N/A",
+                "driver_date": "N/A",
+                "usage": 0,
             })
         
         return gpus
@@ -211,48 +321,45 @@ class HardwareMonitor:
     
     def _get_cpu_temperature(self) -> Optional[float]:
         """
-        Récupère la température CPU via WMI (Windows)
+        Récupère la température CPU via WMI (Windows) avec méthodes multiples
         Note: Nécessite des privilèges admin et dépend du matériel
         """
-        # Méthode 1: WMI via wmic
+        # Méthode 1: OpenHardwareMonitor/LibreHardwareMonitor (MEILLEURE MÉTHODE)
         try:
-            from backend.system_commands import system_cmd
-            result = system_cmd.run_wmic(['/namespace:\\\\root\\wmi', 'PATH', 'MSAcpi_ThermalZoneTemperature', 'get', 'CurrentTemperature'])
+            import win32com.client
+            wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\OpenHardwareMonitor")
+            sensors = wmi.ExecQuery("SELECT * FROM Sensor")
             
-            if result.returncode == 0:
-                lines = result.stdout.strip().split('\n')
-                if len(lines) > 1:
-                    try:
-                        # La température est en dixièmes de Kelvin
-                        temp_kelvin = int(lines[1].strip())
-                        temp_celsius = (temp_kelvin / 10.0) - 273.15
-                        if 0 < temp_celsius < 150:  # Vérification de validité
-                            return round(temp_celsius, 1)
-                    except ValueError:
-                        pass
+            cpu_temps = []
+            for sensor in sensors:
+                if sensor.SensorType == 'Temperature' and 'CPU' in sensor.Name and 'GPU' not in sensor.Name:
+                    cpu_temps.append(float(sensor.Value))
+            
+            if cpu_temps:
+                # Retourner la moyenne des températures CPU
+                avg_temp = sum(cpu_temps) / len(cpu_temps)
+                return round(avg_temp, 1)
         except Exception:
             pass
         
-        # Méthode 2: Win32_TemperatureProbe
+        # Méthode 2: LibreHardwareMonitor namespace
         try:
-            from backend.system_commands import system_cmd
-            result = system_cmd.run_wmic(['path', 'Win32_TemperatureProbe', 'get', 'CurrentReading'])
+            import win32com.client
+            wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\LibreHardwareMonitor")
+            sensors = wmi.ExecQuery("SELECT * FROM Sensor")
             
-            if result.returncode == 0:
-                lines = result.stdout.strip().split('\n')
-                if len(lines) > 1:
-                    try:
-                        # La température est en dixièmes de degrés Celsius
-                        temp_raw = int(lines[1].strip())
-                        temp_celsius = temp_raw / 10.0
-                        if 0 < temp_celsius < 150:
-                            return round(temp_celsius, 1)
-                    except ValueError:
-                        pass
+            cpu_temps = []
+            for sensor in sensors:
+                if sensor.SensorType == 'Temperature' and 'CPU' in sensor.Name and 'GPU' not in sensor.Name:
+                    cpu_temps.append(float(sensor.Value))
+            
+            if cpu_temps:
+                avg_temp = sum(cpu_temps) / len(cpu_temps)
+                return round(avg_temp, 1)
         except Exception:
             pass
         
-        # Méthode 3: WMI avec win32com
+        # Méthode 3: WMI MSAcpi_ThermalZoneTemperature
         try:
             import win32com.client
             wmi = win32com.client.GetObject("winmgmts://./root/wmi")
@@ -266,9 +373,46 @@ class HardwareMonitor:
         except Exception:
             pass
         
+        # Méthode 4: WMI via wmic
+        try:
+            from backend.system_commands import system_cmd
+            result = system_cmd.run_wmic(['/namespace:\\\\root\\wmi', 'PATH', 'MSAcpi_ThermalZoneTemperature', 'get', 'CurrentTemperature'])
+            
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                if len(lines) > 1:
+                    try:
+                        temp_kelvin = int(lines[1].strip())
+                        temp_celsius = (temp_kelvin / 10.0) - 273.15
+                        if 0 < temp_celsius < 150:
+                            return round(temp_celsius, 1)
+                    except ValueError:
+                        pass
+        except Exception:
+            pass
+        
+        # Méthode 5: Win32_TemperatureProbe
+        try:
+            from backend.system_commands import system_cmd
+            result = system_cmd.run_wmic(['path', 'Win32_TemperatureProbe', 'get', 'CurrentReading'])
+            
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                if len(lines) > 1:
+                    try:
+                        temp_raw = int(lines[1].strip())
+                        temp_celsius = temp_raw / 10.0
+                        if 0 < temp_celsius < 150:
+                            return round(temp_celsius, 1)
+                    except ValueError:
+                        pass
+        except Exception:
+            pass
+        
         # Afficher le message une seule fois si toutes les méthodes échouent
         if not self._temp_warning_shown:
-            print(f"[INFO] CPU temperature sensor not available (requires admin rights or specific hardware)")
+            print(f"[INFO] CPU temperature not available. Install OpenHardwareMonitor or LibreHardwareMonitor for temperature monitoring.")
+            print(f"[INFO] Download: https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases")
             self._temp_warning_shown = True
         
         return None
@@ -283,11 +427,10 @@ class HardwareMonitor:
         return None
     
     def _get_gpu_temperature(self, gpu_name: str) -> Optional[float]:
-        """
-        Récupère la température GPU
+        """Récupère la température GPU avec méthodes multiples
         Note: Nécessite des drivers spécifiques (NVIDIA-SMI, AMD ADL, etc.)
         """
-        # Essayer nvidia-smi pour les GPU NVIDIA
+        # Méthode 1: nvidia-smi pour les GPU NVIDIA
         if "nvidia" in gpu_name.lower():
             try:
                 from backend.system_commands import system_cmd
@@ -299,10 +442,72 @@ class HardwareMonitor:
                     temp = float(result.stdout.strip())
                     return round(temp, 1)
             except Exception:
-                # nvidia-smi non disponible - normal si pas installé
                 pass
         
+        # Méthode 2: Essayer OpenHardwareMonitor/LibreHardwareMonitor WMI
+        try:
+            import win32com.client
+            wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\OpenHardwareMonitor")
+            sensors = wmi.ExecQuery("SELECT * FROM Sensor")
+            
+            for sensor in sensors:
+                if sensor.SensorType == 'Temperature' and 'GPU' in sensor.Name:
+                    return round(float(sensor.Value), 1)
+        except Exception:
+            pass
+        
+        # Méthode 3: LibreHardwareMonitor namespace
+        try:
+            import win32com.client
+            wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\LibreHardwareMonitor")
+            sensors = wmi.ExecQuery("SELECT * FROM Sensor")
+            
+            for sensor in sensors:
+                if sensor.SensorType == 'Temperature' and 'GPU' in sensor.Name:
+                    return round(float(sensor.Value), 1)
+        except Exception:
+            pass
+        
         return None
+    
+    def _get_gpu_usage(self, gpu_name: str) -> float:
+        """Récupère l'utilisation GPU en pourcentage"""
+        # Méthode 1: nvidia-smi pour les GPU NVIDIA
+        if "nvidia" in gpu_name.lower():
+            try:
+                from backend.system_commands import system_cmd
+                result = system_cmd.run_nvidia_smi(['--query-gpu=utilization.gpu', '--format=csv,noheader,nounits'])
+                if result and result.returncode == 0:
+                    usage = float(result.stdout.strip())
+                    return round(usage, 1)
+            except Exception:
+                pass
+        
+        # Méthode 2: OpenHardwareMonitor/LibreHardwareMonitor
+        try:
+            import win32com.client
+            wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\OpenHardwareMonitor")
+            sensors = wmi.ExecQuery("SELECT * FROM Sensor")
+            
+            for sensor in sensors:
+                if sensor.SensorType == 'Load' and 'GPU Core' in sensor.Name:
+                    return round(float(sensor.Value), 1)
+        except Exception:
+            pass
+        
+        # Méthode 3: LibreHardwareMonitor namespace
+        try:
+            import win32com.client
+            wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\LibreHardwareMonitor")
+            sensors = wmi.ExecQuery("SELECT * FROM Sensor")
+            
+            for sensor in sensors:
+                if sensor.SensorType == 'Load' and 'GPU Core' in sensor.Name:
+                    return round(float(sensor.Value), 1)
+        except Exception:
+            pass
+        
+        return 0
     
     def get_all_components(self) -> Dict:
         """
@@ -320,12 +525,12 @@ class HardwareMonitor:
             self.last_data = data
             return data
     
-    def start_monitoring(self, interval: float = 2.0, callback=None):
+    def start_monitoring(self, interval: float = 1.0, callback=None):
         """
         Démarre le monitoring en temps réel
         
         Args:
-            interval: Intervalle de mise à jour en secondes
+            interval: Intervalle de mise à jour en secondes (défaut: 1.0 pour plus de fluidité)
             callback: Fonction appelée à chaque mise à jour avec les données
         """
         if self.monitoring:

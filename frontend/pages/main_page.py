@@ -1584,9 +1584,9 @@ class MainPage:
     
     def _build_hardware_card(self, component_type, data):
         """Construit une carte pour un composant matériel"""
-        # Déterminer l'icône selon le type
+        # Déterminer l'icône selon le type (utiliser SVG)
         if component_type == "CPU":
-            icon = ft.Icons.MEMORY
+            icon_path = "assets/icons/processeur.svg"
             name = data.get("name", "N/A")
             usage = data.get('usage', 0)
             freq_current = data.get('frequency_current', 0)
@@ -1623,12 +1623,24 @@ class MainPage:
                 f"Fréquence: {freq_current:.0f} MHz / {freq_max:.0f} MHz max",
             ]
         elif component_type == "Mémoire":
-            icon = ft.Icons.STORAGE
-            name = "RAM"
+            icon_path = "assets/icons/memoire.svg"
+            name = data.get("name", "RAM")
             total_gb = data.get("total", 0) / (1024**3)
             used_gb = data.get("used", 0) / (1024**3)
             available_gb = data.get("available", 0) / (1024**3)
             percent = data.get("percent", 0)
+            
+            # Informations sur les modules RAM
+            ram_modules = data.get("modules", [])
+            if ram_modules:
+                module_count = len(ram_modules)
+                module_info = f"{module_count} barrette{'s' if module_count > 1 else ''}"
+                # Détails des modules
+                module_details = ", ".join([f"{m:.0f}GB" for m in ram_modules])
+                if module_details:
+                    module_info += f" ({module_details})"
+            else:
+                module_info = "Information non disponible"
             
             # Barre de progression pour la RAM
             cpu_progress = ft.Container(
@@ -1636,7 +1648,7 @@ class MainPage:
                     [
                         ft.Row(
                             [
-                                Caption("Utilisation", size=10, color=Colors.FG_TERTIARY),
+                                Caption("Utilisation en cours", size=10, color=Colors.FG_TERTIARY),
                                 ft.Container(expand=True),
                                 Caption(f"{percent:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
                             ],
@@ -1657,17 +1669,52 @@ class MainPage:
             )
             
             details = [
+                f"Mémoire installée: {module_info}",
                 f"Utilisée: {used_gb:.2f} GB / {total_gb:.2f} GB",
-                f"Disponible: {available_gb:.2f} GB",
             ]
         elif component_type == "GPU":
-            icon = ft.Icons.VIDEOCAM
+            icon_path = "assets/icons/GPU.svg"
             name = data.get("name", "N/A")
-            cpu_progress = None
-            details = []
+            usage = data.get("usage", 0)
+            driver_version = data.get("driver_version", "N/A")
+            
+            # Barre de progression pour l'utilisation GPU
+            if usage > 0:
+                cpu_progress = ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    Caption("Utilisation GPU", size=10, color=Colors.FG_TERTIARY),
+                                    ft.Container(expand=True),
+                                    Caption(f"{usage:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
+                                ],
+                                spacing=0,
+                            ),
+                            ft.Container(height=4),
+                            ft.ProgressBar(
+                                value=usage / 100,
+                                height=6,
+                                color=Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED,
+                                bgcolor=Colors.BORDER_DEFAULT,
+                                border_radius=BorderRadius.SM,
+                            ),
+                        ],
+                        spacing=0,
+                    ),
+                    margin=ft.margin.only(top=8),
+                )
+            else:
+                cpu_progress = None
+            
+            details = [
+                f"Pilote: {driver_version}",
+            ]
         elif component_type == "Disque":
-            icon = ft.Icons.STORAGE_OUTLINED
-            name = data.get("name", "N/A")
+            icon_path = "assets/icons/disque-dur.svg"
+            disk_model = data.get("model", "Unknown")
+            disk_type = data.get("type", "Unknown")
+            name = f"{data.get('name', 'N/A')} - {disk_model}"
             total_gb = data.get("total", 0) / (1024**3)
             used_gb = data.get("used", 0) / (1024**3)
             free_gb = data.get("free", 0) / (1024**3)
@@ -1700,11 +1747,12 @@ class MainPage:
             )
             
             details = [
-                f"Utilisé: {used_gb:.2f} GB / {total_gb:.2f} GB",
-                f"Libre: {free_gb:.2f} GB",
+                f"Type: {disk_type}",
+                f"Espace utilisé: {used_gb:.2f} GB / {total_gb:.2f} GB",
+                f"Espace libre: {free_gb:.2f} GB",
             ]
         else:
-            icon = ft.Icons.DEVICE_UNKNOWN
+            icon_path = None
             name = "Inconnu"
             cpu_progress = None
             details = []
@@ -1762,13 +1810,25 @@ class MainPage:
         if cpu_progress:
             info_column_controls.append(cpu_progress)
         
+        # Construire l'icône (SVG ou Icon par défaut)
+        if icon_path:
+            icon_widget = ft.Image(
+                src=icon_path,
+                width=36,
+                height=36,
+                color=Colors.ACCENT_PRIMARY,
+                fit=ft.ImageFit.CONTAIN,
+            )
+        else:
+            icon_widget = ft.Icon(ft.Icons.DEVICE_UNKNOWN, size=36, color=Colors.ACCENT_PRIMARY)
+        
         # Construire la carte avec hover effect
         return ft.Container(
             content=ft.Row(
                 [
                     # Icône du composant avec glow
                     ft.Container(
-                        content=ft.Icon(icon, size=36, color=Colors.ACCENT_PRIMARY),
+                        content=icon_widget,
                         padding=Spacing.LG,
                         bgcolor=ft.Colors.with_opacity(0.15, Colors.ACCENT_PRIMARY),
                         border_radius=BorderRadius.MD,
@@ -1899,11 +1959,21 @@ class MainPage:
                 details_column = info_column.controls[2]
                 total_gb = data.get("total", 0) / (1024**3)
                 used_gb = data.get("used", 0) / (1024**3)
-                available_gb = data.get("available", 0) / (1024**3)
                 percent = data.get("percent", 0)
                 
-                details_column.controls[0].value = f"Utilisée: {used_gb:.2f} GB / {total_gb:.2f} GB"
-                details_column.controls[1].value = f"Disponible: {available_gb:.2f} GB"
+                # Informations sur les modules RAM
+                ram_modules = data.get("modules", [])
+                if ram_modules:
+                    module_count = len(ram_modules)
+                    module_info = f"{module_count} barrette{'s' if module_count > 1 else ''}"
+                    module_details = ", ".join([f"{m:.0f}GB" for m in ram_modules])
+                    if module_details:
+                        module_info += f" ({module_details})"
+                else:
+                    module_info = "Information non disponible"
+                
+                details_column.controls[0].value = f"Mémoire installée: {module_info}"
+                details_column.controls[1].value = f"Utilisée: {used_gb:.2f} GB / {total_gb:.2f} GB"
                 
                 # Mettre à jour la barre de progression
                 if len(info_column.controls) > 3:
@@ -1918,6 +1988,27 @@ class MainPage:
                     progress_bar.value = percent / 100
                     progress_bar.color = Colors.ACCENT_PRIMARY if percent < 80 else ft.Colors.ORANGE if percent < 95 else ft.Colors.RED
                     
+            elif component_type == "GPU":
+                # Mettre à jour les détails textuels
+                details_column = info_column.controls[2]
+                driver_version = data.get("driver_version", "N/A")
+                usage = data.get("usage", 0)
+                
+                details_column.controls[0].value = f"Pilote: {driver_version}"
+                
+                # Mettre à jour la barre de progression si elle existe
+                if usage > 0 and len(info_column.controls) > 3:
+                    progress_container = info_column.controls[3]
+                    progress_column = progress_container.content
+                    
+                    # Mettre à jour le pourcentage
+                    progress_column.controls[0].controls[2].value = f"{usage:.1f}%"
+                    
+                    # Mettre à jour la barre
+                    progress_bar = progress_column.controls[2]
+                    progress_bar.value = usage / 100
+                    progress_bar.color = Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED
+                    
             elif component_type == "Disque":
                 # Mettre à jour les détails textuels
                 details_column = info_column.controls[2]
@@ -1925,9 +2016,11 @@ class MainPage:
                 used_gb = data.get("used", 0) / (1024**3)
                 free_gb = data.get("free", 0) / (1024**3)
                 percent = data.get("percent", 0)
+                disk_type = data.get("type", "Unknown")
                 
-                details_column.controls[0].value = f"Utilisé: {used_gb:.2f} GB / {total_gb:.2f} GB"
-                details_column.controls[1].value = f"Libre: {free_gb:.2f} GB"
+                details_column.controls[0].value = f"Type: {disk_type}"
+                details_column.controls[1].value = f"Espace utilisé: {used_gb:.2f} GB / {total_gb:.2f} GB"
+                details_column.controls[2].value = f"Espace libre: {free_gb:.2f} GB"
                 
                 # Mettre à jour la barre de progression
                 if len(info_column.controls) > 3:
