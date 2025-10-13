@@ -116,9 +116,11 @@ class SecurityManager:
     def create_backup_registry_key(key_path):
         """Crée une sauvegarde d'une clé de registre avant modification"""
         try:
+            # Remplacer les backslashes par des underscores pour le nom de fichier
+            safe_key_name = key_path.replace('\\', '_')
             backup_path = os.path.join(
                 os.getenv('TEMP'),
-                f"5ghz_cleaner_registry_backup_{key_path.replace('\\', '_')}.reg"
+                f"5ghz_cleaner_registry_backup_{safe_key_name}.reg"
             )
             
             subprocess.run(
