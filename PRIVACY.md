@@ -1,96 +1,120 @@
-# 🔐 Politique de Confidentialité - 5GH'z Cleaner
+# 🔐 Confidentialité - 5GH'z Cleaner
 
-## 📋 Vue d'ensemble
+## 📋 Notre Engagement
 
-**5GH'z Cleaner respecte votre vie privée de manière absolue.**
+**Votre vie privée est sacrée. Aucune donnée n'est collectée, jamais.**
 
-**NOTRE ENGAGEMENT:** Respect total de la vie privée de chaque utilisateur - c'est notre point d'honneur. **5GH'z Cleaner** est conçu avec la confidentialité comme priorité absolue.
+**5GH'z Cleaner** est conçu avec un principe simple: **zéro télémétrie, zéro collecte, zéro tracking**.
 
-### ✅ Garanties de Confidentialité
+## 🚫 Ce Que Nous NE Collectons PAS
 
-1. **AUCUNE TÉLÉMÉTRIE**
-   - Aucune donnée n'est collectée
-   - Aucune connexion réseau n'est établie
-   - Aucune information n'est envoyée à des serveurs externes
+**Absolument RIEN.** Voici ce qui n'est jamais collecté:
 
-2. **AUCUNE COLLECTE DE DONNÉES**
-   - Aucun historique de navigation
-   - Aucune adresse IP
-   - Aucun identifiant unique
-   - Aucune donnée personnelle
+- 🚫 **Aucune donnée personnelle** - Nom, email, adresse, etc.
+- 🚫 **Aucune donnée d'utilisation** - Ce que vous nettoyez, quand, comment
+- 🚫 **Aucune donnée système** - Configuration PC, logiciels installés
+- 🚫 **Aucune connexion Internet** - L'application fonctionne 100% en local
+- 🚫 **Aucun tracking** - Pas de cookies, analytics ou suivi
+- 🚫 **Aucun identifiant** - Pas d'ID unique, pas de fingerprinting
 
-3. **AUCUN TRACKING**
-   - Pas de cookies
-   - Pas d'analytics
-   - Pas de suivi comportemental
-   - Pas de fingerprinting
+## ✅ Comment Vérifier Par Vous-Même ?
 
-### 🛡️ Vérification de Conformité
+**Transparence totale**: Vous pouvez vérifier l'absence de télémétrie vous-même.
 
-L'application inclut un module de vérification de télémétrie (`backend/telemetry_checker.py`) qui peut être exécuté à tout moment pour confirmer:
+### Méthode 1: Outil de Vérification Intégré
 
 ```bash
-python -m backend.telemetry_checker
+python backend/telemetry_checker.py
 ```
 
-Ce module vérifie:
-- ✓ Absence de connexions réseau actives
-- ✓ Absence de requêtes externes
-- ✓ Absence de fichiers de collecte de données
+Vous verrez:
+```
+✓ STATUT: CONFORME - Aucune télémétrie détectée
+✓ Aucune connexion réseau active
+✓ Aucune donnée collectée
+```
 
-### 📊 Monitoring Matériel (Onglet Configuration)
+### Méthode 2: Consultez le Code Source
 
-L'onglet "Configuration" affiche les informations matérielles de votre système:
-- CPU (température, utilisation, fréquence)
-- RAM (utilisation, mémoire disponible)
-- GPU (nom, température si disponible)
-- Disques (utilisation, espace libre)
+Le code est 100% open source sur GitHub. Vous pouvez:
+- Lire chaque ligne de code
+- Chercher "requests", "urllib", "socket" (aucune occurrence)
+- Vérifier qu'il n'y a aucune connexion réseau
 
-**IMPORTANT**: Toutes ces données sont:
-- ✅ Collectées localement sur votre machine
-- ✅ Affichées uniquement dans l'interface
-- ✅ JAMAIS envoyées à des serveurs externes
-- ✅ JAMAIS stockées dans des fichiers
-- ✅ Supprimées à la fermeture de l'application
+## 📊 Informations Affichées (Onglet Configuration)
 
-### 🔐 Sécurité des Données
+**Question**: Si l'application affiche des informations sur mon PC (CPU, RAM, GPU), sont-elles envoyées quelque part ?
 
-- Toutes les opérations sont effectuées localement
-- Aucune connexion Internet n'est requise
-- Le code source est open-source et vérifiable
-- Aucune dépendance suspecte
+**Réponse**: **NON, absolument pas.**
 
-### 📝 Logs et Journaux
+**Comment ça fonctionne**:
+1. ✅ Les informations sont lues **localement** sur votre PC
+2. ✅ Elles sont **affichées uniquement** dans l'interface
+3. ✅ Elles sont **JAMAIS envoyées** à Internet
+4. ✅ Elles sont **JAMAIS stockées** dans des fichiers
+5. ✅ Elles **disparaissent** quand vous fermez l'application
 
-Les logs affichés dans la console sont:
-- Uniquement pour le débogage local
-- Jamais envoyés à des serveurs
-- Jamais stockés de manière permanente
-- Visibles uniquement par l'utilisateur
+**Analogie**: C'est comme regarder la température sur un thermomètre - vous la voyez, mais personne d'autre ne la voit.
 
-### ⚖️ Conformité
+## 🔐 Sécurité de Vos Données
 
-Cette application est conforme aux réglementations:
-- RGPD (Règlement Général sur la Protection des Données)
-- CCPA (California Consumer Privacy Act)
-- Aucune donnée personnelle n'est traitée
+**Principe simple**: Vos données restent sur votre PC, point.
 
-### 🔍 Transparence
+- ✅ **100% local** - Tout fonctionne sur votre ordinateur
+- ✅ **Aucune connexion Internet** - Pas besoin de réseau
+- ✅ **Code source ouvert** - Vérifiable par tous
+- ✅ **Pas de dépendances suspectes** - Uniquement des bibliothèques officielles
 
-Le code source complet est disponible et peut être audité:
-- Tous les modules sont documentés
-- Aucun code obfusqué
-- Aucune dépendance cachée
-- Licence open-source CC BY-NC-SA 4.0
+## 📝 Logs - Stockés Localement
 
-### 📞 Contact
+**Les logs de nettoyage sont-ils envoyés quelque part ?**
 
-Pour toute question concernant la confidentialité:
-- GitHub: https://github.com/UndKiMi
-- Vérifiez le code source vous-même
+**NON.** Les logs sont:
+- ✅ **Stockés localement** dans `Documents/5GH'zCleaner-logs/`
+- ✅ **Jamais envoyés** à Internet
+- ✅ **Visibles uniquement par vous**
+- ✅ **Supprimables** quand vous voulez
+
+**Pourquoi des logs ?** Pour que vous puissiez vérifier ce qui a été nettoyé et quand.
+
+## ⚖️ Conformité Légale
+
+**5GH'z Cleaner est conforme à**:
+- ✅ **RGPD** (Europe) - Aucune donnée personnelle traitée
+- ✅ **CCPA** (Californie) - Aucune donnée collectée
+- ✅ **Toutes les lois sur la vie privée** - Zéro collecte = zéro risque
+
+## 🔍 Transparence Totale
+
+**Vous ne devez pas nous croire sur parole. Vérifiez !**
+
+- ✅ **Code source complet** sur [GitHub](https://github.com/UndKiMi/5Ghz_Cleaner)
+- ✅ **Aucun code caché** - Tout est visible
+- ✅ **Aucune obfuscation** - Code lisible et commenté
+- ✅ **Licence open source** - CC BY-NC-SA 4.0
+
+## ❓ Questions Fréquentes
+
+**Q: Pourquoi devrais-je vous faire confiance ?**
+R: Vous ne devez pas ! Vérifiez le code source, lancez le vérificateur de télémétrie, ou utilisez un moniteur réseau pour voir qu'il n'y a aucune connexion.
+
+**Q: Mes données sont-elles vendues à des tiers ?**
+R: Impossible - nous n'avons aucune donnée à vendre. Zéro collecte = zéro vente.
+
+**Q: L'application peut-elle changer et commencer à collecter des données ?**
+R: Le code est open source. Toute modification serait visible immédiatement. De plus, le vérificateur de télémétrie détecterait tout changement.
+
+**Q: Pourquoi ne pas avoir de télémétrie "anonyme" pour améliorer le logiciel ?**
+R: Parce que votre vie privée est plus importante. Nous préférons améliorer le logiciel via les retours volontaires des utilisateurs.
 
 ---
 
-**Version**: MAJOR UPDATE
+<div align="center">
 
-**Engagement**: Aucune donnée utilisateur ne sera jamais collectée, stockée ou transmise sans consentement explicite.
+**5GH'z Cleaner** - Votre Vie Privée, Notre Priorité
+
+**Engagement**: Zéro télémétrie, toujours.
+
+[Retour au README](README.md) • [Sécurité](SECURITY.md) • [Guide de Démarrage](QUICK_START.md)
+
+</div>

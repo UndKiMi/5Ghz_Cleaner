@@ -15,7 +15,15 @@
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-A-success.svg?style=flat-square)](https://github.com/UndKiMi/5Ghz_Cleaner)
 [![Maintained](https://img.shields.io/badge/Maintained-Yes-success.svg?style=flat-square)](https://github.com/UndKiMi/5Ghz_Cleaner)
 
-**Application de nettoyage et d'optimisation Windows avec interface moderne et sécurité maximale**
+**Nettoyeur Windows 11 avec sécurité maximale et transparence totale**
+
+### 🎯 Pourquoi choisir 5GH'z Cleaner ?
+
+- 🔒 **Sécurité maximale** - 200+ chemins système protégés
+- 🚫 **Aucune télémétrie** - Vérifiable et garanti
+- 👁️ **Prévisualisation obligatoire** - Voyez ce qui sera supprimé avant toute action
+- 🆓 **100% gratuit** - Pas de version premium, pas de publicités
+- 📖 **Open source** - Code source auditable par tous
 
 ## ⚙️ Compatibilité
 
@@ -23,404 +31,247 @@
 - ❌ **Windows 10** - Non compatible
 - ❌ **Windows 7/8/8.1** - Non supporté
 
-> **Note**: Le logiciel utilise des APIs et fonctionnalités spécifiques à Windows 11. L'exécution sur d'autres versions de Windows n'est pas supportée et peut causer des erreurs.
+> **Note**: Ce logiciel utilise des APIs spécifiques à Windows 11. L'exécution sur d'autres versions de Windows n'est pas supportée.
 
-[🚀 Démarrage Rapide](#-démarrage-rapide) • [📚 Documentation](#-documentation) • [🔒 Sécurité](#️-sécurité) • [🤝 Contribuer](CONTRIBUTING.md) • [📝 Changelog](CHANGELOG.md)
+[🚀 Installation](#-installation-rapide) • [📚 Guide d'utilisation](#-guide-dutilisation) • [🔒 Sécurité](#️-sécurité-et-confidentialité) • [📝 Licence](#-licence)
 
 </div>
 
 ---
 
-## 🔒 MAJOR UPDATE - Sécurité Maximale
+## 🚀 Installation Rapide
 
-✅ **Score de sécurité: 85/100** (Très Bon - Évaluation honnête)  
-✅ **Protection triple couche** contre la suppression de fichiers système  
-✅ **200+ chemins Windows critiques** protégés via `security_core.py`  
-✅ **140+ fichiers système** bloqués (noyau, boot, pilotes)  
-✅ **Protection Microsoft** (Office, Edge, OneDrive, Teams, VS Code)  
-✅ **Protection apps tierces** (Chrome, Firefox, antivirus, GPU drivers)  
-✅ **Signature numérique** (SHA256 + SHA512) avec vérification automatique  
-✅ **Tests automatisés: 10 suites de tests** disponibles  
-✅ **Basé sur les recommandations Microsoft officielles**  
-✅ **Aucune télémétrie** - Vérifiable via `telemetry_checker.py`  
-✅ **100% API natives Windows** - Aucun PowerShell (WinVerifyTrust, COM, ctypes)  
+### Option 1: Télécharger l'exécutable (Recommandé)
 
----
+1. **Téléchargez** la dernière version depuis [Releases](https://github.com/UndKiMi/5Ghz_Cleaner/releases)
+2. **Vérifiez** l'intégrité du fichier (optionnel mais recommandé):
+   ```powershell
+   Get-FileHash "5Ghz_Cleaner.exe" -Algorithm SHA256
+   # Comparez avec le fichier CHECKSUMS.txt fourni
+   ```
+3. **Lancez** l'application en double-cliquant sur `5Ghz_Cleaner.exe`
 
-## 🚀 Démarrage Rapide
+> ⚠️ **Windows SmartScreen**: Si vous voyez "Windows a protégé votre PC", cliquez sur "Plus d'infos" puis "Exécuter quand même". C'est normal pour les applications sans certificat officiel (coût: 500€/an).
 
-### Installation
+### Option 2: Depuis le code source
+
+**Prérequis**: Python 3.11 ou supérieur
+
 ```bash
+# 1. Clonez le repository
+git clone https://github.com/UndKiMi/5Ghz_Cleaner.git
+cd 5Ghz_Cleaner
+
+# 2. Installez les dépendances
 pip install -r requirements.txt
-```
 
-### Utilisation
-```bash
-python main.py
-# Ou: scripts\run.bat
-```
-
-### Tests
-```bash
-python tests\run_all_tests.py
-# Ou: scripts\RUN_TESTS.bat
-```
-
----
-
-## 📚 Table des Matières
-
-- [🔒 Sécurité](#-version-160---sécurité-maximale)
-- [🚀 Démarrage Rapide](#-démarrage-rapide)
-- [✨ Fonctionnalités](#-fonctionnalités)
-- [📁 Structure du Projet](#-structure-du-projet)
-- [💻 Installation & Utilisation](#-installation)
-- [🔨 Compilation](#-compilation-en-exécutable)
-- [🧪 Tests](#-tests)
-- [🛡️ Sécurité Détaillée](#️-sécurité)
-- [📊 Progression](#-progression-du-projet)
-- [🏗️ Architecture](#️-architecture)
-- [📝 Changelog](#-changelog)
-- [📄 Licence](#-licence)
-- [🆘 Support](#-support)
-
-### 📖 Documentation Complète
-
-| Document | Description | Temps |
-|----------|-------------|-------|
-| **[QUICK_START.md](QUICK_START.md)** | 🚀 Démarrage rapide (5 minutes) | 5 min |
-| **[SECURITY.md](SECURITY.md)** | 🔒 Rapport de sécurité complet (85/100) | 15 min |
-| **[CONTRIBUTING.md](CONTRIBUTING.md)** | 🤝 Guide de contribution avec templates | 10 min |
-| **[INSTALLATION.md](INSTALLATION.md)** | 📥 Guide d'installation détaillé | 5 min |
-| **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** | 📁 Structure du projet | 10 min |
-| **[CHANGELOG.md](CHANGELOG.md)** | 📋 Historique des versions | 5 min |
-| **[PRIVACY.md](PRIVACY.md)** | 🔐 Politique de confidentialité | 3 min |
-| **[Documentations/](Documentations/)** | 📚 Documentation technique complète | Variable |
-| **[Documentations/CODE_SIGNING_GUIDE.md](Documentations/CODE_SIGNING_GUIDE.md)** | 📜 Guide certificat code signing | 20 min |
-
----
-
-## 📋 Voir le [CHANGELOG.md](./CHANGELOG.md) pour tous les détails
-
-## 📁 Structure du Projet
-
-```
-5Ghz_Cleaner/
-├── assets/                      # Ressources statiques
-│   └── icons/                   # Icônes SVG
-├── backend/                     # Logique métier
-│   ├── __init__.py
-│   ├── cleaner.py              # Fonctions de nettoyage
-│   ├── security_core.py        # 🔒 Module de sécurité core (NOUVEAU)
-│   ├── elevation.py            # Gestion des privilèges admin
-│   ├── logger.py               # Système de logging
-│   ├── security.py             # Vérifications sécurité
-│   ├── dry_run.py              # Mode prévisualisation
-│   └── telemetry_checker.py    # Vérification télémétrie
-├── frontend/                    # Interface utilisateur
-│   ├── design_system/          # Système de design
-│   │   ├── theme.py            # Tokens (couleurs, espacements)
-│   │   ├── buttons.py          # Composants boutons
-│   │   ├── containers.py       # Composants conteneurs
-│   │   ├── text.py             # Composants texte
-│   │   ├── icons.py            # Composants icônes
-│   │   └── inputs.py           # Composants inputs
-│   ├── pages/                  # Pages de l'application
-│   │   └── main_page.py        # Page principale
-│   └── app.py                  # Application Flet
-├── Documentations/             # 📚 TOUTE LA DOCUMENTATION
-│   ├── INDEX.md                # Index de navigation
-│   ├── README.md               # Documentation générale
-│   ├── SERVICES_DEPENDENCIES.md
-│   ├── ELEVATION_DRYRUN.md
-│   ├── DRY_RUN_BUTTON.md
-│   ├── FIX_ANTI_SPAM.md
-│   └── ANTI_BYPASS_SECURITY.md
-├── tests/                       # 🧪 Tests unitaires (NOUVEAU)
-│   ├── test_anti_bypass.py
-│   ├── test_anti_spam.py
-│   ├── test_app.py
-│   └── ...
-├── main.py                     # Point d'entrée
-├── requirements.txt            # Dépendances
-├── CHANGELOG.md                # 📋 Historique des versions (NOUVEAU)
-└── build.bat                   # Script de compilation
-```
-
-## 📚 Documentation
-
-**Toute la documentation se trouve dans le dossier [`Documentations/`](./Documentations/)**
-
-👉 **Commencez par lire : [`Documentations/INDEX.md`](./Documentations/INDEX.md)**
-
-### Documentation Rapide
-
-- **Guide général :** [`Documentations/README.md`](./Documentations/README.md)
-- **Sécurité services :** [`Documentations/SERVICES_DEPENDENCIES.md`](./Documentations/SERVICES_DEPENDENCIES.md)
-- **Élévation & Dry-Run :** [`Documentations/ELEVATION_DRYRUN.md`](./Documentations/ELEVATION_DRYRUN.md)
-- **Protection anti-contournement :** [`Documentations/ANTI_BYPASS_SECURITY.md`](./Documentations/ANTI_BYPASS_SECURITY.md)
-
-## 🚀 Installation
-
-1. Installer les dépendances:
-```bash
-pip install -r requirements.txt
-```
-
-## 💻 Utilisation
-
-Lancer l'application:
-```bash
+# 3. Lancez l'application
 python main.py
 ```
 
-L'application peut fonctionner en mode utilisateur standard (nettoyage limité) ou en mode administrateur (nettoyage complet).
+---
 
-## 🔨 Compilation en Exécutable
+## 📚 Guide d'Utilisation
 
-Pour compiler l'application en un exécutable Windows:
+### Première utilisation
 
-```bash
-# Utiliser le script de build
-build.bat
+1. **Lancez** l'application
+2. **Sélectionnez** les options de nettoyage souhaitées
+3. **Cliquez** sur "🔍 Prévisualiser" (Dry-Run) - **OBLIGATOIRE**
+4. **Vérifiez** la liste des fichiers qui seront supprimés
+5. **Cliquez** sur "🧹 Nettoyer" pour confirmer
+6. **Attendez** la fin du nettoyage
 
-# Ou manuellement
-flet pack main.py --name "5Ghz_Cleaner" --add-data "backend;backend" --add-data "frontend;frontend"
-```
+> 💡 **Astuce**: Un point de restauration Windows est automatiquement créé avant chaque nettoyage pour votre sécurité.
 
-## ✨ Fonctionnalités
+### Options de nettoyage disponibles
 
-### 🧹 Nettoyage
-- **Fichiers temporaires** : Supprime les fichiers temporaires et cache système
-- **Cache Windows Update** : Nettoie le cache des mises à jour
-- **Prefetch** : Optimise le prefetch Windows
-- **Historique récent** : Efface l'historique des fichiers
-- **Cache miniatures** : Supprime le cache des miniatures
-- **Dumps de crash** : Nettoie les fichiers de crash
-- **Windows.old** : Supprime l'ancienne installation Windows
-- **Corbeille** : Vide la corbeille
+#### 🧹 Nettoyage Rapide
+- **Fichiers temporaires** - Supprime les fichiers temporaires Windows et applications
+- **Cache Windows Update** - Nettoie le cache des mises à jour
+- **Prefetch** - Optimise le cache de préchargement
+- **Historique récent** - Efface l'historique des fichiers récents
+- **Cache miniatures** - Supprime les vignettes d'images
+- **Dumps de crash** - Nettoie les rapports d'erreur
+- **Windows.old** - Supprime l'ancienne installation Windows (confirmation requise)
+- **Corbeille** - Vide la corbeille (confirmation requise)
 
-### ⚙️ Options Avancées
-- **RAM Standby** : Libère la mémoire en attente
-- **Flush DNS** : Vide le cache DNS
-- **Télémétrie** : Désactive les services de collecte de données
-- **Logs système** : Supprime les fichiers journaux volumineux
-- **Arrêt services** : Arrête les services optionnels
-
-### 🔐 Sécurité
-- **Aucune télémétrie** : Vérifiable via `telemetry_checker.py`
-- **API natives Windows** : Pas de PowerShell (anti-injection)
-- **Élévation conditionnelle** : Demande admin uniquement si nécessaire
-- **Mode Dry-Run obligatoire** : Prévisualisation avant nettoyage
-- **Protection anti-contournement** : Impossible de bypass la sécurité
-- **12 services protégés** : Spooler, Windows Update, etc.
-- **Vérification dépendances** : Analyse avant arrêt de services
-- **Logs détaillés** : Traçabilité complète
-- **Point de restauration auto** : Créé avant chaque nettoyage
-- **Checksums SHA256** : Vérification d'intégrité
-- **Signature numérique** : Via GitHub Actions (releases)
-
-### 🎨 Interface
-- **Design System** : Composants réutilisables et cohérents
-- **Thème sombre** : Interface moderne et élégante
-- **Onglets** : Navigation entre nettoyage rapide et options avancées
-- **Barre de progression** : Suivi en temps réel du nettoyage
-- **Bouton Dry-Run** : Prévisualisation obligatoire
-- **Résumé détaillé** : Dialogue avec statistiques de nettoyage
-
-## 🛡️ Sécurité
-
-### Protections Implémentées
-- ✅ **Aucune télémétrie cachée** (vérifiable)
-- ✅ **API natives Windows** (pas de PowerShell/injection)
-- ✅ **12 services Windows protégés** (Spooler, wuauserv, BITS, etc.)
-- ✅ **Vérification des dépendances** de services
-- ✅ **Protection des fichiers système** critiques
-- ✅ **Élévation conditionnelle** (pas de UAC forcé)
-- ✅ **Mode Dry-Run obligatoire** avant nettoyage
-- ✅ **Protection anti-spam** (pas de clics multiples)
-- ✅ **Protection anti-contournement** (double vérification)
-- ✅ **Logs de sécurité détaillés**
-- ✅ **Point de restauration automatique**
-- ✅ **Checksums SHA256 fournis**
-- ✅ **Signature numérique** (GitHub Actions)
-- ✅ **Tooltips informatifs** (descriptions détaillées)
-
-### 📊 Score de Sécurité (Évaluation Honnête)
-
-**85/100** 🟢 (Très Bon) - **+7 pts** depuis dernière évaluation
-
-**Points forts:**
-- ✅ Aucune télémétrie (vérifié)
-- ✅ Protection système robuste (200+ chemins protégés)
-- ✅ Dry-run obligatoire
-- ✅ Logs détaillés
-- ✅ Services critiques protégés
-- ✅ **100% API natives** (WinVerifyTrust, COM, ctypes)
-
-**Points à améliorer:**
-- ⚠️ Pas de sandboxing (-7 pts)
-- ⚠️ Certificat auto-signé uniquement (-4 pts, solution fournie)
-- ✅ Tests unitaires: 31 tests, ~92% couverture (-1 pt)
-
-Voir [SECURITY.md](./SECURITY.md) pour l'analyse complète et le comparatif concurrence.
-
-**Note:** Nous reconnaissons que les logiciels établis (CCleaner, BleachBit, etc.) offrent **beaucoup plus de fonctionnalités** que 5GH'z Cleaner. Notre focus est la **sécurité maximale** et la **transparence totale**, pas le nombre de fonctionnalités. Nous respectons profondément le travail de nos concurrents.
-
-Voir [`Documentations/ANTI_BYPASS_SECURITY.md`](./Documentations/ANTI_BYPASS_SECURITY.md) pour plus de détails.
-
-## 🧪 Tests
-
-### Tests Automatisés (45/45 ✓)
-
-**Résultat global:** ✅ **100% RÉUSSIS**
-
-| Catégorie | Tests | Statut |
-|-----------|-------|--------|
-| **Sécurité** | 7/7 | ✅ 100% |
-| **Unitaires** | 31/31 | ✅ 100% |
-| **Vie Privée** | 6/6 | ✅ 100% |
-| **Intégration** | 1/1 | ✅ 100% |
-
-**Voir [TEST_REPORT_FINAL.md](TEST_REPORT_FINAL.md) pour le rapport complet.**
-
-### Scripts de Test Disponibles
-- `test_all_security.py` - Tests de sécurité complets (7 tests)
-- `test_coverage_complete.py` - Tests unitaires (31 tests)
-- `test_privacy_complete.py` - Tests de vie privée (6 tests)
-- `test_service_dependencies.py` - Test des dépendances de services
-- `test_elevation_dryrun.py` - Test élévation et dry-run
-- `test_anti_spam.py` - Test protection anti-spam
-- `test_anti_bypass.py` - Test protection anti-contournement
-
-## 📊 État du Projet
-
-| Aspect | Statut | Détails |
-|--------|--------|---------|
-| **Version** | MAJOR UPDATE | Première version publique stable |
-| **Sécurité** | 85/100 | Très bon niveau de protection |
-| **Tests** | 45/45 ✓ | 100% de réussite (sécurité, unitaires, vie privée) |
-| **Vie Privée** | 100% | 0% télémétrie, 100% local |
-| **Code Quality** | Grade A | Code propre et documenté |
-| **Couverture** | ~92% | Tests unitaires complets |
-| **Maintenance** | Active | Mises à jour régulières |
-
-## 🎯 Roadmap
-
-### Améliorations Récentes
-- [x] **✅ Remplacement PowerShell** (+5 pts) - WinVerifyTrust API native implémentée
-- [x] **✅ 100% API natives Windows** - Aucune dépendance PowerShell
-
-### Prochaines Améliorations
-- [ ] **Certificat code signing officiel** (+8 pts) - Signature Microsoft authentique
-- [ ] **Sandbox Win32 App Isolation** (+7 pts) - Isolation complète
-- [ ] **Tests unitaires 100%** (+2 pts) - Couverture complète du code
-- [ ] **Audit de sécurité externe** - Validation tierce partie
-
-**Score actuel:** 85/100 🟢 (Très Bon)  
-**Score cible:** 90+/100 🟢 (Excellent)  
-**Progression:** +7 pts (PowerShell, Tests, Code Signing)
-
-## 🏗️ Architecture
-
-### Backend
-Logique métier pure sans dépendances UI :
-- Fonctions de nettoyage Windows
-- Gestion des privilèges administrateur
-- Opérations système sécurisées
-- Vérifications de sécurité
-- Système de logging
-
-### Frontend
-Interface Flet avec design system :
-- Composants UI modulaires
-- Tokens de design centralisés
-- Pages organisées
-- Gestion d'état réactive
-
-### Sécurité
-- Aucune communication réseau
-- Opérations locales uniquement
-- Élévation conditionnelle
-- Gestion d'erreurs robuste
-- Logs détaillés
-
-## 📝 Changelog
-
-### MAJOR UPDATE - PREMIÈRE VERSION PUBLIQUE
-- ✅ **Aucune télémétrie** - Module de vérification `telemetry_checker.py`
-- ✅ **API natives Windows** - Remplacement PowerShell (anti-injection)
-- ✅ **Point de restauration automatique** - Créé avant chaque nettoyage
-- ✅ **Checksums SHA256** - Génération automatique via `generate_checksum.py`
-- ✅ **Signature numérique** - Workflow GitHub Actions
-- ✅ **Tooltips informatifs** - Descriptions détaillées (icône ℹ️)
-- ✅ **Documentation sandbox** - Guide Win32 App Isolation
-- ✅ **Rapport de sécurité** - SECURITY.md complet
-
-#### Fonctionnalités Principales
-- ✅ **Module de sécurité core** (`security_core.py`) - Protection système maximale
-- ✅ **200+ chemins critiques protégés** - Windows, Microsoft, apps tierces
-- ✅ **140+ fichiers système bloqués** - Noyau, boot, pilotes, registre
-- ✅ **Dry-Run obligatoire** - Prévisualisation avant toute action
-- ✅ **Protection anti-contournement** - Double validation de sécurité
-- ✅ **Aucune télémétrie** - Vérifiable avec `telemetry_checker.py`
-- ✅ **Signature numérique** - SHA256 + SHA512 pour 11 fichiers critiques
-- ✅ **Point de restauration auto** - Créé avant chaque nettoyage
-- ✅ **12 services Windows protégés** - Spooler, Windows Update, BITS, etc.
-- ✅ **10 suites de tests** - Tests de sécurité automatisés
-- ✅ **Logs détaillés** - Traçabilité complète dans `Documents/5GH'zCleaner-logs/`
-- ✅ **Interface moderne** - Design system Flet avec thème sombre
-- ✅ **Tooltips informatifs** - Descriptions détaillées pour chaque option
-
-## 👨‍💻 Auteur
-
-**UndKiMi**
-- GitHub: https://github.com/UndKiMi
-- Repository: https://github.com/UndKiMi/5Ghz_Cleaner
-
-## 📄 Licence
-
-Tous droits réservés par UndKiMi
+#### ⚙️ Options Avancées
+- **RAM Standby** - Libère la mémoire en attente
+- **Flush DNS** - Vide le cache DNS
+- **Télémétrie** - Désactive les services de collecte de données Windows
+- **Logs système** - Supprime les fichiers journaux volumineux
+- **Arrêt services** - Arrête les services Windows optionnels
 
 ---
 
-## 🆘 Support
+## 🛡️ Sécurité et Confidentialité
 
-Pour toute question ou problème :
-1. Consultez la [documentation complète](./Documentations/INDEX.md)
-2. Vérifiez les [tests disponibles](./Documentations/)
-3. Ouvrez une issue sur GitHub
+### 🔒 Garanties de Sécurité
 
----
+**Score de sécurité: 85/100** (Très Bon - Évaluation honnête)
 
-**Version actuelle:** MAJOR UPDATE  
-**Score de sécurité:** 85/100 🟢 (Très Bon) - **+7 pts**  
-**Statut:** Stable - Production Ready  
-**Améliorations récentes:**
-- Élimination PowerShell (+5 pts)
-- 31 tests unitaires, ~92% couverture (+1 pt)
-- Certificat auto-signé + guide complet (+1 pt)
+#### Protection Système Maximale
+- ✅ **200+ chemins Windows critiques** protégés
+- ✅ **140+ fichiers système** bloqués (noyau, boot, pilotes)
+- ✅ **Protection Microsoft** (Office, Edge, OneDrive, Teams, VS Code)
+- ✅ **Protection applications tierces** (Chrome, Firefox, antivirus, drivers GPU)
+- ✅ **12 services Windows critiques** jamais arrêtés
+- ✅ **Point de restauration automatique** créé avant chaque nettoyage
 
----
+#### Transparence Totale
+- ✅ **Aucune télémétrie** - Vérifiable et garanti
+- ✅ **Aucune connexion réseau** - Tout fonctionne localement
+- ✅ **Aucune collecte de données** - Vos informations restent privées
+- ✅ **Code source ouvert** - Auditable par tous
+- ✅ **100% API natives Windows** - Pas de PowerShell (anti-injection)
 
-## 🔐 Vérification de Sécurité
+#### Fonctionnalités de Sécurité
+- ✅ **Prévisualisation obligatoire** (Dry-Run) - Voyez ce qui sera supprimé
+- ✅ **Logs détaillés** - Traçabilité complète de toutes les opérations
+- ✅ **Signature numérique** - SHA256 + SHA512 pour vérifier l'intégrité
+- ✅ **Tests automatisés** - 45 tests de sécurité et fonctionnels
 
-### Vérifier l'absence de télémétrie
+### 🔐 Confidentialité
+
+**Engagement absolu**: Aucune donnée utilisateur n'est jamais collectée, stockée ou transmise.
+
+- 🚫 **Aucune télémétrie** - Pas de tracking, analytics ou collecte
+- 🚫 **Aucune connexion Internet** - Tout fonctionne en local
+- 🚫 **Aucun cookie** - Pas de suivi comportemental
+- ✅ **Conforme RGPD** - Respect total de votre vie privée
+
+**Vérification**: Vous pouvez vérifier l'absence de télémétrie à tout moment:
 ```bash
 python backend/telemetry_checker.py
 ```
 
-### Générer les checksums
+Pour plus de détails, consultez:
+- [SECURITY.md](SECURITY.md) - Rapport de sécurité complet
+- [PRIVACY.md](PRIVACY.md) - Politique de confidentialité détaillée
+
+## 📊 Comparaison avec d'Autres Nettoyeurs
+
+### Positionnement de 5GH'z Cleaner
+
+**Notre niche**: Nettoyeur Windows avec **sécurité maximale** et **transparence totale**
+
+| Critère | 5GH'z Cleaner | CCleaner | BleachBit | Wise Disk Cleaner |
+|---------|---------------|----------|-----------|-------------------|
+| **Score Sécurité** | **85/100** | 65/100 | 72/100 | 60/100 |
+| **Open Source** | ✅ Oui | ❌ Non | ✅ Oui | ❌ Non |
+| **Télémétrie** | ✅ Aucune | ❌ Oui (Avast) | ✅ Aucune | ⚠️ Analytics |
+| **Dry-Run Obligatoire** | ✅ Oui | ❌ Non | ⚠️ Optionnel | ❌ Non |
+| **Protection Système** | ✅ 200+ chemins | ⚠️ Basique | ⚠️ Basique | ⚠️ Basique |
+| **Point Restauration** | ✅ Auto | ❌ Manuel | ❌ Non | ⚠️ Suggéré |
+| **100% Gratuit** | ✅ Oui | ⚠️ Freemium | ✅ Oui | ⚠️ Freemium |
+| **Nombre de Fonctions** | ⚠️ Limité | ✅ Nombreuses | ✅ Nombreuses | ✅ Nombreuses |
+
+### 🎯 Où 5GH'z Cleaner Excelle
+
+1. **Sécurité et Transparence**
+   - Seul nettoyeur avec prévisualisation **obligatoire**
+   - Protection système la plus robuste (200+ chemins)
+   - Aucune télémétrie (vérifiable)
+   - Code source ouvert et auditable
+
+2. **Protection Maximale**
+   - Point de restauration automatique
+   - 12 services Windows critiques protégés
+   - Logs détaillés de toutes les opérations
+   - Tests de sécurité automatisés
+
+### ⚠️ Limitations Assumées
+
+Nous reconnaissons que **CCleaner, BleachBit et autres offrent beaucoup plus de fonctionnalités** (nettoyage registre, défragmentation, optimisation avancée, etc.). 
+
+**5GH'z Cleaner se concentre sur**:
+- 🎯 Sécurité maximale
+- 🎯 Transparence totale
+- 🎯 Protection système robuste
+
+**Choisissez le bon outil pour vos besoins**:
+- **CCleaner**: Si vous voulez le plus de fonctionnalités
+- **BleachBit**: Si vous voulez un outil multiplateforme éprouvé
+- **5GH'z Cleaner**: Si la sécurité et la transparence sont vos priorités
+
+Pour plus de détails, consultez [SECURITY.md](SECURITY.md)
+
+## ❓ Questions Fréquentes (FAQ)
+
+### Installation et Utilisation
+
+**Q: Dois-je exécuter l'application en tant qu'administrateur ?**
+R: Non, l'application fonctionne en mode utilisateur standard. Elle demandera les privilèges administrateur uniquement si nécessaire pour certaines opérations.
+
+**Q: Pourquoi Windows SmartScreen bloque-t-il l'application ?**
+R: C'est normal pour les applications sans certificat officiel (coût: 500€/an). Cliquez sur "Plus d'infos" puis "Exécuter quand même". Vous pouvez vérifier l'intégrité du fichier avec les checksums fournis.
+
+**Q: L'application collecte-t-elle mes données ?**
+R: **Non, absolument aucune donnée n'est collectée.** Vous pouvez le vérifier avec `python backend/telemetry_checker.py` ou en consultant le code source.
+
+### Sécurité
+
+**Q: Puis-je faire confiance à ce logiciel ?**
+R: Oui. Le code source est entièrement ouvert et auditable. De plus, 45 tests automatisés vérifient la sécurité et le fonctionnement. Un point de restauration est automatiquement créé avant chaque nettoyage.
+
+**Q: Que se passe-t-il si quelque chose ne va pas ?**
+R: Un point de restauration Windows est automatiquement créé avant chaque nettoyage. Vous pouvez restaurer votre système à tout moment via "Créer un point de restauration" dans Windows.
+
+**Q: Quels fichiers sont protégés contre la suppression ?**
+R: Plus de 200 chemins Windows critiques sont protégés, incluant tous les fichiers système, applications Microsoft, navigateurs, antivirus et drivers GPU.
+
+### Fonctionnalités
+
+**Q: Pourquoi dois-je faire un Dry-Run ?**
+R: C'est une mesure de sécurité. Le Dry-Run vous montre exactement ce qui sera supprimé avant toute action. C'est obligatoire pour éviter les suppressions accidentelles.
+
+**Q: Où sont stockés les logs ?**
+R: Dans `C:\Users\<VotreNom>\Documents\5GH'zCleaner-logs\`. Chaque nettoyage génère un fichier log daté pour une traçabilité complète.
+
+**Q: Combien d'espace puis-je libérer ?**
+R: Cela dépend de votre utilisation. En moyenne, entre 500 Mo et 10 Go peuvent être libérés (fichiers temporaires, cache, Windows.old, etc.).
+
+## 📝 Documentation Complète
+
+Pour aller plus loin:
+
+| Document | Description | Temps de lecture |
+|----------|-------------|------------------|
+| **[QUICK_START.md](QUICK_START.md)** | Guide de démarrage rapide | 5 min |
+| **[SECURITY.md](SECURITY.md)** | Rapport de sécurité détaillé | 15 min |
+| **[PRIVACY.md](PRIVACY.md)** | Politique de confidentialité | 3 min |
+| **[INSTALLATION.md](INSTALLATION.md)** | Guide d'installation complet | 5 min |
+| **[CHANGELOG.md](CHANGELOG.md)** | Historique des versions | 5 min |
+
+## 👥 Contribuer
+
+Les contributions sont les bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour:
+- Signaler des bugs
+- Proposer des fonctionnalités
+- Soumettre des pull requests
+- Améliorer la documentation
+
+## 🆘 Support et Aide
+
+### Besoin d'aide ?
+
+1. **Consultez la FAQ** ci-dessus
+2. **Lisez la documentation** - [QUICK_START.md](QUICK_START.md) pour démarrer
+3. **Ouvrez une issue** sur [GitHub Issues](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
+
+### Vérification de Sécurité
+
+**Vérifier l'absence de télémétrie**:
 ```bash
-python generate_checksum.py
+python backend/telemetry_checker.py
 ```
 
-### Vérifier l'intégrité d'un fichier
+**Vérifier l'intégrité du fichier**:
 ```powershell
-Get-FileHash -Algorithm SHA256 dist/5Ghz_Cleaner.exe
+Get-FileHash "5Ghz_Cleaner.exe" -Algorithm SHA256
+# Comparez avec CHECKSUMS.txt
 ```
-
-Voir [SECURITY.md](./SECURITY.md) pour plus d'informations.
 
 ---
 
@@ -450,7 +301,14 @@ Pour toute demande d'utilisation commerciale, ouvrez une issue sur GitHub.
 
 ---
 
-**Auteur**: UndKiMi  
-**Licence**: CC BY-NC-SA 4.0  
-**Copyright**: © 2024 UndKiMi  
-**Repository**: [github.com/UndKiMi/5Ghz_Cleaner](https://github.com/UndKiMi/5Ghz_Cleaner)
+<div align="center">
+
+**5GH'z Cleaner** - Nettoyeur Windows 11 avec sécurité maximale
+
+**Version**: MAJOR UPDATE | **Score de sécurité**: 85/100 🟢 | **Statut**: Stable
+
+[GitHub](https://github.com/UndKiMi/5Ghz_Cleaner) • [Releases](https://github.com/UndKiMi/5Ghz_Cleaner/releases) • [Issues](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
+
+**Licence**: CC BY-NC-SA 4.0 | **Copyright**: © 2024 UndKiMi
+
+</div>

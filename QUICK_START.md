@@ -1,35 +1,46 @@
-# 🚀 Démarrage Rapide - 5GH'z Cleaner
+# 🚀 Guide de Démarrage Rapide
 
-Guide ultra-rapide pour commencer à utiliser 5GH'z Cleaner en 5 minutes.
+**Commencez à utiliser 5GH'z Cleaner en 5 minutes.**
+
+Ce guide vous explique comment installer et utiliser le logiciel pour la première fois.
 
 ---
 
-## ⚡ Installation Express (2 minutes)
+## ⚡ Installation (2 minutes)
 
-### Option 1: Exécutable Précompilé (Recommandé)
+### Option 1: Télécharger l'Exécutable (Recommandé)
 
+**Étape 1**: Téléchargez la dernière version
+- Allez sur [Releases](https://github.com/UndKiMi/5Ghz_Cleaner/releases)
+- Téléchargez `5Ghz_Cleaner.exe`
+
+**Étape 2**: Vérifiez l'intégrité (optionnel mais recommandé)
 ```powershell
-# 1. Télécharger la dernière release
-# https://github.com/UndKiMi/5Ghz_Cleaner/releases
-
-# 2. Vérifier les checksums (optionnel mais recommandé)
 Get-FileHash "5Ghz_Cleaner.exe" -Algorithm SHA256
-
-# 3. Lancer l'application
-.\5Ghz_Cleaner.exe
+# Comparez avec le fichier CHECKSUMS.txt
 ```
 
-### Option 2: Depuis les Sources
+**Étape 3**: Lancez l'application
+- Double-cliquez sur `5Ghz_Cleaner.exe`
+- Si Windows SmartScreen s'affiche: "Plus d'infos" → "Exécuter quand même"
 
+### Option 2: Depuis le Code Source
+
+**Prérequis**: Python 3.11 ou supérieur installé
+
+**Étape 1**: Téléchargez le code
 ```bash
-# 1. Cloner le repository
 git clone https://github.com/UndKiMi/5Ghz_Cleaner.git
 cd 5Ghz_Cleaner
+```
 
-# 2. Installer les dépendances
+**Étape 2**: Installez les dépendances
+```bash
 pip install -r requirements.txt
+```
 
-# 3. Lancer l'application
+**Étape 3**: Lancez l'application
+```bash
 python main.py
 ```
 
@@ -37,252 +48,247 @@ python main.py
 
 ## 🎯 Première Utilisation (3 minutes)
 
-### Étape 1: Lancer l'Application
+### 📌 Étape 1: Lancez l'Application
+
+- Double-cliquez sur `5Ghz_Cleaner.exe`
+- Ou exécutez `python main.py` si vous utilisez le code source
+
+### 📋 Étape 2: Sélectionnez Ce Que Vous Voulez Nettoyer
+
+**Onglet "Nettoyage Rapide"**:
+- ☑️ Cochez les options souhaitées (fichiers temporaires, cache, etc.)
+- ❓ Survolez les icônes "ℹ️" pour voir les descriptions
+
+**Onglet "Options Avancées"** (optionnel):
+- Options plus techniques (RAM, DNS, télémétrie, etc.)
+
+### 🔍 Étape 3: Prévisualisez (OBLIGATOIRE)
+
+1. **Cliquez** sur le bouton "🔍 Prévisualiser" (Dry-Run)
+2. **Attendez** l'analyse (aucune suppression réelle)
+3. **Lisez** la liste des fichiers qui seront supprimés
+4. **Vérifiez** que tout est OK
+
+> 💡 **Important**: Le bouton "Nettoyer" ne se débloque qu'après la prévisualisation.
+
+### 🧹 Étape 4: Nettoyez
+
+1. **Cliquez** sur "🧹 Nettoyer"
+2. **Confirmez** si demandé (Windows.old, Corbeille)
+3. **Attendez** la fin du nettoyage
+4. **Consultez** le résumé (espace libéré, fichiers supprimés)
+
+✅ **Terminé !** Votre PC est nettoyé.
+
+---
+
+## ✅ Checklist de Sécurité
+
+### 👉 Avant le Nettoyage
+
+- ✅ **Point de restauration** - Créé automatiquement par le logiciel
+- ✅ **Prévisualisation** - Toujours obligatoire
+- ✅ **Sauvegarde** - Recommandé pour vos fichiers importants
+
+### ⏳ Pendant le Nettoyage
+
+- ⚠️ **Ne fermez pas** l'application
+- ⚠️ **N'éteignez pas** votre PC
+- ✅ **Attendez** la fin complète
+
+### ✓ Après le Nettoyage
+
+- ✅ **Vérifiez** que tout fonctionne normalement
+- ✅ **Consultez les logs** si besoin (`Documents/5GH'zCleaner-logs/`)
+- ✅ **Redémarrez** votre PC si recommandé
+
+---
+
+## 🔒 Ce Qui Est Protégé
+
+### ❌ Impossible à Supprimer (Protégé)
+
+**Votre système est protégé**. Ces éléments ne seront JAMAIS supprimés:
+
+- ❌ **Windows** - Tous les fichiers système (200+ chemins)
+- ❌ **Vos applications** - Office, navigateurs, antivirus, etc.
+- ❌ **Vos drivers** - GPU (NVIDIA, AMD, Intel), audio, etc.
+- ❌ **Services critiques** - 12 services Windows essentiels
+
+### ✅ Ce Qui Peut Être Nettoyé
+
+**Uniquement ce qui est sûr à supprimer**:
+
+- ✅ **Fichiers temporaires** - Cache Windows et applications
+- ✅ **Cache navigateurs** - Si vous le sélectionnez
+- ✅ **Corbeille** - Avec confirmation
+- ✅ **Windows.old** - Ancienne installation (avec confirmation)
+
+---
+
+## 🧪 Vérifier la Sécurité (Optionnel)
+
+**Vous voulez vérifier que le logiciel est sûr ?**
 
 ```bash
-python main.py
-# ou
-.\5Ghz_Cleaner.exe
-```
-
-### Étape 2: Dry-Run OBLIGATOIRE
-
-1. **Sélectionner** les options de nettoyage
-2. **Cliquer** sur "🔍 Dry-Run" (OBLIGATOIRE)
-3. **Vérifier** la prévisualisation
-4. **Valider** les fichiers à supprimer
-
-### Étape 3: Nettoyage
-
-1. **Cliquer** sur "🧹 Nettoyer"
-2. **Confirmer** l'action
-3. **Attendre** la fin du nettoyage
-4. **Vérifier** les logs
-
----
-
-## 📋 Checklist Rapide
-
-### Avant le Premier Nettoyage
-
-- [ ] ✅ **Point de restauration créé** (automatique)
-- [ ] ✅ **Dry-run exécuté** (obligatoire)
-- [ ] ✅ **Prévisualisation vérifiée**
-- [ ] ✅ **Sauvegarde importante faite** (recommandé)
-
-### Pendant le Nettoyage
-
-- [ ] ✅ **Ne pas fermer l'application**
-- [ ] ✅ **Ne pas éteindre l'ordinateur**
-- [ ] ✅ **Attendre la fin complète**
-
-### Après le Nettoyage
-
-- [ ] ✅ **Vérifier les logs** (`Documents/5GH'zCleaner-logs/`)
-- [ ] ✅ **Redémarrer si nécessaire**
-- [ ] ✅ **Vérifier que tout fonctionne**
-
----
-
-## 🔒 Sécurité en 30 Secondes
-
-### Ce qui est PROTÉGÉ (Impossible à supprimer)
-
-- ❌ **Fichiers système Windows** (226 chemins protégés)
-- ❌ **Applications Microsoft** (Office, Edge, OneDrive, Teams)
-- ❌ **Navigateurs** (Chrome, Firefox, Brave)
-- ❌ **Antivirus** (7 marques protégées)
-- ❌ **Drivers GPU** (NVIDIA, AMD, Intel)
-
-### Ce qui est AUTORISÉ
-
-- ✅ **Fichiers temporaires** (`%TEMP%`)
-- ✅ **Cache navigateurs** (si sélectionné)
-- ✅ **Corbeille** (avec confirmation)
-- ✅ **Windows.old** (avec confirmation)
-
----
-
-## 🧪 Tester la Sécurité (1 minute)
-
-```bash
-# Test complet de sécurité
-python tests/test_all_security.py
-
-# Résultat attendu: 7/7 tests réussis ✅
-```
-
----
-
-## 📊 Monitoring Matériel
-
-### Onglet Configuration
-
-1. **Cliquer** sur l'onglet "⚙️ Configuration"
-2. **Voir** CPU, RAM, GPU, Disques en temps réel
-3. **Code couleur**:
-   - 🟢 Vert: Normal
-   - 🟡 Jaune: Attention
-   - 🔴 Rouge: Critique
-
----
-
-## 🆘 Problèmes Courants
-
-### "Windows a protégé votre PC"
-
-**Cause:** Certificat auto-signé (pas officiel)
-
-**Solution:**
-```
-1. Cliquer "Plus d'infos"
-2. Cliquer "Exécuter quand même"
-```
-
-**Note:** C'est normal avec un certificat auto-signé. Pour éviter cela en production, un certificat officiel est nécessaire (500€/an).
-
-### "Accès refusé"
-
-**Cause:** Droits administrateur requis pour certaines opérations
-
-**Solution:**
-```powershell
-# Lancer en tant qu'administrateur
-Right-click > "Exécuter en tant qu'administrateur"
-```
-
-### "Module non trouvé"
-
-**Cause:** Dépendances manquantes
-
-**Solution:**
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## 📚 Documentation Complète
-
-| Document | Utilité | Temps de lecture |
-|----------|---------|------------------|
-| **README.md** | Vue d'ensemble | 10 min |
-| **SECURITY.md** | Sécurité détaillée | 15 min |
-| **INSTALLATION.md** | Installation complète | 5 min |
-| **CONTRIBUTING.md** | Contribuer | 10 min |
-
----
-
-## 🎯 Commandes Utiles
-
-### Vérifier l'Intégrité
-
-```bash
-# Vérifier les checksums
-python scripts/verify_checksum.py
-
 # Vérifier l'absence de télémétrie
 python backend/telemetry_checker.py
-```
 
-### Tests
-
-```bash
-# Tests de sécurité (7 tests)
+# Lancer tous les tests de sécurité
 python tests/test_all_security.py
-
-# Tests unitaires (31 tests)
-python tests/test_coverage_complete.py
-
-# Tous les tests
-python tests/run_all_tests.py
 ```
 
-### Build
+**Résultat attendu**: Tous les tests passent ✅
 
+---
+
+## 📊 Onglet Configuration (Optionnel)
+
+**Voir l'état de votre PC en temps réel**:
+
+1. Cliquez sur l'onglet "⚙️ Configuration"
+2. Consultez: CPU, RAM, GPU, Disques
+3. Code couleur:
+   - 🟢 **Vert**: Tout va bien
+   - 🟡 **Jaune**: Attention
+   - 🔴 **Rouge**: Problème
+
+> 🔒 **Confidentialité**: Ces informations sont affichées uniquement sur votre écran, jamais envoyées à Internet.
+
+---
+
+## ❓ Problèmes Courants
+
+### ⚠️ "Windows a protégé votre PC"
+
+**Pourquoi ?** Le logiciel n'a pas de certificat Microsoft officiel (coût: 500€/an).
+
+**Solution**:
+1. Cliquez sur "Plus d'infos"
+2. Cliquez sur "Exécuter quand même"
+3. (Optionnel) Vérifiez le checksum SHA256 pour confirmer l'authenticité
+
+### 🚫 "Accès refusé"
+
+**Pourquoi ?** Certaines opérations nécessitent les droits administrateur.
+
+**Solution**:
+- Clic droit sur `5Ghz_Cleaner.exe`
+- Sélectionnez "Exécuter en tant qu'administrateur"
+
+### 📦 "Module non trouvé" (Code source uniquement)
+
+**Pourquoi ?** Les dépendances Python ne sont pas installées.
+
+**Solution**:
 ```bash
-# Compiler l'exécutable
-flet pack main.py --name "5Ghz_Cleaner"
-
-# Signer (certificat auto-signé)
-.\scripts\sign_executable.ps1 -FilePath "dist\5Ghz_Cleaner.exe"
-
-# Générer les checksums
-python scripts/generate_checksum.py
-```
-
----
-
-## 💡 Conseils Pro
-
-### 1. Toujours Faire un Dry-Run
-
-```
-❌ JAMAIS nettoyer sans dry-run
-✅ TOUJOURS vérifier la prévisualisation
-```
-
-### 2. Vérifier les Logs
-
-```
-Emplacement: Documents/5GH'zCleaner-logs/
-Format: cleaner_YYYYMMDD_HHMMSS.log
-```
-
-### 3. Point de Restauration
-
-```
-✅ Créé automatiquement avant chaque nettoyage
-✅ Permet de revenir en arrière si problème
-✅ Vérification espace disque (1 GB minimum)
-```
-
----
-
-## 🔗 Liens Rapides
-
-- **GitHub**: https://github.com/UndKiMi/5Ghz_Cleaner
-- **Issues**: https://github.com/UndKiMi/5Ghz_Cleaner/issues
-- **Releases**: https://github.com/UndKiMi/5Ghz_Cleaner/releases
-- **Documentation**: [Documentations/INDEX.md](Documentations/INDEX.md)
-
----
-
-## ⏱️ Résumé 1 Minute
-
-```bash
-# 1. Installer
 pip install -r requirements.txt
+```
 
-# 2. Lancer
-python main.py
+### ❓ Autre Problème ?
 
-# 3. Dry-Run (OBLIGATOIRE)
-Cliquer "🔍 Dry-Run"
+- Consultez la [FAQ dans le README](README.md#-questions-fréquentes-faq)
+- Ouvrez une [issue sur GitHub](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
 
-# 4. Vérifier
-Vérifier la prévisualisation
+---
 
-# 5. Nettoyer
-Cliquer "🧹 Nettoyer"
+## 📚 Pour Aller Plus Loin
 
-# 6. Confirmer
-Confirmer l'action
+| Document | Description | Temps |
+|----------|-------------|-------|
+| **[README.md](README.md)** | Vue d'ensemble complète | 10 min |
+| **[SECURITY.md](SECURITY.md)** | Détails sur la sécurité | 15 min |
+| **[PRIVACY.md](PRIVACY.md)** | Politique de confidentialité | 3 min |
+| **[INSTALLATION.md](INSTALLATION.md)** | Guide d'installation détaillé | 5 min |
 
-# ✅ Terminé!
+---
+
+## 🔧 Commandes Utiles
+
+### Vérifier la Sécurité
+
+```bash
+# Vérifier l'absence de télémétrie
+python backend/telemetry_checker.py
+
+# Vérifier l'intégrité des fichiers
+python backend/signature_manager.py --verify
+```
+
+### Lancer les Tests
+
+```bash
+# Tous les tests (45 tests)
+python tests/run_all_tests.py
+
+# Uniquement les tests de sécurité (7 tests)
+python tests/test_all_security.py
 ```
 
 ---
 
-**Temps total:** ~5 minutes  
-**Difficulté:** Facile  
-**Prérequis:** Windows 11 (64-bit) + Python 3.11+ (ou exécutable précompilé)
+## 💡 Conseils d'Utilisation
 
-> ⚠️ **Important**: Compatible uniquement avec Windows 11. Non supporté sur Windows 10 ou versions antérieures.
+### 1️⃣ Toujours Prévisualiser
 
-**Besoin d'aide?** Consultez [README.md](README.md) ou ouvrez une [issue](https://github.com/UndKiMi/5Ghz_Cleaner/issues).
+- ❌ **JAMAIS** nettoyer sans prévisualisation
+- ✅ **TOUJOURS** vérifier ce qui sera supprimé
+- 💡 C'est obligatoire de toute façon !
+
+### 2️⃣ Consultez les Logs
+
+**Où ?** `C:\Users\<VotreNom>\Documents\5GH'zCleaner-logs/`
+
+**Pourquoi ?** Pour voir exactement ce qui a été nettoyé et quand.
+
+### 3️⃣ Point de Restauration Automatique
+
+- ✅ Créé automatiquement avant chaque nettoyage
+- ✅ Permet de restaurer Windows si problème
+- ✅ Sécurité maximale
+
+### 4️⃣ Nettoyez Régulièrement
+
+- 📅 **Recommandé**: Une fois par mois
+- 💾 **Résultat**: PC plus rapide, plus d'espace disque
 
 ---
 
-**Auteur**: UndKiMi  
-**Version**: MAJOR UPDATE  
+## 🔗 Liens Utiles
+
+- 🏠 **[Page GitHub](https://github.com/UndKiMi/5Ghz_Cleaner)** - Code source
+- 📥 **[Téléchargements](https://github.com/UndKiMi/5Ghz_Cleaner/releases)** - Dernière version
+- 🐛 **[Signaler un bug](https://github.com/UndKiMi/5Ghz_Cleaner/issues)** - Issues GitHub
+
+---
+
+## ⏱️ Résumé Ultra-Rapide
+
+**En 4 étapes simples**:
+
+1. 📥 **Téléchargez** `5Ghz_Cleaner.exe`
+2. ▶️ **Lancez** l'application
+3. 🔍 **Prévisualisez** ce qui sera supprimé
+4. 🧹 **Nettoyez** en un clic
+
+✅ **Terminé !** Votre PC est nettoyé.
+
+---
+
+**⏱️ Temps total**: 5 minutes  
+**🎯 Difficulté**: Facile  
+**💻 Compatibilité**: Windows 11 (64-bit) uniquement
+
+> ⚠️ **Important**: Non compatible avec Windows 10 ou versions antérieures.
+
+---
+
+<div align="center">
+
+**Besoin d'aide ?**
+
+[README Complet](README.md) • [FAQ](README.md#-questions-fréquentes-faq) • [Signaler un Bug](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
+
+**5GH'z Cleaner** - Nettoyage Simple et Sécurisé
+
+</div>  
