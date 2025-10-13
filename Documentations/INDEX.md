@@ -2,9 +2,9 @@
 
 ## 📋 Vue d'ensemble
 
-Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
+Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner, organisée de manière structurée.
 
-**Version actuelle :** MAJOR UPDATE  
+**Version actuelle :** v2.1 - Hardware Monitor Update  
 **Score de sécurité :** 83/100 🟢 (Très Bon)
 
 ---
@@ -166,23 +166,37 @@ Ce dossier contient toute la documentation technique du projet 5GH'z Cleaner.
 
 ```
 Documentations/
-├── INDEX.md                        <- Vous êtes ici
-├── README.md                       <- Documentation générale
-├── ORGANISATION.md                 <- Structure du projet
+├── INDEX.md                            <- Vous êtes ici
+├── README.md                           <- Documentation générale
+├── CODE_SIGNING_GUIDE.md               <- Guide de signature de code
 │
-├── Sécurité/
-│   ├── SECURITY_TOOLS.md           <- Outils de sécurité ⭐
-│   ├── SANDBOX_WIN32_ISOLATION.md  <- Guide sandbox
-│   ├── SERVICES_DEPENDENCIES.md    <- Dépendances services
-│   ├── ELEVATION_DRYRUN.md         <- Élévation conditionnelle
-│   ├── DRY_RUN_BUTTON.md           <- Bouton obligatoire
-│   ├── FIX_ANTI_SPAM.md            <- Fix spam-click
-│   └── ANTI_BYPASS_SECURITY.md     <- Anti-contournement
+├── architecture/                       <- Architecture du projet
+│   ├── ARCHITECTURE_MAJOR_UPDATE.md    <- Mise à jour architecture
+│   ├── PROJECT_STRUCTURE.md            <- Structure du projet
+│   └── RESTRUCTURATION_FINALE.md       <- Restructuration finale
 │
-├── Obsolètes/ (à supprimer)
-│   ├── FIX_IMPORT_BODY.md          <- Obsolète
-│   ├── IMPROVEMENT_SCROLL.md       <- Obsolète
-│   └── PREVIEW_PAGE_SELECTION.md   <- Obsolète
+├── updates/                            <- Historique des mises à jour
+│   ├── CHANGELOG.md                    <- Journal des changements
+│   ├── CHANGELOG_MAJOR_UPDATE.md       <- Changelog mise à jour majeure
+│   ├── COMPATIBILITY_UPDATE.md         <- Mise à jour compatibilité
+│   ├── SUMMARY_MAJOR_UPDATE.md         <- Résumé mise à jour majeure
+│   └── WINDOWS_11_ONLY.md              <- Windows 11 uniquement
+│
+├── features/                           <- Nouvelles fonctionnalités
+│   ├── HARDWARE_MONITOR_IMPROVEMENTS.md <- Améliorations Hardware Monitor
+│   ├── NATIVE_TEMPERATURE_SOLUTION.md   <- Solution température native
+│   ├── GPU_TEMP_DETECTION.md            <- Détection température GPU
+│   └── BUGFIXES.md                      <- Corrections de bugs
+│
+├── reports/                            <- Rapports et résumés
+│   ├── SECURITY_IMPROVEMENTS.md        <- Améliorations sécurité
+│   ├── TEST_REPORT_FINAL.md            <- Rapport de tests final
+│   ├── FINAL_SUMMARY.md                <- Résumé final
+│   ├── GITHUB_READY.md                 <- Prêt pour GitHub
+│   └── RELEASE_READY.md                <- Prêt pour release
+│
+└── guides/                             <- Guides utilisateur
+    └── (guides existants)
 ```
 
 ---

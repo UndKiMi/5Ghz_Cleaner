@@ -1584,9 +1584,9 @@ class MainPage:
     
     def _build_hardware_card(self, component_type, data):
         """Construit une carte pour un composant matériel"""
-        # Déterminer l'icône selon le type (utiliser SVG)
+        # Déterminer l'icône selon le type
         if component_type == "CPU":
-            icon_path = "assets/icons/processeur.svg"
+            icon = ft.Icons.MEMORY
             name = data.get("name", "N/A")
             usage = data.get('usage', 0)
             freq_current = data.get('frequency_current', 0)
@@ -1623,7 +1623,7 @@ class MainPage:
                 f"Fréquence: {freq_current:.0f} MHz / {freq_max:.0f} MHz max",
             ]
         elif component_type == "Mémoire":
-            icon_path = "assets/icons/memoire.svg"
+            icon = ft.Icons.MEMORY_OUTLINED
             name = data.get("name", "RAM")
             total_gb = data.get("total", 0) / (1024**3)
             used_gb = data.get("used", 0) / (1024**3)
@@ -1673,7 +1673,7 @@ class MainPage:
                 f"Utilisée: {used_gb:.2f} GB / {total_gb:.2f} GB",
             ]
         elif component_type == "GPU":
-            icon_path = "assets/icons/GPU.svg"
+            icon = ft.Icons.VIDEOGAME_ASSET
             name = data.get("name", "N/A")
             usage = data.get("usage", 0)
             driver_version = data.get("driver_version", "N/A")
@@ -1711,7 +1711,7 @@ class MainPage:
                 f"Pilote: {driver_version}",
             ]
         elif component_type == "Disque":
-            icon_path = "assets/icons/disque-dur.svg"
+            icon = ft.Icons.STORAGE
             disk_model = data.get("model", "Unknown")
             disk_type = data.get("type", "Unknown")
             name = f"{data.get('name', 'N/A')} - {disk_model}"
@@ -1752,7 +1752,7 @@ class MainPage:
                 f"Espace libre: {free_gb:.2f} GB",
             ]
         else:
-            icon_path = None
+            icon = ft.Icons.DEVICE_UNKNOWN
             name = "Inconnu"
             cpu_progress = None
             details = []
@@ -1810,17 +1810,8 @@ class MainPage:
         if cpu_progress:
             info_column_controls.append(cpu_progress)
         
-        # Construire l'icône (SVG ou Icon par défaut)
-        if icon_path:
-            icon_widget = ft.Image(
-                src=icon_path,
-                width=36,
-                height=36,
-                color=Colors.ACCENT_PRIMARY,
-                fit=ft.ImageFit.CONTAIN,
-            )
-        else:
-            icon_widget = ft.Icon(ft.Icons.DEVICE_UNKNOWN, size=36, color=Colors.ACCENT_PRIMARY)
+        # Construire l'icône
+        icon_widget = ft.Icon(icon, size=36, color=Colors.ACCENT_PRIMARY)
         
         # Construire la carte avec hover effect
         return ft.Container(
