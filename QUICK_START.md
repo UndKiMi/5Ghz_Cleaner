@@ -276,7 +276,9 @@ Confirmer l'action
 
 **Temps total:** ~5 minutes  
 **Difficulté:** Facile  
-**Prérequis:** Python 3.8+ (ou exécutable précompilé)
+**Prérequis:** Windows 11 (64-bit) + Python 3.11+ (ou exécutable précompilé)
+
+> ⚠️ **Important**: Compatible uniquement avec Windows 11. Non supporté sur Windows 10 ou versions antérieures.
 
 **Besoin d'aide?** Consultez [README.md](README.md) ou ouvrez une [issue](https://github.com/UndKiMi/5Ghz_Cleaner/issues).
 

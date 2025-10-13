@@ -7,13 +7,21 @@
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Security Score](https://img.shields.io/badge/Security-85%2F100-brightgreen.svg?style=flat-square&logo=shield)](SECURITY.md)
 [![Tests](https://img.shields.io/badge/Tests-10%20Suites-brightgreen.svg?style=flat-square&logo=checkmarx)](tests/)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg?style=flat-square&logo=python)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6.svg?style=flat-square&logo=windows)](https://www.microsoft.com/windows)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?style=flat-square&logo=python)](https://www.python.org/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2011%20ONLY-0078D6.svg?style=flat-square&logo=windows)](WINDOWS_11_ONLY.md)
 [![Version](https://img.shields.io/badge/Version-MAJOR%20UPDATE-orange.svg?style=flat-square)](CHANGELOG.md)
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-A-success.svg?style=flat-square)](https://github.com/UndKiMi/5Ghz_Cleaner)
 [![Maintained](https://img.shields.io/badge/Maintained-Yes-success.svg?style=flat-square)](https://github.com/UndKiMi/5Ghz_Cleaner)
 
 **Application de nettoyage et d'optimisation Windows avec interface moderne et sécurité maximale**
+
+## ⚙️ Compatibilité
+
+- ✅ **Windows 11 (64-bit)** - Testé et optimisé
+- ❌ **Windows 10** - Non compatible
+- ❌ **Windows 7/8/8.1** - Non supporté
+
+> **Note**: Le logiciel utilise des APIs et fonctionnalités spécifiques à Windows 11. L'exécution sur d'autres versions de Windows n'est pas supportée et peut causer des erreurs.
 
 [🚀 Démarrage Rapide](#-démarrage-rapide) • [📚 Documentation](#-documentation) • [🔒 Sécurité](#️-sécurité) • [🤝 Contribuer](CONTRIBUTING.md) • [📝 Changelog](CHANGELOG.md)
 

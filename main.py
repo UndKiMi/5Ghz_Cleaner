@@ -1,6 +1,6 @@
 """
 5GH'z Cleaner - Main Entry Point
-Windows Cleaning & Optimization Tool
+Windows 11 Cleaning & Optimization Tool
 
 Author: UndKiMi
 Copyright (c) 2025 UndKiMi
@@ -17,11 +17,16 @@ You are free to:
 You may NOT:
 - Use this work for commercial purposes
 - Sell this software or any derivative works
+
+COMPATIBILITY:
+- Windows 11 (64-bit) ONLY
+- Not compatible with Windows 10 or earlier versions
 """
 import sys
 import os
 import ctypes
 import gc
+import platform
 import flet as ft
 from frontend.app import CleanerApp
 from backend.elevation import is_admin, elevate_if_needed, elevate
@@ -32,6 +37,50 @@ gc.set_threshold(700, 10, 10)  # Plus agressif pour libérer la mémoire rapidem
 
 # Vérification de la signature au démarrage (optionnel)
 VERIFY_SIGNATURE_ON_STARTUP = False  # Mettre à True pour activer  
+
+
+def check_windows_11():
+    """Vérifie que le système est Windows 11"""
+    try:
+        # Vérifier la version de Windows
+        win_version = platform.version()
+        win_release = platform.release()
+        
+        # Windows 11 = version 10.0.22000 ou supérieure
+        if sys.platform != 'win32':
+            print("[ERROR] This application only works on Windows")
+            return False
+        
+        # Vérifier la version
+        version_parts = win_version.split('.')
+        if len(version_parts) >= 3:
+            major = int(version_parts[0])
+            minor = int(version_parts[1])
+            build = int(version_parts[2])
+            
+            # Windows 11 commence au build 22000
+            if major == 10 and minor == 0 and build >= 22000:
+                print(f"[INFO] Windows 11 detected (Build {build})")
+                return True
+            else:
+                print(f"[ERROR] Windows 11 required (detected: Build {build})")
+                print("[ERROR] This application is not compatible with Windows 10 or earlier")
+                return False
+        
+        # Fallback: vérifier via le nom de release
+        if "11" in win_release:
+            print(f"[INFO] Windows 11 detected ({win_release})")
+            return True
+        else:
+            print(f"[ERROR] Windows 11 required (detected: {win_release})")
+            print("[ERROR] This application is not compatible with Windows 10 or earlier")
+            return False
+            
+    except Exception as e:
+        print(f"[WARNING] Could not verify Windows version: {e}")
+        print("[WARNING] Proceeding anyway, but compatibility is not guaranteed")
+        return True  # Continuer en cas d'erreur de détection
+
 
 def request_admin_if_needed():
     """Demande les privilèges admin si nécessaire"""
@@ -252,9 +301,27 @@ def optimize_process():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("5Gh'z Cleaner - Windows Cleaning & Optimisation Tool")
+    print("5Gh'z Cleaner - Windows 11 Cleaning & Optimisation Tool")
     print("Author: UndKiMi")
     print("=" * 60)
+    print()
+    
+    # SÉCURITÉ 0: Vérifier Windows 11
+    print("[INFO] Checking Windows version...")
+    if not check_windows_11():
+        print()
+        print("=" * 60)
+        print("ERROR: Windows 11 Required")
+        print("=" * 60)
+        print()
+        print("This application requires Windows 11 (Build 22000+)")
+        print("It is not compatible with Windows 10 or earlier versions.")
+        print()
+        print("Please upgrade to Windows 11 to use this software.")
+        print()
+        input("Press Enter to exit...")
+        sys.exit(1)
+    
     print()
     
     # OPTIMISATION: Optimiser l'utilisation des ressources

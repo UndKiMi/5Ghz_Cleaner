@@ -82,16 +82,13 @@ class SecurityManager:
         critical_services = ['wuauserv', 'BITS', 'CryptSvc']
         
         try:
+            from backend.system_commands import system_cmd
             for service in critical_services:
-                result = subprocess.run(
-                    ['sc', 'query', service],
-                    capture_output=True,
-                    timeout=5
-                )
+                result = system_cmd.run_sc(['query', service])
                 if result.returncode != 0:
                     self.warnings.append(f"Service {service} not available")
-        except:
-            pass
+        except Exception as e:
+            print(f"[DEBUG] Service check failed: {e}")
         
         return True
     
@@ -123,11 +120,8 @@ class SecurityManager:
                 f"5ghz_cleaner_registry_backup_{safe_key_name}.reg"
             )
             
-            subprocess.run(
-                ['reg', 'export', key_path, backup_path, '/y'],
-                capture_output=True,
-                timeout=10
-            )
+            from backend.system_commands import system_cmd
+            system_cmd.run_reg(['export', key_path, backup_path, '/y'])
             
             return backup_path
         except Exception as e:

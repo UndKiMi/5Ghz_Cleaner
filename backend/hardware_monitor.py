@@ -155,12 +155,8 @@ class HardwareMonitor:
         
         # Méthode 2: Fallback avec wmic subprocess
         try:
-            result = subprocess.run(
-                ['wmic', 'path', 'win32_VideoController', 'get', 'name'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            from backend.system_commands import system_cmd
+            result = system_cmd.run_wmic(['path', 'win32_VideoController', 'get', 'name'])
             
             if result.returncode == 0:
                 lines = result.stdout.strip().split('\n')[1:]  # Skip header
@@ -218,14 +214,10 @@ class HardwareMonitor:
         Récupère la température CPU via WMI (Windows)
         Note: Nécessite des privilèges admin et dépend du matériel
         """
-        # Méthode 1: WMI MSAcpi_ThermalZoneTemperature
+        # Méthode 1: WMI via wmic
         try:
-            result = subprocess.run(
-                ['wmic', '/namespace:\\\\root\\wmi', 'PATH', 'MSAcpi_ThermalZoneTemperature', 'get', 'CurrentTemperature'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            from backend.system_commands import system_cmd
+            result = system_cmd.run_wmic(['/namespace:\\\\root\\wmi', 'PATH', 'MSAcpi_ThermalZoneTemperature', 'get', 'CurrentTemperature'])
             
             if result.returncode == 0:
                 lines = result.stdout.strip().split('\n')
@@ -241,14 +233,10 @@ class HardwareMonitor:
         except Exception:
             pass
         
-        # Méthode 2: WMI Win32_TemperatureProbe
+        # Méthode 2: Win32_TemperatureProbe
         try:
-            result = subprocess.run(
-                ['wmic', 'path', 'Win32_TemperatureProbe', 'get', 'CurrentReading'],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            from backend.system_commands import system_cmd
+            result = system_cmd.run_wmic(['path', 'Win32_TemperatureProbe', 'get', 'CurrentReading'])
             
             if result.returncode == 0:
                 lines = result.stdout.strip().split('\n')
@@ -302,12 +290,10 @@ class HardwareMonitor:
         # Essayer nvidia-smi pour les GPU NVIDIA
         if "nvidia" in gpu_name.lower():
             try:
-                result = subprocess.run(
-                    ['nvidia-smi', '--query-gpu=temperature.gpu', '--format=csv,noheader,nounits'],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
+                from backend.system_commands import system_cmd
+                result = system_cmd.run_nvidia_smi(['--query-gpu=temperature.gpu', '--format=csv,noheader,nounits'])
+                if result is None:
+                    return None
                 
                 if result.returncode == 0:
                     temp = float(result.stdout.strip())

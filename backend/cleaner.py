@@ -410,12 +410,8 @@ def clear_windows_update_cache(progress_callback=None):
     
     # SÉCURITÉ: Ne pas toucher si Windows Update est en cours
     try:
-        wuauserv_running = subprocess.run(
-            ['sc', 'query', 'wuauserv'],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        from backend.system_commands import system_cmd
+        wuauserv_running = system_cmd.run_sc(['query', 'wuauserv'])
         if 'RUNNING' in wuauserv_running.stdout:
             print("[SECURITY] Windows Update service is running, skipping cache cleanup")
             return {"update_deleted": 0, "skipped": 0}

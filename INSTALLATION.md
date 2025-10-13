@@ -2,9 +2,11 @@
 
 ## 📋 Prérequis
 
-- Windows 10 ou supérieur
-- Python 3.8 ou supérieur
-- Privilèges administrateur (recommandé)
+- **Système d'exploitation** : Windows 11 (64-bit) **UNIQUEMENT**
+- **Python** : 3.11 ou supérieur
+- **Privilèges** : Administrateur recommandé pour le nettoyage complet
+
+> ⚠️ **Important**: Ce logiciel est conçu exclusivement pour Windows 11. Il n'est pas compatible avec Windows 10 ou versions antérieures en raison de l'utilisation d'APIs spécifiques à Windows 11.
 
 ## 🚀 Installation
 
