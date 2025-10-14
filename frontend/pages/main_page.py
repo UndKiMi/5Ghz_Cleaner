@@ -510,6 +510,9 @@ class MainPage:
                 update_progress(60, "Création en cours (1-2 min)")
                 
                 # Créer un point de restauration via COM (API native Windows)
+                result = -1
+                is_frequency_limit = False
+                
                 try:
                     restore_point = win32com.client.Dispatch("SystemRestore.SystemRestore")
                     result = restore_point.CreateRestorePoint(
@@ -517,14 +520,42 @@ class MainPage:
                         0,  # Type: APPLICATION_INSTALL
                         100  # Event type: BEGIN_SYSTEM_CHANGE
                     )
-                    is_frequency_limit = False
                 except Exception as e:
                     error_msg = str(e).lower()
+                    error_code = str(e)
+                    
                     # Vérifier si c'est une limitation de fréquence (24h)
                     if "1440" in error_msg or "frequency" in error_msg or "fréquence" in error_msg:
                         is_frequency_limit = True
                         result = 0  # Considérer comme succès (point déjà créé récemment)
                         print(f"[INFO] Point de restauration déjà créé récemment (limitation 24h)")
+                    # Vérifier si c'est une erreur de classe COM
+                    elif "-2147221005" in error_code or "classe incorrecte" in error_msg:
+                        print(f"[WARNING] API COM non disponible, utilisation de PowerShell...")
+                        # Fallback : Utiliser PowerShell
+                        try:
+                            import subprocess
+                            ps_command = '''
+                            $description = "5GHz Cleaner - Manual Restore Point"
+                            Checkpoint-Computer -Description $description -RestorePointType "MODIFY_SETTINGS"
+                            '''
+                            
+                            result_ps = subprocess.run(
+                                ["powershell", "-NoProfile", "-Command", ps_command],
+                                capture_output=True,
+                                text=True,
+                                timeout=120  # 2 minutes max
+                            )
+                            
+                            if result_ps.returncode == 0:
+                                result = 0
+                                print("[SUCCESS] Point de restauration créé via PowerShell")
+                            else:
+                                result = -1
+                                print(f"[ERROR] PowerShell error: {result_ps.stderr}")
+                        except Exception as ps_error:
+                            result = -1
+                            print(f"[ERROR] PowerShell fallback failed: {ps_error}")
                     else:
                         result = -1
                         print(f"[ERROR] Erreur lors de la création: {e}")
@@ -1121,12 +1152,11 @@ class MainPage:
         else:
             icon_widget = ft.Icon(icon, size=40, color=Colors.ACCENT_PRIMARY)
         
-        # Icône d'information avec tooltip
-        info_icon = ft.Icon(
-            ft.Icons.INFO_OUTLINE,
-            size=16,
-            color=Colors.FG_TERTIARY,
-            tooltip=self._get_detailed_description(action_key),
+        # Icône d'information avec tooltip personnalisé
+        from frontend.design_system.tooltip import create_info_icon_with_tooltip
+        info_icon = create_info_icon_with_tooltip(
+            self._get_detailed_description(action_key),
+            size=16
         )
         
         return ft.Container(
@@ -1346,12 +1376,11 @@ class MainPage:
             on_change=lambda e: self._update_option(key, e.control.value),
         )
         
-        # Icône d'information avec tooltip détaillé
-        info_icon = ft.Icon(
-            ft.Icons.INFO_OUTLINE,
-            size=16,
-            color=Colors.FG_TERTIARY,
-            tooltip=self._get_detailed_description(key),
+        # Icône d'information avec tooltip détaillé personnalisé
+        from frontend.design_system.tooltip import create_info_icon_with_tooltip
+        info_icon = create_info_icon_with_tooltip(
+            self._get_detailed_description(key),
+            size=16
         )
         
         return ft.Container(
@@ -1879,13 +1908,9 @@ class MainPage:
                 disk_type = data.get("type", "Unknown")
                 drive_letter = data.get('name', 'N/A')
                 
-                # Construire un nom commercial propre
-                if disk_model != "Unknown":
-                    # Afficher: "C:\ - Samsung SSD 970 EVO Plus 1TB"
-                    name = f"{drive_letter} - {disk_model}"
-                else:
-                    # Fallback: "C:\ - SSD"
-                    name = f"{drive_letter} - {disk_type}"
+                # Construire le nom : "Disque C:\" uniquement
+                name = f"Disque {drive_letter}"
+                
                 total_gb = data.get("total", 0) / (1024**3)
                 used_gb = data.get("used", 0) / (1024**3)
                 free_gb = data.get("free", 0) / (1024**3)
@@ -1897,7 +1922,7 @@ class MainPage:
                         [
                             ft.Row(
                                 [
-                                    Caption("Utilisation", size=10, color=Colors.FG_TERTIARY),
+                                    Caption("Utilisation du disque", size=10, color=Colors.FG_TERTIARY),
                                     ft.Container(expand=True),
                                     Caption(f"{percent:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
                                 ],
@@ -1918,9 +1943,10 @@ class MainPage:
                     margin=ft.margin.only(top=8),
                 )
                 
+                # Format : Type / Capacité totale / Espace libre
                 details = [
                     f"Type : {disk_type}",
-                    f"Espace utilisé : {used_gb:.2f} GB / {total_gb:.2f} GB",
+                    f"Capacité totale : {total_gb:.2f} GB",
                     f"Espace libre : {free_gb:.2f} GB",
                 ]
             else:

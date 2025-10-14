@@ -60,32 +60,43 @@ class PreviewPage:
         return self.main_container
     
     def _build_header(self):
-        """Construit l'en-tête de la page"""
-        return ft.Column(
-            [
-                ft.Row(
-                    [
-                        ft.Icon(
+        """Construit l'en-tête de la page avec design moderne"""
+        return ft.Container(
+            content=ft.Row(
+                [
+                    # Icône avec effet glow
+                    ft.Container(
+                        content=ft.Icon(
                             ft.Icons.PREVIEW_ROUNDED,
-                            size=48,
+                            size=40,
                             color=Colors.ACCENT_PRIMARY,
                         ),
-                        ft.Container(width=Spacing.MD),
-                        ft.Column(
-                            [
-                                Heading("Rapport de Prévisualisation"),
-                                Caption(
-                                    "Sélectionnez les opérations que vous souhaitez effectuer",
-                                    color=Colors.FG_SECONDARY,
-                                ),
-                            ],
-                            spacing=Spacing.XS,
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        padding=Spacing.MD,
+                        bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
+                        border_radius=BorderRadius.LG,
+                        border=ft.border.all(2, ft.Colors.with_opacity(0.3, Colors.ACCENT_PRIMARY)),
+                    ),
+                    ft.Container(width=Spacing.LG),
+                    # Texte
+                    ft.Column(
+                        [
+                            Heading("Rapport de Prévisualisation", level=2),
+                            ft.Container(height=Spacing.XS),
+                            Caption(
+                                "Sélectionnez les opérations que vous souhaitez effectuer",
+                                color=Colors.FG_SECONDARY,
+                                size=13,
+                            ),
+                        ],
+                        spacing=0,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.START,
+            ),
+            padding=Spacing.LG,
+            bgcolor=Colors.BG_SECONDARY,
+            border_radius=BorderRadius.LG,
+            border=ft.border.all(1, Colors.BORDER_DEFAULT),
         )
     
     def _build_summary(self):
@@ -120,39 +131,46 @@ class PreviewPage:
             color=Colors.FG_SECONDARY,
         )
         
-        # Bannière avec référence
+        # Bannière avec design minimaliste et élégant
         self.stats_banner = ft.Container(
             content=ft.Column(
                 [
-                    ft.Row(
-                        [
-                            ft.Text(
-                                space_emoji,
-                                size=48,
-                            ),
-                            ft.Container(width=Spacing.MD),
-                            ft.Column(
-                                [
-                                    self.stats_space_text,
-                                    self.stats_space_label,
-                                ],
-                                spacing=0,
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
+                    # Emoji centré
+                    ft.Text(
+                        space_emoji,
+                        size=48,
+                        text_align=ft.TextAlign.CENTER,
                     ),
+                    ft.Container(height=Spacing.MD),
+                    # Taille en grand
+                    self.stats_space_text,
+                    ft.Container(height=Spacing.XS),
+                    # Label en dessous
+                    self.stats_space_label,
                 ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=0,
             ),
-            padding=Spacing.XL,
-            bgcolor=ft.Colors.with_opacity(0.05, space_color),
+            padding=ft.padding.symmetric(horizontal=Spacing.XL, vertical=Spacing.LG),
+            bgcolor=Colors.BG_SECONDARY,
             border_radius=BorderRadius.LG,
-            border=ft.border.all(2, space_color),
+            border=ft.border.all(1, Colors.BORDER_DEFAULT),
         )
+        
+        # Estimation du temps basée sur le nombre de fichiers et la taille
+        # Formule : (fichiers / 1000) + (taille_mb / 500) minutes
+        estimated_minutes = max(1, int((total_files / 1000) + (total_size_mb / 500)))
+        if estimated_minutes < 1:
+            time_text = "< 1 min"
+        elif estimated_minutes == 1:
+            time_text = "~1 min"
+        else:
+            time_text = f"~{estimated_minutes} min"
         
         # Créer les cartes de stats avec références
         self.stats_files_text = ft.Text(f"{total_files:,}", size=20, weight=ft.FontWeight.BOLD, color=Colors.FG_PRIMARY)
         self.stats_operations_text = ft.Text(f"{operations_count}", size=20, weight=ft.FontWeight.BOLD, color=Colors.FG_PRIMARY)
-        self.stats_time_text = ft.Text(f"{max(1, operations_count // 2)} min", size=20, weight=ft.FontWeight.BOLD, color=Colors.FG_PRIMARY)
+        self.stats_time_text = ft.Text(time_text, size=20, weight=ft.FontWeight.BOLD, color=Colors.FG_PRIMARY)
         
         return ft.Container(
             content=ft.Column(
@@ -217,28 +235,37 @@ class PreviewPage:
         )
     
     def _build_stat_card_with_ref(self, label, value_text_widget, icon, color):
-        """Construit une carte de statistique avec référence au widget texte"""
+        """Construit une carte de statistique avec référence au widget texte et effet hover"""
         return ft.Container(
             content=ft.Column(
                 [
+                    # Icône avec effet glow
                     ft.Container(
-                        content=ft.Icon(icon, size=28, color=color),
-                        padding=Spacing.SM,
-                        bgcolor=ft.Colors.with_opacity(0.1, color),
-                        border_radius=BorderRadius.SM,
+                        content=ft.Icon(icon, size=32, color=color),
+                        padding=Spacing.MD,
+                        bgcolor=ft.Colors.with_opacity(0.15, color),
+                        border_radius=BorderRadius.MD,
+                        border=ft.border.all(1, ft.Colors.with_opacity(0.3, color)),
                     ),
-                    ft.Container(height=Spacing.SM),
+                    ft.Container(height=Spacing.MD),
                     value_text_widget,
-                    Caption(label, color=Colors.FG_SECONDARY, size=12),
+                    ft.Container(height=Spacing.XS),
+                    Caption(label, color=Colors.FG_SECONDARY, size=12, weight=ft.FontWeight.W_500),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=Spacing.XS,
+                spacing=0,
             ),
-            width=180,
-            padding=Spacing.MD,
+            width=200,
+            padding=Spacing.LG,
             bgcolor=Colors.BG_SECONDARY,
-            border_radius=BorderRadius.MD,
+            border_radius=BorderRadius.LG,
             border=ft.border.all(1, Colors.BORDER_DEFAULT),
+            shadow=ft.BoxShadow(
+                spread_radius=0,
+                blur_radius=8,
+                color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
+                offset=ft.Offset(0, 2),
+            ),
         )
     
     def _build_operations_list(self):
@@ -256,7 +283,23 @@ class PreviewPage:
                 [
                     ft.Row(
                         [
-                            BodyText("Opérations à effectuer", weight=ft.FontWeight.BOLD),
+                            ft.Row(
+                                [
+                                    BodyText("Opérations à effectuer", weight=ft.FontWeight.BOLD, size=16),
+                                    ft.Container(width=Spacing.SM),
+                                    ft.Container(
+                                        content=ft.Text(
+                                            str(len(operations)),
+                                            size=12,
+                                            weight=ft.FontWeight.BOLD,
+                                            color=Colors.BG_PRIMARY,
+                                        ),
+                                        padding=ft.padding.symmetric(horizontal=8, vertical=4),
+                                        bgcolor=Colors.ACCENT_PRIMARY,
+                                        border_radius=BorderRadius.SM,
+                                    ),
+                                ],
+                            ),
                             ft.Container(expand=True),
                             ft.TextButton(
                                 "Tout sélectionner",
@@ -482,12 +525,17 @@ class PreviewPage:
             self.stats_operations_text.value = f"{selected_count}"
         
         if self.stats_time_text:
-            self.stats_time_text.value = f"{max(1, selected_count // 2)} min"
+            # Estimation améliorée du temps
+            estimated_minutes = max(1, int((total_files / 1000) + (total_size_mb / 500)))
+            if estimated_minutes < 1:
+                time_text = "< 1 min"
+            elif estimated_minutes == 1:
+                time_text = "~1 min"
+            else:
+                time_text = f"~{estimated_minutes} min"
+            self.stats_time_text.value = time_text
         
-        # Mettre à jour la bannière
-        if self.stats_banner:
-            self.stats_banner.bgcolor = ft.Colors.with_opacity(0.05, space_color)
-            self.stats_banner.border = ft.border.all(2, space_color)
+        # La bannière garde son style minimaliste (pas de changement de couleur)
         
         # Mettre à jour la page
         self.page.update()
