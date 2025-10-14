@@ -1,0 +1,7 @@
+# Ignore LibreHardwareMonitor DLL (users must download it themselves)
+*.dll
+*.exe
+*.pdb
+
+# Keep only README
+!README_LIBREHARDWAREMONITOR.md

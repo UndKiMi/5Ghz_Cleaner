@@ -3,18 +3,20 @@ Module de commandes système sécurisées
 Définit les chemins absolus pour toutes les commandes Windows
 """
 import os
-import sys
-import io
 import subprocess
 from typing import List, Optional
+from config.settings import (
+    SYSTEM_ROOT,
+    SYSTEM32,
+    TIMEOUT_SC_COMMAND,
+    TIMEOUT_REG_COMMAND,
+    TIMEOUT_WMIC_COMMAND,
+    TIMEOUT_NVIDIA_SMI
+)
 
-# Configurer l'encodage UTF-8 pour Windows
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+# NOTE: Console encoding is configured in main.py
 
 # Chemins absolus des commandes système Windows
-SYSTEM_ROOT = os.environ.get('SystemRoot', r'C:\Windows')
-SYSTEM32 = os.path.join(SYSTEM_ROOT, 'System32')
 WBEM = os.path.join(SYSTEM32, 'wbem')
 
 # Commandes système (chemins absolus pour éviter PATH hijacking)
@@ -23,24 +25,27 @@ REG_EXE = os.path.join(SYSTEM32, 'reg.exe')
 WMIC_EXE = os.path.join(WBEM, 'wmic.exe')
 
 # Commandes optionnelles (peuvent ne pas exister)
-NVIDIA_SMI = r'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe'
+# Utilise PROGRAM_FILES dynamique au lieu de C:\ hardcodé
+NVIDIA_SMI = os.path.join(os.getenv('ProgramFiles', 'C:\\Program Files'), 'NVIDIA Corporation', 'NVSMI', 'nvidia-smi.exe')
 
 
 class SystemCommand:
     """Wrapper sécurisé pour les commandes système"""
     
     @staticmethod
-    def run_sc(args: List[str], timeout: int = 5) -> subprocess.CompletedProcess:
+    def run_sc(args: List[str], timeout: int = None) -> subprocess.CompletedProcess:
         """
         Exécute une commande sc.exe (Service Control)
         
         Args:
             args: Arguments pour sc.exe (ex: ['query', 'wuauserv'])
-            timeout: Timeout en secondes
+            timeout: Timeout en secondes (utilise TIMEOUT_SC_COMMAND par défaut)
             
         Returns:
             CompletedProcess avec le résultat
         """
+        if timeout is None:
+            timeout = TIMEOUT_SC_COMMAND
         cmd = [SC_EXE] + args
         return subprocess.run(  # nosec B603 - Commande système sécurisée avec chemin absolu
             cmd,
@@ -51,17 +56,19 @@ class SystemCommand:
         )
     
     @staticmethod
-    def run_reg(args: List[str], timeout: int = 10) -> subprocess.CompletedProcess:
+    def run_reg(args: List[str], timeout: int = None) -> subprocess.CompletedProcess:
         """
         Exécute une commande reg.exe (Registry Editor)
         
         Args:
             args: Arguments pour reg.exe (ex: ['export', 'HKLM\\...', 'backup.reg'])
-            timeout: Timeout en secondes
+            timeout: Timeout en secondes (utilise TIMEOUT_REG_COMMAND par défaut)
             
         Returns:
             CompletedProcess avec le résultat
         """
+        if timeout is None:
+            timeout = TIMEOUT_REG_COMMAND
         cmd = [REG_EXE] + args
         return subprocess.run(  # nosec B603 - Commande système sécurisée avec chemin absolu
             cmd,
@@ -72,17 +79,19 @@ class SystemCommand:
         )
     
     @staticmethod
-    def run_wmic(args: List[str], timeout: int = 5) -> subprocess.CompletedProcess:
+    def run_wmic(args: List[str], timeout: int = None) -> subprocess.CompletedProcess:
         """
         Exécute une commande wmic.exe (Windows Management Instrumentation)
         
         Args:
             args: Arguments pour wmic.exe
-            timeout: Timeout en secondes
+            timeout: Timeout en secondes (utilise TIMEOUT_WMIC_COMMAND par défaut)
             
         Returns:
             CompletedProcess avec le résultat
         """
+        if timeout is None:
+            timeout = TIMEOUT_WMIC_COMMAND
         cmd = [WMIC_EXE] + args
         return subprocess.run(  # nosec B603 - Commande système sécurisée avec chemin absolu
             cmd,
@@ -93,17 +102,19 @@ class SystemCommand:
         )
     
     @staticmethod
-    def run_nvidia_smi(args: List[str], timeout: int = 5) -> Optional[subprocess.CompletedProcess]:
+    def run_nvidia_smi(args: List[str], timeout: int = None) -> Optional[subprocess.CompletedProcess]:
         """
         Exécute nvidia-smi (si disponible)
         
         Args:
             args: Arguments pour nvidia-smi
-            timeout: Timeout en secondes
+            timeout: Timeout en secondes (utilise TIMEOUT_NVIDIA_SMI par défaut)
             
         Returns:
             CompletedProcess ou None si nvidia-smi n'existe pas
         """
+        if timeout is None:
+            timeout = TIMEOUT_NVIDIA_SMI
         if not os.path.exists(NVIDIA_SMI):
             return None
         

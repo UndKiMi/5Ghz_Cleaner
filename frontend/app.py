@@ -11,6 +11,11 @@ from .design_system import *
 from .design_system.theme import Colors, Spacing, Typography, BorderRadius
 from .design_system.icons import ShieldIcon, WarningIcon
 from .pages import MainPage
+from config.constants import (
+    BG_MAIN, BG_SECONDARY, FG_MAIN, FG_SECONDARY, ACCENT_COLOR,
+    SHADOW_BLUR_RADIUS, SHADOW_OPACITY, GLOW_BLUR_MIN, GLOW_OPACITY_MIN,
+    BLUE_ACCENT, SHIELD_PULSE_INTERVAL
+)
 
 
 class CleanerApp:
@@ -33,11 +38,11 @@ class CleanerApp:
         """Configure window properties"""
         self.page.title = "5GH'z Cleaner"
         self.page.window.width = 900
-        self.page.window.height = 1019
+        self.page.window.height = 1082
         self.page.window.resizable = True
         self.page.window.maximizable = False
-        self.page.window.min_width = 876
-        self.page.window.min_height = 1019
+        self.page.window.min_width = 889
+        self.page.window.min_height = 1082
         self.page.window.frameless = False
         self.page.window.always_on_top = False
         self.page.window.focused = True
@@ -46,10 +51,6 @@ class CleanerApp:
     
     def build_title_bar(self, title="5GH'z Cleaner"):
         """Build custom title bar with window controls"""
-        def minimize_window(e):
-            self.page.window.minimized = True
-            self.page.update()
-        
         def minimize_window(e):
             self.page.window.minimized = True
             self.page.update()

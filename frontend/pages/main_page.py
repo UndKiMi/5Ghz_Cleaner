@@ -52,7 +52,6 @@ class MainPage:
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.START,
                 spacing=0,
-                scroll=ft.ScrollMode.AUTO,
             ),
             bgcolor=Colors.BG_PRIMARY,
             padding=ft.padding.symmetric(horizontal=Spacing.HUGE, vertical=Spacing.LG),
@@ -575,9 +574,9 @@ class MainPage:
                     print("[INFO] Quick action completed (unlocked)")
                 else:
                     # Restaurer le bouton
-                    if button_container:
-                        button_container.bgcolor = original_bgcolor
-                        button_container.border = original_border
+                    if button_ref and button_ref.get("container"):
+                        button_ref["container"].bgcolor = original_bgcolor
+                        button_ref["container"].border = original_border
                         self.page.update()
                     
                     self._show_error_dialog(
@@ -1457,23 +1456,69 @@ class MainPage:
         print(f"[INFO] Option {key} set to {value}")
     
     def _build_configuration_section(self):
-        """Construit la section Configuration avec monitoring matériel"""
-        # Récupérer les données matérielles
-        hw_data = hardware_monitor.get_all_components()
-        
-        # Conteneurs pour les composants (seront mis à jour en temps réel)
-        self.hw_cpu_container = self._build_hardware_card("CPU", hw_data["cpu"])
-        self.hw_memory_container = self._build_hardware_card("Mémoire", hw_data["memory"])
-        self.hw_gpu_containers = [
-            self._build_hardware_card("GPU", gpu) for gpu in hw_data["gpus"]
-        ]
-        self.hw_disk_containers = [
-            self._build_hardware_card("Disque", disk) for disk in hw_data["disks"]
-        ]
-        
-        # Démarrer le monitoring en temps réel
-        if not hardware_monitor.monitoring:
-            hardware_monitor.start_monitoring(interval=2.0, callback=self._update_hardware_display)
+        """Construit la section Configuration avec monitoring matériel amélioré"""
+        try:
+            # Récupérer les données matérielles
+            hw_data = hardware_monitor.get_all_components()
+            
+            # Récupérer les informations système
+            import platform
+            import psutil
+            from datetime import datetime, timedelta
+            
+            # Informations système
+            boot_time = datetime.fromtimestamp(psutil.boot_time())
+            uptime = datetime.now() - boot_time
+            # Formater uptime sans afficher 0j
+            if uptime.days > 0:
+                uptime_str = f"{uptime.days}j {uptime.seconds//3600}h {(uptime.seconds//60)%60}m"
+            else:
+                uptime_str = f"{uptime.seconds//3600}h {(uptime.seconds//60)%60}m"
+            
+            os_info = f"{platform.system()} {platform.release()} (Build {platform.version().split('.')[-1]})"
+            process_count = len(psutil.pids())
+            
+            # Créer des widgets Text pour les infos dynamiques
+            self.uptime_text = Caption(uptime_str, size=11, color=Colors.FG_SECONDARY)
+            self.process_count_text = Caption(f"{process_count} actifs", size=11, color=Colors.FG_SECONDARY)
+            
+            # Conteneurs pour les composants (seront mis à jour en temps réel)
+            self.hw_cpu_container = self._build_hardware_card_v2("CPU", hw_data.get("cpu", {}))
+            self.hw_memory_container = self._build_hardware_card_v2("Mémoire", hw_data.get("memory", {}))
+            self.hw_gpu_containers = [
+                self._build_hardware_card_v2("GPU", gpu) for gpu in hw_data.get("gpus", [])
+            ]
+            self.hw_disk_containers = [
+                self._build_hardware_card_v2("Disque", disk) for disk in hw_data.get("disks", [])
+            ]
+            
+            # Démarrer le monitoring en temps réel (0.25 seconde pour des mises à jour instantanées)
+            if not hardware_monitor.monitoring:
+                hardware_monitor.start_monitoring(interval=0.25, callback=self._update_hardware_display)
+        except Exception as e:
+            print(f"[ERROR] Failed to build configuration section: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Retourner un message d'erreur convivial
+            return ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Icon(ft.Icons.ERROR_OUTLINE, size=48, color=Colors.ERROR),
+                        Spacer(height=Spacing.MD),
+                        BodyText("Erreur de chargement", weight=Typography.WEIGHT_BOLD),
+                        Spacer(height=Spacing.SM),
+                        Caption(
+                            f"Impossible de charger les informations matérielles.\n{str(e)}",
+                            color=Colors.FG_SECONDARY,
+                            text_align=ft.TextAlign.CENTER,
+                        ),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=0,
+                ),
+                padding=Spacing.XL,
+            )
         
         return ft.Container(
             content=ft.Column(
@@ -1496,6 +1541,83 @@ class MainPage:
                         "Surveillance en temps réel des composants système • Aucune donnée n'est envoyée",
                         color=Colors.FG_SECONDARY,
                         size=12,
+                    ),
+                    Spacer(height=Spacing.LG),
+                    
+                    # Informations système (NOUVEAU)
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                # Carte OS
+                                ft.Container(
+                                    content=ft.Column(
+                                        [
+                                            ft.Row(
+                                                [
+                                                    ft.Icon(ft.Icons.LAPTOP_WINDOWS, size=20, color=Colors.ACCENT_PRIMARY),
+                                                    ft.Container(width=Spacing.XS),
+                                                    BodyText("Système", size=13, weight=Typography.WEIGHT_BOLD),
+                                                ],
+                                            ),
+                                            Spacer(height=Spacing.XS),
+                                            Caption(os_info, size=11, color=Colors.FG_SECONDARY),
+                                        ],
+                                        spacing=0,
+                                    ),
+                                    bgcolor=Colors.BG_SECONDARY,
+                                    padding=Spacing.MD,
+                                    border_radius=BorderRadius.MD,
+                                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                                    expand=True,
+                                ),
+                                ft.Container(width=Spacing.MD),
+                                # Carte Uptime
+                                ft.Container(
+                                    content=ft.Column(
+                                        [
+                                            ft.Row(
+                                                [
+                                                    ft.Icon(ft.Icons.SCHEDULE, size=20, color=Colors.SUCCESS),
+                                                    ft.Container(width=Spacing.XS),
+                                                    BodyText("Uptime", size=13, weight=Typography.WEIGHT_BOLD),
+                                                ],
+                                            ),
+                                            Spacer(height=Spacing.XS),
+                                            self.uptime_text,
+                                        ],
+                                        spacing=0,
+                                    ),
+                                    bgcolor=Colors.BG_SECONDARY,
+                                    padding=Spacing.MD,
+                                    border_radius=BorderRadius.MD,
+                                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                                    expand=True,
+                                ),
+                                ft.Container(width=Spacing.MD),
+                                # Carte Processus
+                                ft.Container(
+                                    content=ft.Column(
+                                        [
+                                            ft.Row(
+                                                [
+                                                    ft.Icon(ft.Icons.APPS, size=20, color=Colors.WARNING),
+                                                    ft.Container(width=Spacing.XS),
+                                                    BodyText("Processus", size=13, weight=Typography.WEIGHT_BOLD),
+                                                ],
+                                            ),
+                                            Spacer(height=Spacing.XS),
+                                            self.process_count_text,
+                                        ],
+                                        spacing=0,
+                                    ),
+                                    bgcolor=Colors.BG_SECONDARY,
+                                    padding=Spacing.MD,
+                                    border_radius=BorderRadius.MD,
+                                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                                    expand=True,
+                                ),
+                            ],
+                        ),
                     ),
                     Spacer(height=Spacing.LG),
                     
@@ -1584,108 +1706,37 @@ class MainPage:
     
     def _build_hardware_card(self, component_type, data):
         """Construit une carte pour un composant matériel"""
-        # Déterminer l'icône selon le type
-        if component_type == "CPU":
-            icon = ft.Icons.MEMORY
-            name = data.get("name", "N/A")
-            usage = data.get('usage', 0)
-            freq_current = data.get('frequency_current', 0)
-            freq_max = data.get('frequency_max', 0)
+        try:
+            # Vérifier que data n'est pas None
+            if data is None:
+                data = {}
             
-            # Barre de progression pour l'utilisation CPU
-            cpu_progress = ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Row(
-                            [
-                                Caption("Utilisation", size=10, color=Colors.FG_TERTIARY),
-                                ft.Container(expand=True),
-                                Caption(f"{usage:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
-                            ],
-                            spacing=0,
-                        ),
-                        ft.Container(height=4),
-                        ft.ProgressBar(
-                            value=usage / 100,
-                            height=6,
-                            color=Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED,
-                            bgcolor=Colors.BORDER_DEFAULT,
-                            border_radius=BorderRadius.SM,
-                        ),
-                    ],
-                    spacing=0,
-                ),
-                margin=ft.margin.only(top=8),
-            )
-            
-            details = [
-                f"Cœurs: {data.get('cores_physical', 0)} physiques / {data.get('cores_logical', 0)} logiques",
-                f"Fréquence: {freq_current:.0f} MHz / {freq_max:.0f} MHz max",
-            ]
-        elif component_type == "Mémoire":
-            icon = ft.Icons.MEMORY_OUTLINED
-            name = data.get("name", "RAM")
-            total_gb = data.get("total", 0) / (1024**3)
-            used_gb = data.get("used", 0) / (1024**3)
-            available_gb = data.get("available", 0) / (1024**3)
-            percent = data.get("percent", 0)
-            
-            # Informations sur les modules RAM
-            ram_modules = data.get("modules", [])
-            if ram_modules:
-                module_count = len(ram_modules)
-                module_info = f"{module_count} barrette{'s' if module_count > 1 else ''}"
-                # Détails des modules
-                module_details = ", ".join([f"{m:.0f}GB" for m in ram_modules])
-                if module_details:
-                    module_info += f" ({module_details})"
-            else:
-                module_info = "Information non disponible"
-            
-            # Barre de progression pour la RAM
-            cpu_progress = ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Row(
-                            [
-                                Caption("Utilisation en cours", size=10, color=Colors.FG_TERTIARY),
-                                ft.Container(expand=True),
-                                Caption(f"{percent:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
-                            ],
-                            spacing=0,
-                        ),
-                        ft.Container(height=4),
-                        ft.ProgressBar(
-                            value=percent / 100,
-                            height=6,
-                            color=Colors.ACCENT_PRIMARY if percent < 80 else ft.Colors.ORANGE if percent < 95 else ft.Colors.RED,
-                            bgcolor=Colors.BORDER_DEFAULT,
-                            border_radius=BorderRadius.SM,
-                        ),
-                    ],
-                    spacing=0,
-                ),
-                margin=ft.margin.only(top=8),
-            )
-            
-            details = [
-                f"Mémoire installée: {module_info}",
-                f"Utilisée: {used_gb:.2f} GB / {total_gb:.2f} GB",
-            ]
-        elif component_type == "GPU":
-            icon = ft.Icons.VIDEOGAME_ASSET
-            name = data.get("name", "N/A")
-            usage = data.get("usage", 0)
-            driver_version = data.get("driver_version", "N/A")
-            
-            # Barre de progression pour l'utilisation GPU
-            if usage > 0:
+            # Déterminer l'icône selon le type
+            if component_type == "CPU":
+                icon = ft.Icons.DEVELOPER_BOARD  # Icône processeur/circuit
+                
+                # Nettoyer le nom du CPU (enlever les infos de cœurs)
+                cpu_name = data.get("name", "N/A")
+                # Supprimer les mentions de cœurs du nom
+                import re
+                cpu_name = re.sub(r'\s*\d+-Core.*', '', cpu_name)  # Enlever "12-Core Processor"
+                cpu_name = re.sub(r'\s*Processor.*', '', cpu_name)  # Enlever "Processor"
+                cpu_name = cpu_name.strip()
+                
+                name = cpu_name
+                usage = data.get('usage', 0)
+                freq_current = data.get('frequency_current', 0)
+                freq_max = data.get('frequency_max', 0)
+                cores_physical = data.get('cores_physical', 0)
+                cores_logical = data.get('cores_logical', 0)
+                
+                # Barre de progression pour l'utilisation CPU
                 cpu_progress = ft.Container(
                     content=ft.Column(
                         [
                             ft.Row(
                                 [
-                                    Caption("Utilisation GPU", size=10, color=Colors.FG_TERTIARY),
+                                    Caption("Utilisation", size=10, color=Colors.FG_TERTIARY),
                                     ft.Container(expand=True),
                                     Caption(f"{usage:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
                                 ],
@@ -1698,161 +1749,314 @@ class MainPage:
                                 color=Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED,
                                 bgcolor=Colors.BORDER_DEFAULT,
                                 border_radius=BorderRadius.SM,
+                                animate_opacity=300,  # Animation fluide de 300ms
                             ),
                         ],
                         spacing=0,
                     ),
                     margin=ft.margin.only(top=8),
                 )
-            else:
-                cpu_progress = None
-            
-            details = [
-                f"Pilote: {driver_version}",
-            ]
-        elif component_type == "Disque":
-            icon = ft.Icons.STORAGE
-            disk_model = data.get("model", "Unknown")
-            disk_type = data.get("type", "Unknown")
-            name = f"{data.get('name', 'N/A')} - {disk_model}"
-            total_gb = data.get("total", 0) / (1024**3)
-            used_gb = data.get("used", 0) / (1024**3)
-            free_gb = data.get("free", 0) / (1024**3)
-            percent = data.get("percent", 0)
-            
-            # Barre de progression pour le disque
-            cpu_progress = ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Row(
-                            [
-                                Caption("Utilisation", size=10, color=Colors.FG_TERTIARY),
-                                ft.Container(expand=True),
-                                Caption(f"{percent:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
-                            ],
-                            spacing=0,
-                        ),
-                        ft.Container(height=4),
-                        ft.ProgressBar(
-                            value=percent / 100,
-                            height=6,
-                            color=Colors.ACCENT_PRIMARY if percent < 80 else ft.Colors.ORANGE if percent < 95 else ft.Colors.RED,
-                            bgcolor=Colors.BORDER_DEFAULT,
-                            border_radius=BorderRadius.SM,
-                        ),
-                    ],
-                    spacing=0,
-                ),
-                margin=ft.margin.only(top=8),
-            )
-            
-            details = [
-                f"Type: {disk_type}",
-                f"Espace utilisé: {used_gb:.2f} GB / {total_gb:.2f} GB",
-                f"Espace libre: {free_gb:.2f} GB",
-            ]
-        else:
-            icon = ft.Icons.DEVICE_UNKNOWN
-            name = "Inconnu"
-            cpu_progress = None
-            details = []
-        
-        # Température
-        temp = data.get("temperature")
-        temp_color = self._get_temp_color(temp, component_type.lower())
-        temp_text = f"{temp:.1f}°C" if temp is not None else "N/A"
-        
-        # Indicateur de température avec couleur et icône animée
-        temp_indicator = ft.Container(
-            content=ft.Column(
-                [
-                    ft.Row(
+                
+                # Format : Cœurs / Fréquence utilisée en cours
+                details = [
+                    f"Cœurs : {cores_physical} physiques / {cores_logical} logiques",
+                    f"Fréquence utilisée en cours : {freq_current:.0f} MHz / {freq_max:.0f} MHz maximum",
+                ]
+            elif component_type == "Mémoire":
+                icon = ft.Icons.MEMORY_OUTLINED
+                
+                # Nom commercial de la RAM (Marque + Type + Fréquence)
+                name = data.get("name", "RAM")
+                
+                total_gb = data.get("total", 0) / (1024**3)
+                used_gb = data.get("used", 0) / (1024**3)
+                available_gb = data.get("available", 0) / (1024**3)
+                percent = data.get("percent", 0)
+                ram_speed = data.get("speed", 0)
+                
+                # Informations sur les modules RAM avec format "2x8GB" ou "4x8GB"
+                ram_modules = data.get("modules", [])
+                if ram_modules:
+                    module_count = len(ram_modules)
+                    # Grouper les modules par taille pour afficher "2x8GB + 2x16GB" si différents
+                    from collections import Counter
+                    module_sizes = Counter([int(m) for m in ram_modules])
+                    
+                    module_parts = []
+                    for size, count in sorted(module_sizes.items(), reverse=True):
+                        module_parts.append(f"{count}x{size}GB")
+                    
+                    module_info = " + ".join(module_parts)
+                    
+                    # Ajouter la fréquence si disponible
+                    if ram_speed > 0:
+                        module_info += f" @ {ram_speed} MHz"
+                else:
+                    module_info = "Information non disponible"
+                
+                # Barre de progression pour la RAM
+                cpu_progress = ft.Container(
+                    content=ft.Column(
                         [
-                            ft.Icon(ft.Icons.THERMOSTAT, size=18, color=temp_color),
-                            ft.Container(width=4),
-                            ft.Text(
-                                temp_text,
-                                size=16,
-                                weight=ft.FontWeight.BOLD,
-                                color=temp_color,
+                            ft.Row(
+                                [
+                                    Caption("Utilisation en temps réel", size=10, color=Colors.FG_TERTIARY),
+                                    ft.Container(expand=True),
+                                    Caption(f"{percent:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
+                                ],
+                                spacing=0,
+                            ),
+                            ft.Container(height=4),
+                            ft.ProgressBar(
+                                value=percent / 100,
+                                height=6,
+                                color=Colors.ACCENT_PRIMARY if percent < 80 else ft.Colors.ORANGE if percent < 95 else ft.Colors.RED,
+                                bgcolor=Colors.BORDER_DEFAULT,
+                                border_radius=BorderRadius.SM,
+                                animate_opacity=300,  # Animation fluide de 300ms
                             ),
                         ],
                         spacing=0,
-                        alignment=ft.MainAxisAlignment.CENTER,
                     ),
-                    ft.Container(height=2),
-                    Caption(
-                        "Température" if temp is not None else "Non disponible",
-                        size=9,
-                        color=Colors.FG_TERTIARY,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=0,
-            ),
-            bgcolor=ft.Colors.with_opacity(0.1, temp_color),
-            padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
-            border_radius=BorderRadius.MD,
-            border=ft.border.all(2, ft.Colors.with_opacity(0.4, temp_color)),
-        )
-        
-        # Colonne d'informations
-        info_column_controls = [
-            BodyText(name, weight=Typography.WEIGHT_BOLD, size=14, color=Colors.FG_PRIMARY),
-            Spacer(height=Spacing.XS),
-            ft.Column(
-                [Caption(detail, color=Colors.FG_SECONDARY, size=11) for detail in details],
-                spacing=3,
-            ),
-        ]
-        
-        if cpu_progress:
-            info_column_controls.append(cpu_progress)
-        
-        # Construire l'icône
-        icon_widget = ft.Icon(icon, size=36, color=Colors.ACCENT_PRIMARY)
-        
-        # Construire la carte avec hover effect
-        return ft.Container(
-            content=ft.Row(
-                [
-                    # Icône du composant avec glow
-                    ft.Container(
-                        content=icon_widget,
-                        padding=Spacing.LG,
-                        bgcolor=ft.Colors.with_opacity(0.15, Colors.ACCENT_PRIMARY),
-                        border_radius=BorderRadius.MD,
-                        border=ft.border.all(1, ft.Colors.with_opacity(0.3, Colors.ACCENT_PRIMARY)),
-                    ),
-                    ft.Container(width=Spacing.LG),
-                    
-                    # Informations
-                    ft.Column(
-                        info_column_controls,
-                        expand=True,
+                    margin=ft.margin.only(top=8),
+                )
+                
+                # Format : Mémoire installée / Utilisation en temps réel
+                details = [
+                    f"Mémoire installée : {module_info}",
+                    f"Utilisation en temps réel : {used_gb:.2f} GB / {total_gb:.2f} GB",
+                ]
+            elif component_type == "GPU":
+                icon = ft.Icons.VIDEOGAME_ASSET
+                name = data.get("name", "N/A")
+                usage = data.get("usage", 0)
+                driver_version = data.get("driver_version", "N/A")
+                driver_date = data.get("driver_date", "N/A")
+                
+                # Barre de progression pour l'utilisation GPU
+                if usage > 0:
+                    cpu_progress = ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Row(
+                                    [
+                                        Caption("Utilisation GPU", size=10, color=Colors.FG_TERTIARY),
+                                        ft.Container(expand=True),
+                                        Caption(f"{usage:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
+                                    ],
+                                    spacing=0,
+                                ),
+                                ft.Container(height=4),
+                                ft.ProgressBar(
+                                    value=usage / 100,
+                                    height=6,
+                                    color=Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED,
+                                    bgcolor=Colors.BORDER_DEFAULT,
+                                    border_radius=BorderRadius.SM,
+                                    animate_opacity=300,  # Animation fluide de 300ms
+                                ),
+                            ],
+                            spacing=0,
+                        ),
+                        margin=ft.margin.only(top=8),
+                    )
+                else:
+                    cpu_progress = None
+                
+                # Détails GPU améliorés
+                details = []
+                if driver_version != "N/A":
+                    details.append(f"Pilote : {driver_version}")
+                else:
+                    details.append("Pilote : Non disponible")
+                
+                # Ajouter note si pas d'utilisation
+                if usage == 0:
+                    details.append("Monitoring GPU non disponible pour AMD")
+            elif component_type == "Disque":
+                icon = ft.Icons.STORAGE
+                disk_model = data.get("model", "Unknown")
+                disk_type = data.get("type", "Unknown")
+                drive_letter = data.get('name', 'N/A')
+                
+                # Construire un nom commercial propre
+                if disk_model != "Unknown":
+                    # Afficher: "C:\ - Samsung SSD 970 EVO Plus 1TB"
+                    name = f"{drive_letter} - {disk_model}"
+                else:
+                    # Fallback: "C:\ - SSD"
+                    name = f"{drive_letter} - {disk_type}"
+                total_gb = data.get("total", 0) / (1024**3)
+                used_gb = data.get("used", 0) / (1024**3)
+                free_gb = data.get("free", 0) / (1024**3)
+                percent = data.get("percent", 0)
+                
+                # Barre de progression pour le disque
+                cpu_progress = ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    Caption("Utilisation", size=10, color=Colors.FG_TERTIARY),
+                                    ft.Container(expand=True),
+                                    Caption(f"{percent:.1f}%", size=11, weight=Typography.WEIGHT_BOLD),
+                                ],
+                                spacing=0,
+                            ),
+                            ft.Container(height=4),
+                            ft.ProgressBar(
+                                value=percent / 100,
+                                height=6,
+                                color=Colors.ACCENT_PRIMARY if percent < 80 else ft.Colors.ORANGE if percent < 95 else ft.Colors.RED,
+                                bgcolor=Colors.BORDER_DEFAULT,
+                                border_radius=BorderRadius.SM,
+                                animate_opacity=300,  # Animation fluide de 300ms
+                            ),
+                        ],
                         spacing=0,
                     ),
-                    
-                    ft.Container(width=Spacing.MD),
-                    
-                    # Température
-                    temp_indicator,
-                ],
-                alignment=ft.MainAxisAlignment.START,
-            ),
-            bgcolor=Colors.BG_SECONDARY,
-            padding=Spacing.LG,
-            border_radius=BorderRadius.LG,
-            border=ft.border.all(1, Colors.BORDER_DEFAULT),
-            data={"component_type": component_type, "data": data},
-            shadow=ft.BoxShadow(
-                spread_radius=0,
-                blur_radius=8,
-                color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
-                offset=ft.Offset(0, 2),
-            ),
-        )
+                    margin=ft.margin.only(top=8),
+                )
+                
+                details = [
+                    f"Type : {disk_type}",
+                    f"Espace utilisé : {used_gb:.2f} GB / {total_gb:.2f} GB",
+                    f"Espace libre : {free_gb:.2f} GB",
+                ]
+            else:
+                icon = ft.Icons.DEVICE_UNKNOWN
+                name = "Inconnu"
+                cpu_progress = None
+                details = []
+            
+            # Température (seulement pour CPU et GPU)
+            temp = data.get("temperature")
+            temp_color = self._get_temp_color(temp, component_type.lower())
+            temp_text = f"{temp:.1f}°C" if temp is not None else "N/A"
+            
+            # Indicateur de température (seulement pour CPU et GPU)
+            # RAM et Disques n'ont généralement pas de capteurs de température accessibles
+            if component_type in ["CPU", "GPU"] and temp is not None:
+                # Affichage normal avec température
+                temp_indicator = ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    ft.Icon(ft.Icons.THERMOSTAT, size=18, color=temp_color),
+                                    ft.Container(width=4),
+                                    ft.Text(
+                                        temp_text,
+                                        size=16,
+                                        weight=ft.FontWeight.BOLD,
+                                        color=temp_color,
+                                    ),
+                                ],
+                                spacing=0,
+                                alignment=ft.MainAxisAlignment.CENTER,
+                            ),
+                            ft.Container(height=2),
+                            Caption(
+                                "Température",
+                                size=9,
+                                color=Colors.FG_TERTIARY,
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=0,
+                    ),
+                    bgcolor=ft.Colors.with_opacity(0.1, temp_color),
+                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                    border_radius=BorderRadius.MD,
+                    border=ft.border.all(2, ft.Colors.with_opacity(0.4, temp_color)),
+                )
+            else:
+                # Pas d'indicateur de température pour RAM et Disques
+                # ou si la température n'est pas disponible
+                temp_indicator = None
+            
+            # Colonne d'informations
+            info_column_controls = [
+                BodyText(name, weight=Typography.WEIGHT_BOLD, size=14, color=Colors.FG_PRIMARY),
+                Spacer(height=Spacing.XS),
+                ft.Column(
+                    [Caption(detail, color=Colors.FG_SECONDARY, size=11) for detail in details],
+                    spacing=3,
+                ),
+            ]
+            
+            if cpu_progress:
+                info_column_controls.append(cpu_progress)
+            
+            # Construire l'icône
+            icon_widget = ft.Icon(icon, size=36, color=Colors.ACCENT_PRIMARY)
+            
+            # Construire la liste des contrôles de la Row
+            row_controls = [
+                # Icône du composant avec glow
+                ft.Container(
+                    content=icon_widget,
+                    padding=Spacing.LG,
+                    bgcolor=ft.Colors.with_opacity(0.15, Colors.ACCENT_PRIMARY),
+                    border_radius=BorderRadius.MD,
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.3, Colors.ACCENT_PRIMARY)),
+                ),
+                ft.Container(width=Spacing.LG),
+                
+                # Informations
+                ft.Column(
+                    info_column_controls,
+                    expand=True,
+                    spacing=0,
+                ),
+            ]
+            
+            # Ajouter la température seulement si elle existe (CPU et GPU uniquement)
+            if temp_indicator is not None:
+                row_controls.append(ft.Container(width=Spacing.MD))
+                row_controls.append(temp_indicator)
+            
+            # Construire la carte avec hover effect
+            return ft.Container(
+                content=ft.Row(
+                    row_controls,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                bgcolor=Colors.BG_SECONDARY,
+                padding=Spacing.LG,
+                border_radius=BorderRadius.LG,
+                border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                data={"component_type": component_type, "data": data},
+                shadow=ft.BoxShadow(
+                    spread_radius=0,
+                    blur_radius=8,
+                    color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
+                    offset=ft.Offset(0, 2),
+                ),
+            )
+        except Exception as e:
+            print(f"[ERROR] Failed to build hardware card for {component_type}: {e}")
+            # Retourner une carte d'erreur simple
+            return ft.Container(
+                content=ft.Row(
+                    [
+                        ft.Icon(ft.Icons.ERROR_OUTLINE, size=24, color=Colors.ERROR),
+                        ft.Container(width=Spacing.SM),
+                        Caption(f"Erreur: {component_type}", color=Colors.ERROR),
+                    ],
+                ),
+                bgcolor=Colors.BG_SECONDARY,
+                padding=Spacing.MD,
+                border_radius=BorderRadius.MD,
+                border=ft.border.all(1, Colors.ERROR),
+            )
+    
+    def _build_hardware_card_v2(self, component_type, data):
+        """Version améliorée de la carte matérielle avec design moderne"""
+        # Utiliser la fonction existante pour l'instant
+        # TODO: Créer un design complètement nouveau plus tard
+        return self._build_hardware_card(component_type, data)
     
     def _get_temp_color(self, temperature, component_type):
         """Retourne la couleur selon la température"""
@@ -1873,6 +2077,24 @@ class MainPage:
     def _update_hardware_display(self, hw_data):
         """Met à jour l'affichage des composants matériels en temps réel"""
         try:
+            # Mettre à jour l'uptime et le nombre de processus
+            if hasattr(self, 'uptime_text') and self.uptime_text:
+                import psutil
+                from datetime import datetime
+                boot_time = datetime.fromtimestamp(psutil.boot_time())
+                uptime = datetime.now() - boot_time
+                # Formater uptime sans afficher 0j
+                if uptime.days > 0:
+                    uptime_str = f"{uptime.days}j {uptime.seconds//3600}h {(uptime.seconds//60)%60}m"
+                else:
+                    uptime_str = f"{uptime.seconds//3600}h {(uptime.seconds//60)%60}m"
+                self.uptime_text.value = uptime_str
+            
+            if hasattr(self, 'process_count_text') and self.process_count_text:
+                import psutil
+                process_count = len(psutil.pids())
+                self.process_count_text.value = f"{process_count} actifs"
+            
             # Mettre à jour CPU
             if hasattr(self, 'hw_cpu_container') and self.hw_cpu_container:
                 self._update_hardware_card(self.hw_cpu_container, "CPU", hw_data["cpu"])
@@ -1899,155 +2121,38 @@ class MainPage:
             print(f"[ERROR] Failed to update hardware display: {e}")
     
     def _update_hardware_card(self, card_container, component_type, data):
-        """Met à jour une carte de composant matériel"""
+        """Met à jour une carte de composant matériel en temps réel"""
         try:
-            # Récupérer le conteneur de température (dernier élément de la Row)
-            row = card_container.content
-            temp_indicator = row.controls[-1]
+            # Reconstruire complètement la carte avec les nouvelles données
+            # C'est plus simple et plus fiable que de mettre à jour chaque élément
+            new_card = self._build_hardware_card(component_type, data)
             
-            # Mettre à jour la température
-            temp = data.get("temperature")
-            temp_color = self._get_temp_color(temp, component_type.lower())
-            temp_text = f"{temp:.1f}°C" if temp is not None else "N/A"
-            
-            # Mettre à jour l'indicateur
-            temp_indicator.bgcolor = ft.Colors.with_opacity(0.1, temp_color)
-            temp_indicator.border = ft.border.all(2, ft.Colors.with_opacity(0.4, temp_color))
-            
-            # Mettre à jour le texte et l'icône dans la colonne
-            temp_column = temp_indicator.content
-            temp_row = temp_column.controls[0]  # Row avec icône et texte
-            temp_row.controls[0].color = temp_color  # Icône
-            temp_row.controls[2].value = temp_text  # Texte
-            temp_row.controls[2].color = temp_color
-            
-            # Mettre à jour les détails selon le type
-            info_column = row.controls[2]  # Colonne d'informations
-            
-            if component_type == "CPU":
-                # Mettre à jour les détails textuels
-                details_column = info_column.controls[2]
-                freq_current = data.get('frequency_current', 0)
-                freq_max = data.get('frequency_max', 0)
-                details_column.controls[1].value = f"Fréquence: {freq_current:.0f} MHz / {freq_max:.0f} MHz max"
-                
-                # Mettre à jour la barre de progression
-                if len(info_column.controls) > 3:
-                    progress_container = info_column.controls[3]
-                    progress_column = progress_container.content
-                    usage = data.get('usage', 0)
-                    
-                    # Mettre à jour le pourcentage
-                    progress_column.controls[0].controls[2].value = f"{usage:.1f}%"
-                    
-                    # Mettre à jour la barre
-                    progress_bar = progress_column.controls[2]
-                    progress_bar.value = usage / 100
-                    progress_bar.color = Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED
-                    
-            elif component_type == "Mémoire":
-                # Mettre à jour les détails textuels
-                details_column = info_column.controls[2]
-                total_gb = data.get("total", 0) / (1024**3)
-                used_gb = data.get("used", 0) / (1024**3)
-                percent = data.get("percent", 0)
-                
-                # Informations sur les modules RAM
-                ram_modules = data.get("modules", [])
-                if ram_modules:
-                    module_count = len(ram_modules)
-                    module_info = f"{module_count} barrette{'s' if module_count > 1 else ''}"
-                    module_details = ", ".join([f"{m:.0f}GB" for m in ram_modules])
-                    if module_details:
-                        module_info += f" ({module_details})"
-                else:
-                    module_info = "Information non disponible"
-                
-                details_column.controls[0].value = f"Mémoire installée: {module_info}"
-                details_column.controls[1].value = f"Utilisée: {used_gb:.2f} GB / {total_gb:.2f} GB"
-                
-                # Mettre à jour la barre de progression
-                if len(info_column.controls) > 3:
-                    progress_container = info_column.controls[3]
-                    progress_column = progress_container.content
-                    
-                    # Mettre à jour le pourcentage
-                    progress_column.controls[0].controls[2].value = f"{percent:.1f}%"
-                    
-                    # Mettre à jour la barre
-                    progress_bar = progress_column.controls[2]
-                    progress_bar.value = percent / 100
-                    progress_bar.color = Colors.ACCENT_PRIMARY if percent < 80 else ft.Colors.ORANGE if percent < 95 else ft.Colors.RED
-                    
-            elif component_type == "GPU":
-                # Mettre à jour les détails textuels
-                details_column = info_column.controls[2]
-                driver_version = data.get("driver_version", "N/A")
-                usage = data.get("usage", 0)
-                
-                details_column.controls[0].value = f"Pilote: {driver_version}"
-                
-                # Mettre à jour la barre de progression si elle existe
-                if usage > 0 and len(info_column.controls) > 3:
-                    progress_container = info_column.controls[3]
-                    progress_column = progress_container.content
-                    
-                    # Mettre à jour le pourcentage
-                    progress_column.controls[0].controls[2].value = f"{usage:.1f}%"
-                    
-                    # Mettre à jour la barre
-                    progress_bar = progress_column.controls[2]
-                    progress_bar.value = usage / 100
-                    progress_bar.color = Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED
-                    
-            elif component_type == "Disque":
-                # Mettre à jour les détails textuels
-                details_column = info_column.controls[2]
-                total_gb = data.get("total", 0) / (1024**3)
-                used_gb = data.get("used", 0) / (1024**3)
-                free_gb = data.get("free", 0) / (1024**3)
-                percent = data.get("percent", 0)
-                disk_type = data.get("type", "Unknown")
-                
-                details_column.controls[0].value = f"Type: {disk_type}"
-                details_column.controls[1].value = f"Espace utilisé: {used_gb:.2f} GB / {total_gb:.2f} GB"
-                details_column.controls[2].value = f"Espace libre: {free_gb:.2f} GB"
-                
-                # Mettre à jour la barre de progression
-                if len(info_column.controls) > 3:
-                    progress_container = info_column.controls[3]
-                    progress_column = progress_container.content
-                    
-                    # Mettre à jour le pourcentage
-                    progress_column.controls[0].controls[2].value = f"{percent:.1f}%"
-                    
-                    # Mettre à jour la barre
-                    progress_bar = progress_column.controls[2]
-                    progress_bar.value = percent / 100
-                    progress_bar.color = Colors.ACCENT_PRIMARY if percent < 80 else ft.Colors.ORANGE if percent < 95 else ft.Colors.RED
-                    
+            # Remplacer le contenu de la carte
+            if hasattr(card_container, 'content'):
+                card_container.content = new_card.content
+                card_container.data = new_card.data
         except Exception as e:
             print(f"[ERROR] Failed to update hardware card: {e}")
     
     def _switch_tab(self, tab_id):
-        """Change d'onglet avec animation fluide"""
+        """Change l'onglet actif avec animation"""
         if self.current_tab == tab_id:
             return
-        
-        self.current_tab = tab_id
         
         # Animation de sortie (fade out)
         self.content_container.opacity = 0
         self.page.update()
         
-        # Attendre la fin de l'animation
         import time
-        time.sleep(0.15)
+        time.sleep(0.2)
         
-        # Mettre à jour l'apparence des onglets
+        # Mettre à jour l'onglet actif
+        self.current_tab = tab_id
+        
+        # Mettre à jour les styles des onglets existants au lieu de les reconstruire
         self._update_tab_styles()
         
-        # Mettre à jour le contenu
+        # Changer le contenu selon l'onglet
         if tab_id == "quick":
             self.content_container.content = ft.Column(
                 [self._build_actions_section()],
@@ -2067,14 +2172,46 @@ class MainPage:
             if hasattr(self, 'action_button_container'):
                 self.action_button_container.visible = True
         elif tab_id == "config":
+            # Afficher un indicateur de chargement pendant la récupération des données
+            loading_indicator = ft.Container(
+                content=ft.Column(
+                    [
+                        ft.ProgressRing(width=50, height=50, color=Colors.ACCENT_PRIMARY),
+                        Spacer(height=Spacing.MD),
+                        BodyText("Chargement des informations matérielles...", color=Colors.FG_SECONDARY),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=0,
+                ),
+                padding=Spacing.MEGA,
+                alignment=ft.alignment.center,
+            )
+            
             self.content_container.content = ft.Column(
-                [self._build_configuration_section()],
-                horizontal_alignment=ft.CrossAxisAlignment.START,
+                [loading_indicator],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=0,
             )
+            self.content_container.opacity = 1
+            self.page.update()
+            
+            # Charger les données matérielles en arrière-plan
+            def load_config():
+                config_section = self._build_configuration_section()
+                self.content_container.content = ft.Column(
+                    [config_section],
+                    horizontal_alignment=ft.CrossAxisAlignment.START,
+                    spacing=0,
+                )
+                self.page.update()
+            
+            import threading
+            threading.Thread(target=load_config, daemon=True).start()
+            
             # Masquer le bouton de prévisualisation dans l'onglet Configuration
             if hasattr(self, 'action_button_container'):
                 self.action_button_container.visible = False
+            return  # Sortir ici car l'animation est déjà faite
         
         # Animation d'entrée (fade in)
         self.content_container.opacity = 1
@@ -2395,7 +2532,6 @@ class MainPage:
         self.task_items = {}
         self.task_list = ft.Column(
             spacing=Spacing.XS,
-            scroll=ft.ScrollMode.AUTO,
             height=200,
         )
         

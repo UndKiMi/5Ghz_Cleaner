@@ -443,13 +443,15 @@ def clear_windows_update_cache(progress_callback=None):
                             elif os.path.isdir(fpath):
                                 shutil.rmtree(fpath, ignore_errors=True)
                                 deleted += 1
-                        except:
+                        except (OSError, PermissionError) as e:
+                            print(f"[WARNING] Cannot delete {fpath}: {e}")
                             skipped += 1
                     else:
                         skipped += 1
                 else:
                     skipped += 1
-            except:
+            except (OSError, PermissionError) as e:
+                print(f"[WARNING] Cannot access {fpath}: {e}")
                 skipped += 1
                 continue
     except Exception as e:
@@ -640,11 +642,12 @@ def clear_prefetch(progress_callback=None):
                         deleted += 1
                     else:
                         skipped += 1
-                except:
+                except (OSError, PermissionError) as e:
+                    print(f"[WARNING] Cannot delete prefetch file {fpath}: {e}")
                     skipped += 1
                     continue
-        except:
-            pass
+        except (OSError, PermissionError) as e:
+            print(f"[WARNING] Cannot access prefetch folder: {e}")
     
     print(f"[INFO] Prefetch: {deleted} deleted, {skipped} skipped (critical/recent)")
     return {"prefetch_cleared": deleted, "skipped": skipped}
@@ -663,10 +666,10 @@ def clear_recent(progress_callback=None):
                     if os.path.isfile(fpath):
                         os.unlink(fpath)
                         deleted += 1
-                except:
-                    pass
-        except:
-            pass
+                except (OSError, PermissionError) as e:
+                    print(f"[WARNING] Cannot delete recent file {fpath}: {e}")
+        except (OSError, PermissionError) as e:
+            print(f"[WARNING] Cannot access recent folder: {e}")
     
     return {"recent_cleared": deleted}
 
@@ -684,10 +687,10 @@ def clear_thumbnail_cache(progress_callback=None):
                     try:
                         os.unlink(fpath)
                         deleted += 1
-                    except:
-                        pass
-        except:
-            pass
+                    except (OSError, PermissionError) as e:
+                        print(f"[WARNING] Cannot delete thumbnail cache {fpath}: {e}")
+        except (OSError, PermissionError) as e:
+            print(f"[WARNING] Cannot access thumbnail cache folder: {e}")
     
     return {"thumbs_cleared": deleted}
 
@@ -706,10 +709,10 @@ def clear_crash_dumps(progress_callback=None):
                     if os.path.isfile(fpath):
                         os.unlink(fpath)
                         deleted += 1
-                except:
-                    pass
-        except:
-            pass
+                except (OSError, PermissionError) as e:
+                    print(f"[WARNING] Cannot delete crash dump {fpath}: {e}")
+        except (OSError, PermissionError) as e:
+            print(f"[WARNING] Cannot access crash dumps folder: {e}")
     
     # Minidump folder
     minidump = os.path.join(os.getenv("WINDIR"), "Minidump")
@@ -721,10 +724,10 @@ def clear_crash_dumps(progress_callback=None):
                     if os.path.isfile(fpath):
                         os.unlink(fpath)
                         deleted += 1
-                except:
-                    pass
-        except:
-            pass
+                except (OSError, PermissionError) as e:
+                    print(f"[WARNING] Cannot delete minidump {fpath}: {e}")
+        except (OSError, PermissionError) as e:
+            print(f"[WARNING] Cannot access minidump folder: {e}")
     
     # Memory dump
     memdump = os.path.join(os.getenv("WINDIR"), "MEMORY.DMP")
@@ -732,8 +735,8 @@ def clear_crash_dumps(progress_callback=None):
         try:
             os.unlink(memdump)
             deleted += 1
-        except:
-            pass
+        except (OSError, PermissionError) as e:
+            print(f"[WARNING] Cannot delete memory dump: {e}")
     
     return {"dumps_deleted": deleted}
 

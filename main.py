@@ -24,12 +24,20 @@ COMPATIBILITY:
 """
 import sys
 import os
+
+# Configure console encoding FIRST before any other imports
+from config.settings import configure_console_encoding
+configure_console_encoding()
+
 import ctypes
 import gc
 import platform
 import flet as ft
 from frontend.app import CleanerApp
 from backend.elevation import is_admin, elevate_if_needed, elevate
+
+# Importer le script de téléchargement
+from download_librehardwaremonitor import download_librehardwaremonitor
 
 # Optimisation mémoire: Activer le garbage collector agressif
 gc.enable()
@@ -201,6 +209,39 @@ def create_restore_point():
         return False
 
 
+def check_and_download_librehardwaremonitor():
+    """Vérifie si LibreHardwareMonitor est installé, sinon le télécharge"""
+    import os
+    from pathlib import Path
+    
+    dll_path = Path(__file__).parent / "libs" / "LibreHardwareMonitorLib.dll"
+    
+    if dll_path.exists():
+        print("[INFO] LibreHardwareMonitor DLL found")
+        return True
+    
+    print("[INFO] LibreHardwareMonitor DLL not found")
+    print("[INFO] Downloading LibreHardwareMonitor automatically...")
+    print()
+    
+    try:
+        success = download_librehardwaremonitor()
+        if success:
+            print()
+            print("[SUCCESS] LibreHardwareMonitor installed successfully")
+            print("[INFO] Temperature monitoring will be available")
+            return True
+        else:
+            print()
+            print("[WARNING] Could not download LibreHardwareMonitor automatically")
+            print("[INFO] Temperature monitoring will use fallback methods")
+            return False
+    except Exception as e:
+        print(f"[WARNING] Error downloading LibreHardwareMonitor: {e}")
+        print("[INFO] Temperature monitoring will use fallback methods")
+        return False
+
+
 def check_critical_processes():
     """Vérifie qu'aucun processus critique n'est en cours"""
     critical_processes = [
@@ -300,79 +341,62 @@ def optimize_process():
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("5Gh'z Cleaner - Windows 11 Cleaning & Optimisation Tool")
-    print("Author: UndKiMi")
-    print("=" * 60)
-    print()
+    # En-tête propre et organisé
+    print("\n" + "=" * 70)
+    print("  5GH'z CLEANER - Windows 11 Cleaning & Optimization Tool")
+    print("  Auteur : UndKiMi | Version : 1.6.0 | Licence : CC BY-NC-SA 4.0")
+    print("=" * 70 + "\n")
     
-    # SÉCURITÉ 0: Vérifier Windows 11
-    print("[INFO] Checking Windows version...")
+    # Étape 1: Vérification Windows 11
+    print("┌─ [1/6] System Verification")
     if not check_windows_11():
-        print()
-        print("=" * 60)
-        print("ERROR: Windows 11 Required")
-        print("=" * 60)
-        print()
+        print("└─ ✗ ERROR: Windows 11 required\n")
         print("This application requires Windows 11 (Build 22000+)")
-        print("It is not compatible with Windows 10 or earlier versions.")
-        print()
-        print("Please upgrade to Windows 11 to use this software.")
-        print()
-        input("Press Enter to exit...")
+        input("\nPress Enter to exit...")
         sys.exit(1)
+    print("└─ ✓ Windows 11 detected\n")
     
-    print()
-    
-    # OPTIMISATION: Optimiser l'utilisation des ressources
-    print("[INFO] Optimizing process resources...")
+    # Étape 2: Optimisation des ressources
+    print("┌─ [2/6] Process Optimization")
     optimize_process()
-    print()
+    print("└─ ✓ Resources optimized\n")
     
-    # SÉCURITÉ 0: Demander les privilèges admin dès le démarrage
+    # Étape 3: Privilèges administrateur
+    print("┌─ [3/6] Administrator Privileges")
     request_admin_if_needed()
-    
-    # SÉCURITÉ 1: Vérifier la version de Windows
     if not check_windows_version():
-        print("\n[ERROR] Incompatible system. Exiting...")
+        print("└─ ✗ Incompatible system\n")
         input("Press Enter to exit...")
         sys.exit(1)
-    
-    # SÉCURITÉ 2: Vérifier l'espace disque
     verify_disk_space()
-    
-    # SÉCURITÉ 3: Vérifier les processus critiques
     check_critical_processes()
     
-    # SÉCURITÉ 4: Vérifier les privilèges administrateur (élévation conditionnelle)
-    print("[INFO] Checking administrator privileges...")
     try:
-        # Ne force PAS l'élévation - l'utilisateur peut choisir le mode
         has_admin = elevate(force=False)
         if has_admin:
-            print("[INFO] Administrator privileges confirmed - Full cleaning mode available")
+            print("└─ ✓ Administrator mode - Full access granted\n")
         else:
-            print("[INFO] Running in standard user mode - Limited cleaning available")
-            print("[INFO] For full system cleaning, restart as administrator")
+            print("└─ ⚠ Standard mode - Limited access\n")
     except Exception as e:
-        print(f"[WARNING] Privilege check failed: {e}")
-        print("[INFO] Continuing in standard user mode...")
+        print(f"└─ ⚠ Privilege check failed: {e}\n")
     
-    print()
-    
-    # SÉCURITÉ 5: Créer un point de restauration (ACTIVÉ PAR DÉFAUT)
-    print("[INFO] System restore point creation...")
+    # Étape 4: Point de restauration
+    print("┌─ [4/6] System Restore Point")
     restore_created = create_restore_point()
     if restore_created:
-        print("[SUCCESS] Restore point created - System protected")
+        print("└─ ✓ Restore point created successfully\n")
     else:
-        print("[WARNING] Restore point not created - Continue with caution")
-        print("[INFO] You can create one manually: System Properties > System Protection")
+        print("└─ ⚠ Restore point not created\n")
     
-    print()
+    # Étape 5: LibreHardwareMonitor
+    print("┌─ [5/6] Hardware Monitoring Setup")
+    check_and_download_librehardwaremonitor()
+    print("└─ ✓ Hardware monitoring ready\n")
     
-    # Lancer l'application Flet
-    print("[INFO] Launching Flet application...")
+    # Étape 6: Lancement de l'application
+    print("┌─ [6/6] Application Launch")
+    print("└─ ⟳ Starting Flet application...\n")
+    print("=" * 70 + "\n")
     
     def main(page: ft.Page):
         """Point d'entrée de l'application Flet"""
@@ -381,12 +405,12 @@ if __name__ == "__main__":
     try:
         ft.app(target=main)
     except Exception as e:
-        print(f"[ERROR] Application crashed: {e}")
+        print(f"\n✗ Application crashed: {e}")
         import traceback
         traceback.print_exc()
-        input("Press Enter to exit...")
+        input("\nPress Enter to exit...")
         sys.exit(1)
     
-    print()
-    print("[INFO] Application closed successfully")
-    print("=" * 60)
+    print("\n" + "=" * 70)
+    print("  Application fermée avec succès - Merci d'utiliser 5GH'z Cleaner !")
+    print("=" * 70 + "\n")

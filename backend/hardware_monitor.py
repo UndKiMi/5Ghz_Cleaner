@@ -6,11 +6,20 @@ AUCUNE TÉLÉMÉTRIE - Toutes les données restent locales
 import psutil
 import platform
 import subprocess
+import struct
 import threading
 import time
-import ctypes
-import struct
 from typing import Dict, List, Optional
+from datetime import datetime
+
+# Importer le module de capteurs matériels
+try:
+    from backend.hardware_sensors import hardware_sensors
+    SENSORS_AVAILABLE = True
+except Exception as e:
+    print(f"[INFO] Hardware sensors not available: {e}")
+    SENSORS_AVAILABLE = False
+    hardware_sensors = None
 
 
 class HardwareMonitor:
@@ -38,8 +47,21 @@ class HardwareMonitor:
             # Température CPU (Windows - via WMI)
             temp = self._get_cpu_temperature()
             
+            # Récupérer le nom commercial du CPU via WMI
+            cpu_name = platform.processor()
+            try:
+                import win32com.client
+                wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\cimv2")
+                processors = wmi.ExecQuery("SELECT Name FROM Win32_Processor")
+                for processor in processors:
+                    if processor.Name:
+                        cpu_name = processor.Name.strip()
+                        break
+            except:
+                pass  # Garder le nom par défaut si WMI échoue
+            
             return {
-                "name": platform.processor(),
+                "name": cpu_name,
                 "usage": cpu_percent,
                 "cores_physical": cpu_count,
                 "cores_logical": cpu_count_logical,
@@ -68,6 +90,7 @@ class HardwareMonitor:
             ram_type = "Unknown"
             ram_speed = 0
             ram_modules = []
+            ram_manufacturer = None
             
             try:
                 import win32com.client
@@ -77,6 +100,13 @@ class HardwareMonitor:
                 module_count = 0
                 for chip in memory_chips:
                     module_count += 1
+                    
+                    # Fabricant (premier module seulement)
+                    if ram_manufacturer is None and hasattr(chip, 'Manufacturer') and chip.Manufacturer:
+                        manufacturer = chip.Manufacturer.strip()
+                        # Nettoyer les noms de fabricants
+                        if manufacturer and manufacturer not in ["", "Manufacturer", "Unknown"]:
+                            ram_manufacturer = manufacturer
                     
                     # Type de mémoire (SMBIOSMemoryType est plus précis)
                     if hasattr(chip, 'SMBIOSMemoryType') and chip.SMBIOSMemoryType:
@@ -133,13 +163,22 @@ class HardwareMonitor:
                         module_size = total_gb / 4
                         ram_modules = [module_size] * 4
             
-            # Construire le nom avec le type DDR
+            # Construire le nom commercial avec fabricant et type DDR (sans fréquence)
+            name_parts = []
+            
+            # Ajouter le fabricant si disponible
+            if ram_manufacturer:
+                name_parts.append(ram_manufacturer)
+            
+            # Ajouter le type
             if ram_type != "Unknown":
-                name = f"RAM {ram_type}"
-                if ram_speed > 0:
-                    name += f" {ram_speed} MHz"
+                name_parts.append(ram_type)
             else:
-                name = "RAM"
+                name_parts.append("RAM")
+            
+            # Ne PAS ajouter la vitesse dans le nom (sera dans les détails)
+            
+            name = " ".join(name_parts) if name_parts else "RAM"
             
             return {
                 "name": name,
@@ -188,16 +227,23 @@ class HardwareMonitor:
                     media_type = disk.MediaType if hasattr(disk, 'MediaType') else ""
                     interface_type = disk.InterfaceType if hasattr(disk, 'InterfaceType') else ""
                     
-                    # Détection du type
-                    if "NVMe" in model.upper() or "NVME" in interface_type.upper():
+                    # Détection du type améliorée
+                    model_upper = model.upper()
+                    media_upper = media_type.upper() if media_type else ""
+                    interface_upper = interface_type.upper() if interface_type else ""
+                    
+                    if "NVME" in model_upper or "NVME" in interface_upper or "NVM EXPRESS" in model_upper:
                         disk_type = "SSD NVMe"
-                    elif "SSD" in model.upper() or "Solid State" in media_type:
+                    elif "SSD" in model_upper or "SOLID STATE" in media_upper or "SAMSUNG" in model_upper or "CRUCIAL" in model_upper or "KINGSTON" in model_upper:
                         disk_type = "SSD"
-                    elif "Fixed hard disk" in media_type or "HDD" in model.upper():
+                    elif "FIXED HARD DISK" in media_upper or "HDD" in model_upper or "SEAGATE" in model_upper or "WD" in model_upper or "WESTERN DIGITAL" in model_upper:
                         disk_type = "HDD"
                     else:
-                        # Fallback: vérifier la vitesse de rotation
-                        disk_type = "SSD" if "SSD" in model.upper() else "HDD"
+                        # Fallback: détecter par le nom du modèle
+                        if any(brand in model_upper for brand in ["SAMSUNG", "CRUCIAL", "KINGSTON", "INTEL", "CORSAIR", "ADATA"]):
+                            disk_type = "SSD"
+                        else:
+                            disk_type = "Unknown"
                     
                     # Mapper les partitions à ce disque
                     try:
@@ -230,8 +276,19 @@ class HardwareMonitor:
                     if drive_letter in disk_info_map:
                         disk_model, disk_type = disk_info_map[drive_letter]
                     else:
+                        # Fallback: Essayer de détecter via le nom du système de fichiers
                         disk_model = "Unknown"
-                        disk_type = "Unknown"
+                        # Détecter SSD vs HDD par la vitesse de lecture (méthode heuristique)
+                        try:
+                            # Les SSD sont généralement plus rapides
+                            # On peut aussi vérifier si c'est un disque fixe
+                            if partition.fstype in ['NTFS', 'exFAT', 'FAT32']:
+                                # Assumer SSD pour les disques modernes (heuristique)
+                                disk_type = "SSD"
+                            else:
+                                disk_type = "Unknown"
+                        except:
+                            disk_type = "Unknown"
                     
                     disks.append({
                         "name": f"{partition.device}",
@@ -370,10 +427,18 @@ class HardwareMonitor:
     
     def _get_cpu_temperature(self) -> Optional[float]:
         """
-        Récupère la température CPU via méthodes natives Windows UNIQUEMENT
-        Aucun logiciel externe requis
+        Récupère la température CPU via LibreHardwareMonitor ou méthodes natives Windows
         """
-        # Méthode 1: WMI MSAcpi_ThermalZoneTemperature (NATIF WINDOWS)
+        # Méthode 1: LibreHardwareMonitor (PRIORITAIRE - Fonctionne avec AMD)
+        if SENSORS_AVAILABLE and hardware_sensors:
+            try:
+                temp = hardware_sensors.get_cpu_temperature()
+                if temp is not None:
+                    return round(temp, 1)
+            except Exception as e:
+                print(f"[DEBUG] LibreHardwareMonitor CPU temp failed: {e}")
+        
+        # Méthode 2: WMI MSAcpi_ThermalZoneTemperature (NATIF WINDOWS)
         try:
             import win32com.client
             wmi = win32com.client.GetObject("winmgmts://./root/wmi")
@@ -496,9 +561,18 @@ class HardwareMonitor:
         return None
     
     def _get_gpu_temperature(self, gpu_name: str) -> Optional[float]:
-        """Récupère la température GPU avec méthodes natives uniquement"""
+        """Récupère la température GPU via LibreHardwareMonitor ou méthodes natives"""
         
-        # Méthode 1: NVIDIA via nvidia-smi (installé avec les drivers NVIDIA)
+        # Méthode 1: LibreHardwareMonitor (PRIORITAIRE - Fonctionne avec AMD et NVIDIA)
+        if SENSORS_AVAILABLE and hardware_sensors:
+            try:
+                temp = hardware_sensors.get_gpu_temperature(gpu_name)
+                if temp is not None:
+                    return round(temp, 1)
+            except Exception as e:
+                print(f"[DEBUG] LibreHardwareMonitor GPU temp failed: {e}")
+        
+        # Méthode 2: NVIDIA via nvidia-smi (installé avec les drivers NVIDIA)
         if "nvidia" in gpu_name.lower():
             try:
                 # nvidia-smi est installé automatiquement avec les drivers NVIDIA
@@ -556,9 +630,18 @@ class HardwareMonitor:
             return None
     
     def _get_gpu_usage(self, gpu_name: str) -> float:
-        """Récupère l'utilisation GPU en pourcentage via méthodes natives"""
+        """Récupère l'utilisation GPU en pourcentage via LibreHardwareMonitor ou méthodes natives"""
         
-        # Méthode 1: NVIDIA via nvidia-smi (natif avec drivers)
+        # Méthode 1: LibreHardwareMonitor (PRIORITAIRE - Fonctionne avec AMD et NVIDIA)
+        if SENSORS_AVAILABLE and hardware_sensors:
+            try:
+                usage = hardware_sensors.get_gpu_usage(gpu_name)
+                if usage is not None:
+                    return round(usage, 1)
+            except Exception as e:
+                print(f"[DEBUG] LibreHardwareMonitor GPU usage failed: {e}")
+        
+        # Méthode 2: NVIDIA via nvidia-smi (natif avec drivers)
         if "nvidia" in gpu_name.lower():
             try:
                 result = subprocess.run(

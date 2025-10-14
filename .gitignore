@@ -22,152 +22,31 @@ wheels/
 
 # Virtual Environment
 venv/
-env/
 ENV/
+env/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Flet build
-build/
-dist/
-*.spec
+# Project specific
+libs/*.dll
+libs/*.exe
+libs/*.pdb
+!libs/README_LIBREHARDWAREMONITOR.md
+!libs/.gitignore
 
 # Logs
 *.log
-logs/
-5GH'zCleaner-logs/
-
-# Certificates (NEVER commit)
-*.pfx
-*.p12
-*.cer
-*.pem
-certificate.*
-
-# Checksums (generated)
-CHECKSUMS.txt
-CHECKSUMS.json
 
 # Temporary files
 *.tmp
 *.bak
-*.swp
-*~
-
-# Test results
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Documentation obsolète
-Documentations/obsolete/
-DOCUMENTATION_GUIDE.txt
-.REGLES.txt
-
-# Sensitive data
-*.key
-*.secret
-config/secrets.json
-.env
-.env.local
-
-# Build artifacts
-*.exe
-*.msi
-*.zip
-*.tar.gz
-
-# Windows specific
-desktop.ini
-$RECYCLE.BIN/
-
-# Backup files
-*.backup
 *.old
-*_backup
-
-# Coverage reports
-coverage.xml
-.coverage.*
-*.cover
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pytest
-.pytest_cache/
-pytestdebug.log
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-
-# Translations
-*.mo
-*.pot
-
-# Sphinx documentation
-docs/_build/
-docs/_static/
-docs/_templates/
-
-# PyBuilder
-target/
-
-# IPython
-profile_default/
-ipython_config.py
-
-# Celery
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
