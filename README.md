@@ -229,9 +229,6 @@ Pour plus de détails, consultez [SECURITY.md](SECURITY.md)
 
 ### Installation et Utilisation
 
-**Q: Dois-je exécuter l'application en tant qu'administrateur ?**
-R: Non, l'application fonctionne en mode utilisateur standard. Elle demandera les privilèges administrateur uniquement si nécessaire pour certaines opérations.
-
 **Q: Pourquoi Windows SmartScreen bloque-t-il l'application ?**
 R: C'est normal pour les applications sans certificat officiel (coût: 500€/an). Cliquez sur "Plus d'infos" puis "Exécuter quand même". Vous pouvez vérifier l'intégrité du fichier avec les checksums fournis.
 
