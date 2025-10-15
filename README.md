@@ -5,7 +5,7 @@
 ![5GHz Cleaner Logo](https://img.shields.io/badge/5GHz-Cleaner-blue?style=for-the-badge&logo=windows&logoColor=white)
 
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Security Audit](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security.yml)
+[![Security Audit](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security.yml)
 [![Security Score](https://img.shields.io/badge/Security-89%2F100-brightgreen.svg?style=flat-square&logo=shield)](SECURITY.md)
 [![Tests](https://img.shields.io/badge/Tests-45%2F45%20%E2%9C%93-brightgreen.svg?style=flat-square&logo=checkmarx)](tests/)
 [![Coverage](https://img.shields.io/badge/Coverage-92%25-brightgreen.svg?style=flat-square&logo=codecov)](tests/)
