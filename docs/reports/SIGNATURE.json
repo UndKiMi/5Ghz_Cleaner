@@ -1,7 +1,7 @@
 {
   "version": "1.6.0",
   "author": "UndKiMi",
-  "generated_at": "2025-10-15T06:49:57.825972",
+  "generated_at": "2025-10-15T06:56:18.102640",
   "public_key_hash": "5GHZ_CLEANER_UNDKIMI_2025_OFFICIAL",
   "files": {
     "main.py": {
@@ -65,10 +65,10 @@
       "modified": "2025-10-14T02:48:52.798008"
     },
     "backend/signature_manager.py": {
-      "sha256": "94679153ac0024bf002f765e844f9f5bdf123b0227360fd2997a536090b0ebc5",
-      "sha512": "e750c05a42492902f54adbb98c0f0781a1c645bdfea9589c030e8035d8fc57275a860274a1c1b98ead4c8d91ca4ae2a70489070390ba120243d3e523962b555f",
-      "size": 12030,
-      "modified": "2025-10-15T06:18:55.903331"
+      "sha256": "321193fc56174bf159221b4d872e394a40350240b4773f4acfc4afe40523e739",
+      "sha512": "752a58d834dc9af3fbeef86bdb5c47b63b214c2a1d0f119e5cbb19306610562d1d9c2920138ae89fb6ef6648f158574619062535b85fd680b1dd73a851667d04",
+      "size": 12072,
+      "modified": "2025-10-15T06:55:55.707845"
     },
     "frontend/app.py": {
       "sha256": "1751580247612302b7bca7fca90448af1a089a92ad33a3f5aff46067f2ec55dc",
@@ -108,8 +108,8 @@
     }
   },
   "integrity": {
-    "global_sha256": "a3926b6851562a39f5900f6115520d5f32ceba42a40594cdd35cbad49dd20e7d",
-    "global_sha512": "e007d2498e0287a49af43e678dc1ae66ddac214fb0270ab2d32b12fec4cc10389fda24fdcb84995c99fe50c736d30d38e59058206bc965d4298090aeb7026f24",
+    "global_sha256": "1233a2ecee72acd4abdba5a90f7e593da38e2a08ac5a6ff595015cba026ceaed",
+    "global_sha512": "0366dc1270854e67c0657233e422222af539c3bc7fc9170c4e0f319398681aca75d7eeef535bd8e2832a6b72d06b256d5078c22af8d4cb9af44d25c9f66832aa",
     "file_count": 17
   }
 }

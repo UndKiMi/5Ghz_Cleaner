@@ -13,8 +13,8 @@ class SignatureManager:
     
     def __init__(self):
         self.app_root = Path(__file__).parent.parent
-        self.signature_file = self.app_root / "SIGNATURE.json"
-        self.checksums_file = self.app_root / "CHECKSUMS.txt"
+        self.signature_file = self.app_root / "docs" / "reports" / "SIGNATURE.json"
+        self.checksums_file = self.app_root / "docs" / "reports" / "CHECKSUMS.txt"
         
         # Clé publique de vérification (simulée - en production, utiliser une vraie clé RSA)
         self.public_key_hash = "5GHZ_CLEANER_UNDKIMI_2025_OFFICIAL"

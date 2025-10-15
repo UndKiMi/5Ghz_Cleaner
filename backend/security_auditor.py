@@ -462,7 +462,7 @@ if __name__ == "__main__":
     report = security_auditor.generate_security_report()
     
     # Sauvegarder le rapport
-    report_file = Path(__file__).parent.parent / "security_audit_report.json"
+    report_file = Path(__file__).parent.parent / "docs" / "reports" / "security_audit_report.json"
     try:
         import json
         with open(report_file, 'w', encoding='utf-8') as f:

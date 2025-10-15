@@ -1,4 +1,4 @@
-🚀 Major Security & Performance Update v1.6.0
+🚀 v1.6.0 - Major Security & Performance Update + README Update
 
 ## ✨ New Features
 
