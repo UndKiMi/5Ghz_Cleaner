@@ -40,3 +40,4 @@ desktop.ini
 
 # Build
 *.spec
+!*.spec.template  # Keep spec templates

@@ -34,6 +34,7 @@ docs/
 
 ### Configuration et Dépendances
 - **[DEPENDENCIES.md](development/DEPENDENCIES.md)** - Guide complet des dépendances
+- **[BUILD_GUIDE.md](development/BUILD_GUIDE.md)** - 🆕 Guide de compilation avec PyInstaller
 - **[COMMIT_MESSAGE.txt](development/COMMIT_MESSAGE.txt)** - Message de commit v1.6.0
 - **[GITHUB_PUSH_SUMMARY.md](development/GITHUB_PUSH_SUMMARY.md)** - Résumé du push GitHub
 
