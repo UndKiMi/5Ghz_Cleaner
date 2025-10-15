@@ -12,10 +12,19 @@ on:
 jobs:
   security-audit:
     runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: python
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -42,9 +51,10 @@ jobs:
     
     - name: Run Pylint (Code Quality)
       run: |
-        pylint **/*.py --output-format=text > pylint-report.txt || true
-        pylint **/*.py --output-format=colorized
+        Get-ChildItem -Recurse -Filter *.py | ForEach-Object { pylint $_.FullName --output-format=text } > pylint-report.txt
+        Get-ChildItem -Recurse -Filter *.py | ForEach-Object { pylint $_.FullName --output-format=colorized }
       continue-on-error: true
+      shell: pwsh
     
     - name: Upload Security Reports
       uses: actions/upload-artifact@v4
@@ -54,11 +64,9 @@ jobs:
           bandit-report.json
           safety-report.json
           pylint-report.txt
-    
-    - name: CodeQL Analysis
-      uses: github/codeql-action/init@v3
-      with:
-        languages: python
+      if: always()
     
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:python"
