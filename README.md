@@ -23,7 +23,7 @@
 
 **Nettoyeur Windows 11 avec sécurité maximale et transparence totale**
 
-## 🎉 Nouveautés v1.6.0 - Major Update
+## 🎉 Nouveautés Version: Major Update
 
 ### 🔒 Sécurité Renforcée
 - ✨ **350+ chemins protégés** (était 200+) - Protection étendue Adobe, Autodesk, Cloud Storage, IDEs
