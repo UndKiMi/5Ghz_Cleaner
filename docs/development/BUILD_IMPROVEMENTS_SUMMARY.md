@@ -276,6 +276,6 @@ dist\5Ghz_Cleaner.exe
 
 ---
 
-**Version:** 1.6.0  
+**Version:** MAJOR UPDATE  
 **Date:** 2025-10-15  
 **Auteur:** UndKiMi

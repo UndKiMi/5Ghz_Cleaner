@@ -172,5 +172,5 @@ Les scripts suivants ont été mis à jour automatiquement:
 ---
 
 **Date**: 2025-10-15  
-**Version**: 1.6.0  
+**Version**: MAJOR UPDATE  
 **Auteur**: UndKiMi

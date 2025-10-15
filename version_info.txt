@@ -40,7 +40,7 @@ VSVersionInfo(
         StringStruct(u'LegalCopyright', u'Copyright © 2025 UndKiMi. Licensed under CC BY-NC-SA 4.0'),
         StringStruct(u'OriginalFilename', u'5Ghz_Cleaner.exe'),
         StringStruct(u'ProductName', u'5GH\'z Cleaner'),
-        StringStruct(u'ProductVersion', u'1.6.0 (Major Update)'),
+        StringStruct(u'ProductVersion', u'MAJOR UPDATE'),
         StringStruct(u'LegalTrademarks', u''),
         StringStruct(u'Comments', u'Windows 11 cleaning tool with maximum security. No telemetry, 100% open source. Visit: https://github.com/UndKiMi/5Ghz_Cleaner')])
       ]),

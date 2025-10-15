@@ -7,18 +7,18 @@
 [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Security Audit](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security.yml)
 [![Security Score](https://img.shields.io/badge/Security-100%25-brightgreen.svg?style=flat-square&logo=shield)](docs/guides/SECURITY.md)
-[![Tests](https://img.shields.io/badge/Tests-45%2F45%20%E2%9C%93-brightgreen.svg?style=flat-square&logo=checkmarx)](tests/)
-[![Coverage](https://img.shields.io/badge/Coverage-92%25-brightgreen.svg?style=flat-square&logo=codecov)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-45%2F45%20%E2%9C%93-brightgreen.svg?style=flat-square&logo=checkmarx)](https://github.com/UndKiMi/5Ghz_Cleaner)
+[![Coverage](https://img.shields.io/badge/Coverage-92%25-brightgreen.svg?style=flat-square&logo=codecov)](https://github.com/UndKiMi/5Ghz_Cleaner)
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?style=flat-square&logo=python)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2011%20ONLY-0078D6.svg?style=flat-square&logo=windows11)](WINDOWS_11_ONLY.md)
-[![Version](https://img.shields.io/badge/Version-1.6.0-orange.svg?style=flat-square&logo=semver)](CHANGELOG.md)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2011%20ONLY-0078D6.svg?style=flat-square&logo=windows11)](https://github.com/UndKiMi/5Ghz_Cleaner#%EF%B8%8F-compatibilité)
+[![Version](https://img.shields.io/badge/Version-MAJOR%20UPDATE-orange.svg?style=flat-square&logo=semver)](https://github.com/UndKiMi/5Ghz_Cleaner#-nouveautés-version-major-update)
 [![Code Quality](https://img.shields.io/badge/Code%20Quality-A-success.svg?style=flat-square&logo=codacy)](https://github.com/UndKiMi/5Ghz_Cleaner)
 [![Maintained](https://img.shields.io/badge/Maintained-Yes-success.svg?style=flat-square&logo=github)](https://github.com/UndKiMi/5Ghz_Cleaner)
 
-[![No Telemetry](https://img.shields.io/badge/Telemetry-None%20%E2%9C%93-success.svg?style=flat-square&logo=adguard)](PRIVACY.md)
+[![No Telemetry](https://img.shields.io/badge/Telemetry-None%20%E2%9C%93-success.svg?style=flat-square&logo=adguard)](https://github.com/UndKiMi/5Ghz_Cleaner#-sécurité-et-confidentialité)
 [![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9D%A4-red.svg?style=flat-square&logo=open-source-initiative)](https://github.com/UndKiMi/5Ghz_Cleaner)
-[![GDPR Compliant](https://img.shields.io/badge/GDPR-Compliant-blue.svg?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0yIDE1bC01LTUgMS40MS0xLjQxTDEwIDE0LjE3bDcuNTktNy41OUwxOSA4bC05IDl6Ii8+PC9zdmc+)](PRIVACY.md)
+[![GDPR Compliant](https://img.shields.io/badge/GDPR-Compliant-blue.svg?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0yIDE1bC01LTUgMS40MS0xLjQxTDEwIDE0LjE3bDcuNTktNy41OUwxOSA4bC05IDl6Ci8+PC9zdmc+)](https://github.com/UndKiMi/5Ghz_Cleaner#-confidentialité)
 [![CodeQL](https://img.shields.io/badge/CodeQL-Passed-brightgreen.svg?style=flat-square&logo=github)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security.yml)
 
 **Nettoyeur Windows 11 avec sécurité maximale et transparence totale**

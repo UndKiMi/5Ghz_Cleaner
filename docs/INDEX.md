@@ -83,6 +83,6 @@ Ces fichiers restent à la racine du projet pour visibilité:
 
 ---
 
-**Version**: 1.6.0  
+**Version**: MAJOR UPDATE  
 **Dernière mise à jour**: 2025-10-15  
 **Auteur**: UndKiMi
