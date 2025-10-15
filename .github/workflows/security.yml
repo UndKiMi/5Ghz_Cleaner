@@ -9,6 +9,10 @@ on:
     # Exécuter tous les lundis à 9h
     - cron: '0 9 * * 1'
 
+# Permissions minimales par défaut
+permissions:
+  contents: read
+
 jobs:
   codeql-analysis:
     name: CodeQL Security Analysis
@@ -20,57 +24,63 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+      with:
+        persist-credentials: false
     
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@4dd16135b69a43b6c8efb853346f8437d92d3c93  # v3.26.6
       with:
         languages: python
     
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@4dd16135b69a43b6c8efb853346f8437d92d3c93  # v3.26.6
       with:
         category: "/language:python"
 
   security-tools:
     name: Security Tools Audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+      with:
+        persist-credentials: false
     
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
       with:
         python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install bandit safety pylint
+        pip install bandit==1.7.9 safety==3.2.7 pylint==3.2.7
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     
     - name: Run Bandit (Security Linter)
       run: |
-        bandit -r . -f json -o bandit-report.json || true
-        bandit -r . -f txt
+        bandit -r . -f json -o bandit-report.json --exclude ./libs,./build,./dist || true
+        bandit -r . -f txt --exclude ./libs,./build,./dist
       continue-on-error: true
     
     - name: Run Safety (Dependency Check)
       run: |
-        safety check --json > safety-report.json || true
+        safety check --json --output safety-report.json || true
         safety check
       continue-on-error: true
     
     - name: Run Pylint (Code Quality)
       run: |
-        find . -name '*.py' -exec pylint {} + --output-format=text > pylint-report.txt || true
-        find . -name '*.py' -exec pylint {} + --output-format=colorized || true
+        find . -name '*.py' -not -path './libs/*' -not -path './build/*' -not -path './dist/*' -exec pylint {} + --output-format=text > pylint-report.txt || true
+        find . -name '*.py' -not -path './libs/*' -not -path './build/*' -not -path './dist/*' -exec pylint {} + --output-format=colorized || true
       continue-on-error: true
     
     - name: Upload Security Reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
       with:
         name: security-reports
         path: |

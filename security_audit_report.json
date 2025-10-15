@@ -1,0 +1,184 @@
+{
+  "timestamp": "2025-10-15T06:33:16.370893",
+  "version": "1.0",
+  "audits": {
+    "permissions": {
+      "timestamp": "2025-10-15T06:33:16.370939",
+      "files_checked": 8,
+      "issues_found": 8,
+      "warnings": 0,
+      "details": [
+        {
+          "file": "main.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        },
+        {
+          "file": "backend/security_core.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        },
+        {
+          "file": "backend/cleaner.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        },
+        {
+          "file": "backend/logger.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        },
+        {
+          "file": "backend/signature_manager.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        },
+        {
+          "file": "backend/system_commands.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        },
+        {
+          "file": "config/settings.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        },
+        {
+          "file": "config/constants.py",
+          "issue": "World-writable permissions detected",
+          "severity": "high",
+          "permissions": "666",
+          "recommendation": "Restrict write permissions to owner only"
+        }
+      ]
+    },
+    "integrity": {
+      "timestamp": "2025-10-15T06:33:16.371671",
+      "modules_checked": 0,
+      "issues_found": 6,
+      "details": [
+        {
+          "module": "backend.security_core",
+          "issue": "Verification failed: No module named 'backend'",
+          "severity": "high"
+        },
+        {
+          "module": "backend.cleaner",
+          "issue": "Verification failed: No module named 'backend'",
+          "severity": "high"
+        },
+        {
+          "module": "backend.logger",
+          "issue": "Verification failed: No module named 'backend'",
+          "severity": "high"
+        },
+        {
+          "module": "backend.signature_manager",
+          "issue": "Verification failed: No module named 'backend'",
+          "severity": "high"
+        },
+        {
+          "module": "backend.system_commands",
+          "issue": "Verification failed: No module named 'backend'",
+          "severity": "high"
+        },
+        {
+          "module": "config.settings",
+          "issue": "Verification failed: No module named 'config'",
+          "severity": "high"
+        }
+      ]
+    },
+    "modifications": {
+      "timestamp": "2025-10-15T06:33:16.373834",
+      "threshold_hours": 24,
+      "suspicious_count": 4,
+      "details": [
+        {
+          "file": "backend/security_core.py",
+          "modified": "2025-10-15T06:18:18.554748",
+          "age_hours": 0.25,
+          "severity": "medium",
+          "warning": "Modified 0.2 hours ago",
+          "recommendation": "Verify if this modification was intentional"
+        },
+        {
+          "file": "backend/cleaner.py",
+          "modified": "2025-10-15T05:45:24.950557",
+          "age_hours": 0.8,
+          "severity": "medium",
+          "warning": "Modified 0.8 hours ago",
+          "recommendation": "Verify if this modification was intentional"
+        },
+        {
+          "file": "backend/logger.py",
+          "modified": "2025-10-15T06:17:30.347571",
+          "age_hours": 0.26,
+          "severity": "medium",
+          "warning": "Modified 0.3 hours ago",
+          "recommendation": "Verify if this modification was intentional"
+        },
+        {
+          "file": "backend/signature_manager.py",
+          "modified": "2025-10-15T06:18:55.903331",
+          "age_hours": 0.24,
+          "severity": "medium",
+          "warning": "Modified 0.2 hours ago",
+          "recommendation": "Verify if this modification was intentional"
+        }
+      ]
+    },
+    "signature": {
+      "timestamp": "2025-10-15T06:33:16.374535",
+      "signature_valid": false,
+      "details": [
+        {
+          "issue": "Signature verification failed: No module named 'backend'",
+          "severity": "high"
+        }
+      ]
+    },
+    "system": {
+      "timestamp": "2025-10-15T06:33:16.374904",
+      "checks": [
+        {
+          "check": "Administrator privileges",
+          "status": "No",
+          "severity": "info",
+          "note": "Some operations require admin rights"
+        },
+        {
+          "check": "Windows version",
+          "status": "10.0.26100",
+          "severity": "info"
+        },
+        {
+          "check": "Free disk space",
+          "status": "262.63 GB",
+          "severity": "none",
+          "note": "Minimum 10 GB recommended"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_issues": 28,
+    "status": "FAIL",
+    "severity": "CRITICAL",
+    "recommendation": "URGENT: System may be compromised"
+  }
+}

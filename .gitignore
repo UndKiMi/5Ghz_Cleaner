@@ -5,48 +5,38 @@ __pycache__/
 *.so
 .Python
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
+.eggs/
 
-# Virtual Environment
-venv/
-ENV/
-env/
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 
 # IDE
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
+
+# Logs
+*.log
+logs/
+
+# Encryption
+.encryption_key
+*.enc
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Project specific
-libs/*.dll
-libs/*.exe
-libs/*.pdb
-!libs/README_LIBREHARDWAREMONITOR.md
-!libs/.gitignore
-
-# Logs
-*.log
-
-# Temporary files
+# Temporary
 *.tmp
 *.bak
-*.old
+~*
+
+# Build
+*.spec

@@ -70,9 +70,14 @@ class SignatureManager:
             "backend/logger.py",
             "backend/telemetry_checker.py",
             "backend/hardware_monitor.py",
+            "backend/system_commands.py",
+            "backend/signature_manager.py",
             "frontend/app.py",
             "frontend/pages/main_page.py",
             "frontend/pages/preview_page.py",
+            "config/settings.py",
+            "config/constants.py",
+            "requirements.txt",
         ]
         
         # Calculer les hashes

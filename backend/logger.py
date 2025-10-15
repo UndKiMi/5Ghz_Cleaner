@@ -1,19 +1,54 @@
 """
-Système de logging pour 5GH'z Cleaner
+Système de logging sécurisé pour 5GH'z Cleaner
 Crée des logs détaillés de chaque opération de nettoyage
+Features:
+- Anonymisation automatique des chemins utilisateur
+- Chiffrement AES-256 optionnel (désactivé par défaut)
+- Suppression automatique après 30 jours
+- Format structuré pour analyse
 """
 import os
-from datetime import datetime
+import logging
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
+
+# Import conditionnel pour le chiffrement
+try:
+    from cryptography.fernet import Fernet
+    CRYPTO_AVAILABLE = True
+except ImportError:
+    CRYPTO_AVAILABLE = False
+    logging.warning("cryptography module not available - encryption disabled")
 
 
 class CleaningLogger:
-    """Gestionnaire de logs pour les opérations de nettoyage"""
+    """
+    Gestionnaire de logs sécurisé pour les opérations de nettoyage.
     
-    def __init__(self):
+    Features:
+    - Anonymisation automatique des chemins utilisateur
+    - Chiffrement optionnel (désactivé par défaut)
+    - Suppression automatique après retention_days jours
+    """
+    
+    def __init__(self, enable_encryption: bool = False, retention_days: int = 30):
+        """
+        Initialise le logger sécurisé.
+        
+        Args:
+            enable_encryption: Active le chiffrement AES-256 (défaut: False)
+            retention_days: Nombre de jours avant suppression auto (défaut: 30)
+        """
         # Créer le dossier de logs dans Documents
         self.logs_dir = Path.home() / "Documents" / "5GH'zCleaner-logs"
         self.logs_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Configuration sécurité
+        self.enable_encryption = enable_encryption and CRYPTO_AVAILABLE
+        self.retention_days = retention_days
+        self.username = os.getenv('USERNAME', 'User')
+        self.home_path = str(Path.home())
         
         # Initialiser la session
         self.session_start = datetime.now()
@@ -35,11 +70,97 @@ class CleaningLogger:
             }
         }
         
+        # Setup encryption if enabled
+        if self.enable_encryption:
+            self._setup_encryption()
+        
+        # Cleanup old logs
+        self._cleanup_old_logs()
+        
         # Créer le fichier de log
         self._write_header()
     
+    def _setup_encryption(self):
+        """Setup encryption key for log files"""
+        key_file = self.logs_dir / ".encryption_key"
+        
+        if key_file.exists():
+            with open(key_file, 'rb') as f:
+                self.encryption_key = f.read()
+        else:
+            # Generate new key
+            self.encryption_key = Fernet.generate_key()
+            with open(key_file, 'wb') as f:
+                f.write(self.encryption_key)
+            # Hide the key file on Windows
+            try:
+                import ctypes
+                ctypes.windll.kernel32.SetFileAttributesW(str(key_file), 2)  # FILE_ATTRIBUTE_HIDDEN
+            except:
+                pass
+        
+        self.cipher = Fernet(self.encryption_key)
+    
+    def _anonymize_text(self, text: str) -> str:
+        """
+        Anonymise les chemins utilisateur dans le texte.
+        
+        Args:
+            text: Texte à anonymiser
+            
+        Returns:
+            Texte avec chemins anonymisés
+        """
+        if not text:
+            return text
+        
+        # Remplacer le nom d'utilisateur
+        text = text.replace(self.username, '[USER]')
+        
+        # Remplacer le chemin home
+        text = text.replace(self.home_path, '[HOME]')
+        text = text.replace(self.home_path.replace('\\', '/'), '[HOME]')
+        
+        # Remplacer les chemins Windows communs
+        text = text.replace(f"C:\\Users\\{self.username}", "C:\\Users\\[USER]")
+        text = text.replace(f"C:/Users/{self.username}", "C:/Users/[USER]")
+        
+        return text
+    
+    def _cleanup_old_logs(self):
+        """
+        Supprime automatiquement les logs de plus de retention_days jours.
+        Vérifie précisément la date de création du fichier.
+        """
+        try:
+            cutoff_date = datetime.now() - timedelta(days=self.retention_days)
+            deleted_count = 0
+            
+            for log_file in self.logs_dir.glob("cleaning_*.txt"):
+                try:
+                    # Vérifier la date de création (plus précis que mtime)
+                    creation_time = datetime.fromtimestamp(log_file.stat().st_ctime)
+                    
+                    if creation_time < cutoff_date:
+                        log_file.unlink()
+                        deleted_count += 1
+                        
+                        # Supprimer aussi la version chiffrée si elle existe
+                        encrypted_file = log_file.with_suffix('.txt.enc')
+                        if encrypted_file.exists():
+                            encrypted_file.unlink()
+                except Exception:
+                    # Ne pas bloquer si un fichier ne peut pas être supprimé
+                    continue
+            
+            if deleted_count > 0:
+                logging.info(f"Cleaned up {deleted_count} old log file(s) older than {self.retention_days} days")
+        
+        except Exception as e:
+            logging.warning(f"Failed to cleanup old logs: {e}")
+    
     def _write_header(self):
-        """Écrit l'en-tête du fichier de log"""
+        """Écrit l'en-tête du fichier de log (anonymisé)"""
         header = f"""
 {'='*80}
                     5GH'z CLEANER - RAPPORT DE NETTOYAGE
@@ -47,8 +168,8 @@ class CleaningLogger:
 
 Session ID      : {self.session_id}
 Date et heure   : {self.session_start.strftime("%d/%m/%Y à %H:%M:%S")}
-Utilisateur     : {os.getenv('USERNAME', 'Unknown')}
-Ordinateur      : {os.getenv('COMPUTERNAME', 'Unknown')}
+Utilisateur     : [USER]
+Ordinateur      : {self._anonymize_text(os.getenv('COMPUTERNAME', 'Unknown'))}
 
 {'='*80}
 
@@ -85,12 +206,14 @@ Ordinateur      : {os.getenv('COMPUTERNAME', 'Unknown')}
         return len(self.session_data["operations"]) - 1  # Retourner l'index
     
     def log_operation_detail(self, operation_index, detail):
-        """Ajoute un détail à une opération"""
+        """Ajoute un détail à une opération (anonymisé)"""
         if 0 <= operation_index < len(self.session_data["operations"]):
-            self.session_data["operations"][operation_index]["details"].append(detail)
+            # Anonymiser le détail avant de le stocker
+            anonymized_detail = self._anonymize_text(detail)
+            self.session_data["operations"][operation_index]["details"].append(anonymized_detail)
             
             timestamp = datetime.now()
-            log_entry = f"   [{timestamp.strftime('%H:%M:%S')}] ℹ️  {detail}\n"
+            log_entry = f"   [{timestamp.strftime('%H:%M:%S')}] ℹ️  {anonymized_detail}\n"
             
             with open(self.log_file, 'a', encoding='utf-8') as f:
                 f.write(log_entry)

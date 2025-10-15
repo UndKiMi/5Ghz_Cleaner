@@ -1,15 +1,21 @@
 """
 Script pour télécharger automatiquement LibreHardwareMonitor
+SÉCURITÉ: Validation SSL et vérification des URLs
 """
 import os
 import sys
 import urllib.request
+import ssl
 import zipfile
 import shutil
 from pathlib import Path
+from urllib.parse import urlparse
 
 def download_librehardwaremonitor(silent=False):
-    """Télécharge et installe LibreHardwareMonitor"""
+    """
+    Télécharge et installe LibreHardwareMonitor
+    SÉCURITÉ: Validation SSL stricte et vérification de l'URL
+    """
     
     if not silent:
         print("="*70)
@@ -21,6 +27,19 @@ def download_librehardwaremonitor(silent=False):
     # Note: Cette URL pointe vers la version 0.9.3 (dernière stable)
     download_url = "https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases/download/v0.9.3/LibreHardwareMonitor-net472.zip"
     
+    # SÉCURITÉ: Valider l'URL
+    try:
+        parsed_url = urlparse(download_url)
+        if parsed_url.scheme != 'https':
+            print("[SECURITY ERROR] Only HTTPS URLs are allowed")
+            return False
+        if parsed_url.netloc != 'github.com':
+            print("[SECURITY ERROR] Only github.com domain is allowed")
+            return False
+    except Exception as e:
+        print(f"[SECURITY ERROR] Invalid URL: {e}")
+        return False
+    
     # Chemins
     script_dir = Path(__file__).parent
     libs_dir = script_dir / "libs"
@@ -31,9 +50,14 @@ def download_librehardwaremonitor(silent=False):
     libs_dir.mkdir(exist_ok=True)
     
     try:
-        # Télécharger
+        # Télécharger avec validation SSL stricte
         print(f"[1/4] Téléchargement depuis GitHub...")
         print(f"      URL: {download_url}")
+        
+        # SÉCURITÉ: Créer un contexte SSL strict
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = True
+        ssl_context.verify_mode = ssl.CERT_REQUIRED
         
         def show_progress(block_num, block_size, total_size):
             downloaded = block_num * block_size
@@ -42,6 +66,12 @@ def download_librehardwaremonitor(silent=False):
             filled = int(bar_length * percent / 100)
             bar = '#' * filled + '-' * (bar_length - filled)
             print(f'\r      [{bar}] {percent:.1f}%', end='', flush=True)
+        
+        # SÉCURITÉ: Utiliser un opener avec contexte SSL
+        opener = urllib.request.build_opener(
+            urllib.request.HTTPSHandler(context=ssl_context)
+        )
+        urllib.request.install_opener(opener)
         
         urllib.request.urlretrieve(download_url, temp_zip, show_progress)
         print()  # Nouvelle ligne après la barre de progression

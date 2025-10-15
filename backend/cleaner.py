@@ -119,16 +119,44 @@ PROTECTED_SERVICES = [
 
 
 def run_hidden(cmd):
-    """Execute a command without showing a window"""
+    """
+    Execute a command without showing a window
+    SÉCURITÉ: Validation stricte des commandes système
+    """
+    # SÉCURITÉ: Liste blanche des commandes autorisées
+    ALLOWED_COMMANDS = {
+        'sc', 'sc.exe',
+        'ipconfig', 'ipconfig.exe',
+        'tasklist', 'tasklist.exe'
+    }
+    
+    # SÉCURITÉ: Valider que la commande est dans la liste blanche
+    if not cmd or not isinstance(cmd, list):
+        raise ValueError("Command must be a non-empty list")
+    
+    cmd_name = os.path.basename(cmd[0]).lower()
+    if cmd_name not in ALLOWED_COMMANDS:
+        raise ValueError(f"Command not allowed: {cmd_name}")
+    
+    # SÉCURITÉ: Utiliser des chemins absolus pour les commandes système
+    system32 = os.path.join(os.getenv('WINDIR', 'C:\\Windows'), 'System32')
+    if cmd_name in ['sc', 'sc.exe']:
+        cmd[0] = os.path.join(system32, 'sc.exe')
+    elif cmd_name in ['ipconfig', 'ipconfig.exe']:
+        cmd[0] = os.path.join(system32, 'ipconfig.exe')
+    elif cmd_name in ['tasklist', 'tasklist.exe']:
+        cmd[0] = os.path.join(system32, 'tasklist.exe')
+    
     si = subprocess.STARTUPINFO()
     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     return subprocess.run(
         cmd,
-        shell=False,
+        shell=False,  # SÉCURITÉ: JAMAIS shell=True
         startupinfo=si,
         creationflags=subprocess.CREATE_NO_WINDOW,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
+        timeout=30  # SÉCURITÉ: Timeout de 30 secondes
     )
 
 

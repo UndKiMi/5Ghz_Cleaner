@@ -387,6 +387,167 @@ class WindowsSecurityCore:
         r'C:\Users\Public\Pictures',
         r'C:\Users\Public\Music',
         r'C:\Users\Public\Videos',
+        
+        # ========== ADOBE CREATIVE CLOUD (AJOUTÉ) ==========
+        r'C:\Program Files\Adobe\Adobe Photoshop',
+        r'C:\Program Files\Adobe\Adobe Illustrator',
+        r'C:\Program Files\Adobe\Adobe Premiere Pro',
+        r'C:\Program Files\Adobe\Adobe After Effects',
+        r'C:\Program Files\Adobe\Adobe InDesign',
+        r'C:\Program Files\Adobe\Adobe Lightroom',
+        r'C:\Program Files\Adobe\Adobe XD',
+        r'C:\Program Files\Adobe\Adobe Acrobat',
+        r'C:\Program Files\Adobe\Adobe Creative Cloud',
+        r'C:\Program Files\Common Files\Adobe',
+        r'C:\ProgramData\Adobe',
+        
+        # ========== AUTODESK (AJOUTÉ) ==========
+        r'C:\Program Files\Autodesk',
+        r'C:\Program Files (x86)\Autodesk',
+        r'C:\ProgramData\Autodesk',
+        r'C:\Program Files\Common Files\Autodesk Shared',
+        r'C:\Program Files\Autodesk\AutoCAD',
+        r'C:\Program Files\Autodesk\Maya',
+        r'C:\Program Files\Autodesk\3ds Max',
+        r'C:\Program Files\Autodesk\Revit',
+        
+        # ========== CLOUD STORAGE (AJOUTÉ - CRITIQUE) ==========
+        # Dropbox
+        r'C:\Program Files\Dropbox',
+        r'C:\Program Files (x86)\Dropbox',
+        
+        # Google Drive
+        r'C:\Program Files\Google\Drive File Stream',
+        r'C:\Program Files (x86)\Google\Drive File Stream',
+        
+        # iCloud
+        r'C:\Program Files\Common Files\Apple\Internet Services',
+        r'C:\Program Files (x86)\Common Files\Apple\Internet Services',
+        
+        # Box
+        r'C:\Program Files\Box\Box',
+        
+        # Nextcloud
+        r'C:\Program Files\Nextcloud',
+        
+        # ========== IDEs ET OUTILS DÉVELOPPEMENT (AJOUTÉ) ==========
+        # Android Studio
+        r'C:\Program Files\Android\Android Studio',
+        r'C:\Program Files (x86)\Android\Android Studio',
+        
+        # Eclipse
+        r'C:\Program Files\Eclipse',
+        r'C:\Program Files (x86)\Eclipse',
+        
+        # IntelliJ IDEA
+        r'C:\Program Files\JetBrains\IntelliJ IDEA',
+        
+        # PyCharm
+        r'C:\Program Files\JetBrains\PyCharm',
+        
+        # WebStorm
+        r'C:\Program Files\JetBrains\WebStorm',
+        
+        # Rider
+        r'C:\Program Files\JetBrains\Rider',
+        
+        # ========== BASES DE DONNÉES ADDITIONNELLES (AJOUTÉ) ==========
+        # Redis
+        r'C:\Program Files\Redis',
+        
+        # Elasticsearch
+        r'C:\Program Files\Elastic\Elasticsearch',
+        
+        # Oracle
+        r'C:\Program Files\Oracle',
+        r'C:\Program Files (x86)\Oracle',
+        
+        # ========== MACHINES VIRTUELLES ET CONTENEURS (AJOUTÉ) ==========
+        # Docker Desktop
+        r'C:\Program Files\Docker\Docker',
+        r'C:\ProgramData\Docker',
+        r'C:\ProgramData\DockerDesktop',
+        
+        # Kubernetes
+        r'C:\Program Files\Kubernetes',
+        
+        # Minikube
+        r'C:\Program Files\Minikube',
+        
+        # ========== OUTILS GRAPHIQUES ET 3D (AJOUTÉ) ==========
+        # Blender
+        r'C:\Program Files\Blender Foundation\Blender',
+        
+        # GIMP
+        r'C:\Program Files\GIMP',
+        
+        # Inkscape
+        r'C:\Program Files\Inkscape',
+        
+        # Unity
+        r'C:\Program Files\Unity',
+        r'C:\Program Files\Unity Hub',
+        
+        # Unreal Engine
+        r'C:\Program Files\Epic Games\UE_',
+        
+        # ========== OUTILS AUDIO/VIDEO PRO (AJOUTÉ) ==========
+        # Audacity
+        r'C:\Program Files\Audacity',
+        
+        # FL Studio
+        r'C:\Program Files\Image-Line\FL Studio',
+        
+        # Ableton Live
+        r'C:\ProgramData\Ableton',
+        
+        # DaVinci Resolve
+        r'C:\Program Files\Blackmagic Design\DaVinci Resolve',
+        
+        # ========== OUTILS RÉSEAU ET SÉCURITÉ (AJOUTÉ) ==========
+        # Wireshark
+        r'C:\Program Files\Wireshark',
+        
+        # PuTTY
+        r'C:\Program Files\PuTTY',
+        
+        # WinSCP
+        r'C:\Program Files\WinSCP',
+        
+        # FileZilla
+        r'C:\Program Files\FileZilla FTP Client',
+        
+        # ========== COMPILATEURS ET RUNTIMES (AJOUTÉ) ==========
+        # Java JDK
+        r'C:\Program Files\Java',
+        r'C:\Program Files (x86)\Java',
+        
+        # Ruby
+        r'C:\Program Files\Ruby',
+        
+        # Go
+        r'C:\Program Files\Go',
+        
+        # Rust
+        r'C:\Program Files\Rust',
+        
+        # ========== GESTIONNAIRES DE PAQUETS (AJOUTÉ) ==========
+        # Chocolatey
+        r'C:\ProgramData\chocolatey',
+        
+        # Scoop
+        r'C:\ProgramData\scoop',
+        
+        # ========== PROTECTION SUPPLÉMENTAIRE CRITIQUE ==========
+        # Certificats SSL/TLS
+        r'C:\ProgramData\Microsoft\Crypto\RSA\MachineKeys',
+        r'C:\ProgramData\Microsoft\Crypto\DSS\MachineKeys',
+        
+        # Windows Sandbox
+        r'C:\ProgramData\Microsoft\Windows\Containers',
+        
+        # Windows Subsystem for Android
+        r'C:\Program Files\Windows Subsystem for Android',
     })
     
     # Dossiers protégés (noms uniquement)

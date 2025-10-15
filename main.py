@@ -347,25 +347,25 @@ if __name__ == "__main__":
     print("  Auteur : UndKiMi | Version : 1.6.0 | Licence : CC BY-NC-SA 4.0")
     print("=" * 70 + "\n")
     
-    # Étape 1: Vérification Windows 11
-    print("┌─ [1/6] System Verification")
+    # Etape 1: Verification Windows 11
+    print("[1/6] System Verification")
     if not check_windows_11():
-        print("└─ ✗ ERROR: Windows 11 required\n")
+        print("  [X] ERROR: Windows 11 required\n")
         print("This application requires Windows 11 (Build 22000+)")
         input("\nPress Enter to exit...")
         sys.exit(1)
-    print("└─ ✓ Windows 11 detected\n")
+    print("  [OK] Windows 11 detected\n")
     
-    # Étape 2: Optimisation des ressources
-    print("┌─ [2/6] Process Optimization")
+    # Etape 2: Optimisation des ressources
+    print("[2/6] Process Optimization")
     optimize_process()
-    print("└─ ✓ Resources optimized\n")
+    print("  [OK] Resources optimized\n")
     
-    # Étape 3: Privilèges administrateur
-    print("┌─ [3/6] Administrator Privileges")
+    # Etape 3: Privileges administrateur
+    print("[3/6] Administrator Privileges")
     request_admin_if_needed()
     if not check_windows_version():
-        print("└─ ✗ Incompatible system\n")
+        print("  [X] Incompatible system\n")
         input("Press Enter to exit...")
         sys.exit(1)
     verify_disk_space()
@@ -374,28 +374,28 @@ if __name__ == "__main__":
     try:
         has_admin = elevate(force=False)
         if has_admin:
-            print("└─ ✓ Administrator mode - Full access granted\n")
+            print("  [OK] Administrator mode - Full access granted\n")
         else:
-            print("└─ ⚠ Standard mode - Limited access\n")
+            print("  [!] Standard mode - Limited access\n")
     except Exception as e:
-        print(f"└─ ⚠ Privilege check failed: {e}\n")
+        print(f"  [!] Privilege check failed: {e}\n")
     
-    # Étape 4: Point de restauration
-    print("┌─ [4/6] System Restore Point")
+    # Etape 4: Point de restauration
+    print("[4/6] System Restore Point")
     restore_created = create_restore_point()
     if restore_created:
-        print("└─ ✓ Restore point created successfully\n")
+        print("  [OK] Restore point created successfully\n")
     else:
-        print("└─ ⚠ Restore point not created\n")
+        print("  [!] Restore point not created\n")
     
-    # Étape 5: LibreHardwareMonitor
-    print("┌─ [5/6] Hardware Monitoring Setup")
+    # Etape 5: LibreHardwareMonitor
+    print("[5/6] Hardware Monitoring Setup")
     check_and_download_librehardwaremonitor()
-    print("└─ ✓ Hardware monitoring ready\n")
+    print("  [OK] Hardware monitoring ready\n")
     
-    # Étape 6: Lancement de l'application
-    print("┌─ [6/6] Application Launch")
-    print("└─ ⟳ Starting Flet application...\n")
+    # Etape 6: Lancement de l'application
+    print("[6/6] Application Launch")
+    print("  [>>] Starting Flet application...\n")
     print("=" * 70 + "\n")
     
     def main(page: ft.Page):
@@ -405,7 +405,7 @@ if __name__ == "__main__":
     try:
         ft.app(target=main)
     except Exception as e:
-        print(f"\n✗ Application crashed: {e}")
+        print(f"\n[X] Application crashed: {e}")
         import traceback
         traceback.print_exc()
         input("\nPress Enter to exit...")
