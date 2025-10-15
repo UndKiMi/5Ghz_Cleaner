@@ -303,6 +303,7 @@ def clear_temp(progress_callback=None, dry_run=False):
     skipped = 0
     preview_files = []
     total_size = 0
+    blocked_files = []  # Liste des fichiers bloqués pour résumé
     
     # Uniquement les dossiers temp autorisés
     temp_dirs = [
@@ -335,7 +336,7 @@ def clear_temp(progress_callback=None, dry_run=False):
                         # 1. Vérification du module de sécurité core
                         is_safe, reason = security_core.validate_operation(fpath, "delete")
                         if not is_safe:
-                            print(f"[SECURITY BLOCK] {fpath}: {reason}")
+                            blocked_files.append((fpath, reason))
                             skipped += 1
                             continue
                         
@@ -371,7 +372,7 @@ def clear_temp(progress_callback=None, dry_run=False):
                         # 1. Vérification du module de sécurité core
                         is_safe, reason = security_core.validate_operation(fpath, "delete")
                         if not is_safe:
-                            print(f"[SECURITY BLOCK] {fpath}: {reason}")
+                            blocked_files.append((fpath, reason))
                             skipped += 1
                             continue
                         
@@ -414,6 +415,17 @@ def clear_temp(progress_callback=None, dry_run=False):
     
     mode_text = "DRY-RUN" if dry_run else "REAL"
     print(f"[{mode_text}] Temp cleanup: {total} items, {skipped} skipped (protected)")
+    
+    # Afficher un résumé des fichiers bloqués au lieu de chaque fichier
+    if blocked_files:
+        # Grouper par raison
+        reasons_count = {}
+        for _, reason in blocked_files:
+            reasons_count[reason] = reasons_count.get(reason, 0) + 1
+        
+        # Afficher le résumé
+        for reason, count in reasons_count.items():
+            print(f"[SECURITY] {count} fichiers bloqués: {reason}")
     
     result = {
         "temp_deleted": total,

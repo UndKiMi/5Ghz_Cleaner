@@ -42,10 +42,12 @@ class DryRunManager:
                 "clear_large_logs": True
             }
         
-        print("="*80)
-        print("MODE DRY-RUN - PRÉVISUALISATION DU NETTOYAGE")
-        print("="*80)
-        print("[INFO] Aucun fichier ne sera supprimé")
+        from utils.console_colors import Colors
+        print()
+        print(f"{Colors.BOLD_CYAN}{'=' * 80}{Colors.RESET}")
+        print(f"{Colors.BOLD_WHITE}MODE DRY-RUN - PRÉVISUALISATION DU NETTOYAGE{Colors.RESET}")
+        print(f"{Colors.BOLD_CYAN}{'=' * 80}{Colors.RESET}")
+        print(f"{Colors.CYAN}[INFO]{Colors.RESET} Aucun fichier ne sera supprimé")
         print()
         
         # 1. Fichiers temporaires

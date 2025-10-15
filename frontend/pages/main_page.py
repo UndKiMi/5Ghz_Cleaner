@@ -223,58 +223,11 @@ class MainPage:
                         ),
                     ),
                     
-                    Spacer(height=Spacing.MEGA * 3),
+                    Spacer(height=Spacing.XL),
                     
                     # Section Stockage et Optimisations EN BAS
-                    ft.Container(
-                        content=ft.Column(
-                            [
-                                BodyText(
-                                    "Espace à libérer", 
-                                    weight=ft.FontWeight.W_600, 
-                                    size=20,
-                                    color=Colors.FG_PRIMARY,
-                                ),
-                                Spacer(height=Spacing.XS),
-                                Caption(
-                                    "Aperçu de l'espace qui sera récupéré",
-                                    color=Colors.FG_SECONDARY,
-                                    size=13,
-                                ),
-                                Spacer(height=Spacing.XL),
-                                # Liste des optimisations avec barres
-                                ft.Column(
-                                    [
-                                        self._build_storage_item(
-                                            icon=ft.Icons.FOLDER_DELETE_OUTLINED,
-                                            title="Fichiers temporaires",
-                                            current="2.5 GB",
-                                            percentage=0.65,
-                                            color=Colors.WARNING,
-                                        ),
-                                        Spacer(height=Spacing.MD),
-                                        self._build_storage_item(
-                                            icon=ft.Icons.MEMORY_OUTLINED,
-                                            title="RAM Standby",
-                                            current="1.2 GB",
-                                            percentage=0.35,
-                                            color=Colors.INFO,
-                                        ),
-                                        Spacer(height=Spacing.MD),
-                                        self._build_storage_item(
-                                            icon=ft.Icons.DNS_OUTLINED,
-                                            title="Cache DNS",
-                                            current="150 MB",
-                                            percentage=0.15,
-                                            color=Colors.SUCCESS,
-                                        ),
-                                    ],
-                                    spacing=0,
-                                ),
-                            ],
-                            spacing=0,
-                        ),
-                    ),
+                    # DONNÉES RÉELLES calculées dynamiquement
+                    self._build_storage_preview_section(),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=0,
@@ -367,6 +320,290 @@ class MainPage:
         button_ref["title"] = title_text
         
         return button
+    
+    def _calculate_storage_data(self):
+        """
+        Calcule les données de stockage de manière optimisée et centralisée
+        Retourne un dictionnaire avec toutes les valeurs calculées
+        """
+        from backend import cleaner
+        import psutil
+        import time
+        
+        # Vérifier si on peut utiliser le cache (moins de 2 secondes depuis la dernière mise à jour)
+        current_time = time.time()
+        if hasattr(self, 'last_update_time') and (current_time - self.last_update_time) < 2:
+            # Utiliser les valeurs en cache
+            return {
+                'temp_mb': self.last_temp_size,
+                'temp_gb': self.last_temp_size / 1024,
+                'standby_mb': self.last_standby_size,
+                'standby_gb': self.last_standby_size / 1024,
+                'dns_mb': 50,
+                'from_cache': True
+            }
+        
+        # === CALCUL DES FICHIERS TEMPORAIRES ===
+        try:
+            temp_result = cleaner.clear_temp(dry_run=True)
+            temp_size_mb = temp_result.get("total_size_mb", 0)
+        except Exception as e:
+            print(f"[ERROR] Failed to calculate temp files: {e}")
+            temp_size_mb = 0
+        
+        # === CALCUL DE LA RAM STANDBY ===
+        try:
+            memory = psutil.virtual_memory()
+            
+            # Méthode 1: Si cached existe (Linux/Mac)
+            if hasattr(memory, 'cached'):
+                standby_mb = memory.cached / (1024 * 1024)
+            else:
+                # Méthode 2: Calcul Windows optimisé
+                used_mb = memory.used / (1024 * 1024)
+                available_mb = memory.available / (1024 * 1024)
+                total_mb_ram = memory.total / (1024 * 1024)
+                
+                # RAM Standby = Total - Used - Available
+                calculated_standby = total_mb_ram - used_mb - available_mb
+                
+                # Validation: doit être positif et raisonnable (< 50% de la RAM)
+                if 0 < calculated_standby < (total_mb_ram * 0.5):
+                    standby_mb = calculated_standby
+                else:
+                    # Estimation sûre: 10% de la RAM totale
+                    standby_mb = total_mb_ram * 0.10
+        except Exception as e:
+            print(f"[ERROR] Failed to calculate RAM standby: {e}")
+            standby_mb = 0
+        
+        # Mettre à jour le cache
+        self.last_temp_size = temp_size_mb
+        self.last_standby_size = standby_mb
+        self.last_update_time = current_time
+        
+        return {
+            'temp_mb': temp_size_mb,
+            'temp_gb': temp_size_mb / 1024,
+            'standby_mb': standby_mb,
+            'standby_gb': standby_mb / 1024,
+            'dns_mb': 50,
+            'from_cache': False
+        }
+    
+    def _build_storage_preview_section(self):
+        """Construit la section de prévisualisation avec DONNÉES RÉELLES - VERSION OPTIMISÉE"""
+        # Conteneur avec message de chargement initial
+        storage_container = ft.Container(
+            content=ft.Column(
+                [
+                    BodyText(
+                        "Espace à libérer", 
+                        weight=ft.FontWeight.W_600, 
+                        size=20,
+                        color=Colors.FG_PRIMARY,
+                    ),
+                    Spacer(height=Spacing.XS),
+                    Caption(
+                        "Calcul en cours...",
+                        color=Colors.FG_SECONDARY,
+                        size=13,
+                    ),
+                    Spacer(height=Spacing.XL),
+                    ft.ProgressRing(width=32, height=32, color=Colors.ACCENT_PRIMARY),
+                ],
+                spacing=0,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+        )
+        
+        # Stocker la référence pour mise à jour automatique
+        self.storage_container = storage_container
+        self.storage_update_timer = None
+        self.storage_update_running = False
+        
+        # Cache pour éviter les recalculs inutiles
+        self.last_temp_size = 0
+        self.last_standby_size = 0
+        self.last_update_time = 0
+        
+        # Lancer le calcul en arrière-plan
+        import threading
+        def calculate_storage():
+            try:
+                # Utiliser la fonction centralisée
+                storage_data = self._calculate_storage_data()
+                
+                temp_size_mb = storage_data['temp_mb']
+                temp_size_gb = storage_data['temp_gb']
+                standby_mb = storage_data['standby_mb']
+                standby_gb = storage_data['standby_gb']
+                
+                # Cache DNS (estimation fixe car non mesurable)
+                dns_mb = 50  # Valeur réaliste
+                
+                # Calculer le total pour les pourcentages
+                total_mb = temp_size_mb + standby_mb + dns_mb
+                
+                # Mettre à jour l'interface avec les vraies données
+                storage_container.content = ft.Column(
+                    [
+                        BodyText(
+                            "Espace à libérer", 
+                            weight=ft.FontWeight.W_600, 
+                            size=20,
+                            color=Colors.FG_PRIMARY,
+                        ),
+                        Spacer(height=Spacing.XS),
+                        Caption(
+                            f"Total estimé: {total_mb / 1024:.2f} GB",
+                            color=Colors.FG_SECONDARY,
+                            size=13,
+                        ),
+                        Spacer(height=Spacing.XL),
+                        ft.Column(
+                            [
+                                self._build_storage_item(
+                                    icon=ft.Icons.FOLDER_DELETE_OUTLINED,
+                                    title="Fichiers temporaires",
+                                    current=f"{temp_size_gb:.2f} GB" if temp_size_gb >= 1 else f"{temp_size_mb:.0f} MB",
+                                    percentage=temp_size_mb / total_mb if total_mb > 0 else 0,
+                                    color=Colors.WARNING,
+                                ),
+                                Spacer(height=Spacing.MD),
+                                self._build_storage_item(
+                                    icon=ft.Icons.MEMORY_OUTLINED,
+                                    title="RAM Standby",
+                                    current=f"{standby_gb:.2f} GB" if standby_gb >= 1 else f"{standby_mb:.0f} MB",
+                                    percentage=standby_mb / total_mb if total_mb > 0 else 0,
+                                    color=Colors.INFO,
+                                ),
+                                Spacer(height=Spacing.MD),
+                                self._build_storage_item(
+                                    icon=ft.Icons.DNS_OUTLINED,
+                                    title="Cache DNS",
+                                    current=f"{dns_mb} MB",
+                                    percentage=dns_mb / total_mb if total_mb > 0 else 0,
+                                    color=Colors.SUCCESS,
+                                ),
+                            ],
+                            spacing=0,
+                        ),
+                    ],
+                    spacing=0,
+                )
+                self.page.update()
+                
+            except Exception as e:
+                print(f"[ERROR] Failed to calculate storage: {e}")
+                import traceback
+                traceback.print_exc()
+                # Afficher un message d'erreur
+                storage_container.content = ft.Column(
+                    [
+                        BodyText(
+                            "Espace à libérer", 
+                            weight=ft.FontWeight.W_600, 
+                            size=20,
+                            color=Colors.FG_PRIMARY,
+                        ),
+                        Spacer(height=Spacing.XS),
+                        Caption(
+                            "Impossible de calculer l'espace",
+                            color=Colors.ERROR,
+                            size=13,
+                        ),
+                    ],
+                    spacing=0,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+                self.page.update()
+                
+                # Démarrer la mise à jour automatique toutes les secondes
+                self._start_storage_auto_update()
+        
+        # Lancer le thread de calcul
+        threading.Thread(target=calculate_storage, daemon=True).start()
+        
+        return storage_container
+    
+    def _start_storage_auto_update(self):
+        """Démarre la mise à jour automatique des barres de stockage - VERSION OPTIMISÉE"""
+        import threading
+        import time
+        
+        def auto_update_loop():
+            while True:
+                try:
+                    time.sleep(1)  # Attendre 1 seconde
+                    
+                    # Utiliser la fonction centralisée pour recalculer
+                    storage_data = self._calculate_storage_data()
+                    
+                    temp_size_mb = storage_data['temp_mb']
+                    temp_size_gb = storage_data['temp_gb']
+                    standby_mb = storage_data['standby_mb']
+                    standby_gb = storage_data['standby_gb']
+                    dns_mb = storage_data['dns_mb']
+                    
+                    total_mb = temp_size_mb + standby_mb + dns_mb
+                    
+                    # Mettre à jour l'interface
+                    if hasattr(self, 'storage_container') and self.storage_container:
+                        self.storage_container.content = ft.Column(
+                            [
+                                BodyText(
+                                    "Espace à libérer", 
+                                    weight=ft.FontWeight.W_600, 
+                                    size=20,
+                                    color=Colors.FG_PRIMARY,
+                                ),
+                                Spacer(height=Spacing.XS),
+                                Caption(
+                                    f"Total estimé: {total_mb / 1024:.2f} GB",
+                                    color=Colors.FG_SECONDARY,
+                                    size=13,
+                                ),
+                                Spacer(height=Spacing.XL),
+                                ft.Column(
+                                    [
+                                        self._build_storage_item(
+                                            icon=ft.Icons.FOLDER_DELETE_OUTLINED,
+                                            title="Fichiers temporaires",
+                                            current=f"{temp_size_gb:.2f} GB" if temp_size_gb >= 1 else f"{temp_size_mb:.0f} MB",
+                                            percentage=temp_size_mb / total_mb if total_mb > 0 else 0,
+                                            color=Colors.WARNING,
+                                        ),
+                                        Spacer(height=Spacing.MD),
+                                        self._build_storage_item(
+                                            icon=ft.Icons.MEMORY_OUTLINED,
+                                            title="RAM Standby",
+                                            current=f"{standby_gb:.2f} GB" if standby_gb >= 1 else f"{standby_mb:.0f} MB",
+                                            percentage=standby_mb / total_mb if total_mb > 0 else 0,
+                                            color=Colors.INFO,
+                                        ),
+                                        Spacer(height=Spacing.MD),
+                                        self._build_storage_item(
+                                            icon=ft.Icons.DNS_OUTLINED,
+                                            title="Cache DNS",
+                                            current=f"{dns_mb} MB",
+                                            percentage=dns_mb / total_mb if total_mb > 0 else 0,
+                                            color=Colors.SUCCESS,
+                                        ),
+                                    ],
+                                    spacing=0,
+                                ),
+                            ],
+                            spacing=0,
+                        )
+                        self.page.update()
+                
+                except Exception as e:
+                    print(f"[ERROR] Auto-update storage failed: {e}")
+        
+        # Lancer le thread de mise à jour automatique
+        self.storage_update_timer = threading.Thread(target=auto_update_loop, daemon=True)
+        self.storage_update_timer.start()
     
     def _build_storage_item(self, icon, title, current, percentage, color):
         """Construit un item de stockage avec barre de progression"""
@@ -1377,9 +1614,9 @@ class MainPage:
         self.action_button_container = ft.Column(
             [
                 self.status_text,
-                Spacer(height=Spacing.XL),
+                Spacer(height=Spacing.SM),
                 self.progress_bar,
-                Spacer(height=Spacing.LG),
+                Spacer(height=Spacing.SM),
                 self.dry_run_button,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -1455,7 +1692,7 @@ class MainPage:
                     size=12,
                 ),
                 Spacer(height=Spacing.XL),
-                # Options avec espacement optimisé
+                # Options avec espacement optimisé ET SCROLL
                 ft.Container(
                     content=ft.Column(
                         [
@@ -1490,9 +1727,120 @@ class MainPage:
                                 True,
                                 recommended=True
                             ),
+                            Spacer(height=Spacing.LG),
+                            
+                            # Nouvelles options avancées
+                            BodyText("Optimisations Système", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.ACCENT_PRIMARY),
+                            Spacer(height=Spacing.MD),
+                            
+                            self._build_option_item(
+                                "Désactiver l'hibernation",
+                                "Supprime hiberfil.sys et libère plusieurs GB (taille = RAM)",
+                                "disable_hibernation",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer points de restauration anciens",
+                                "Garde seulement les 2 plus récents, libère de l'espace",
+                                "clean_restore_points",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Optimiser programmes au démarrage",
+                                "Analyse et optimise les programmes qui se lancent au démarrage",
+                                "optimize_startup",
+                                False,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Vider cache des navigateurs",
+                                "Nettoie le cache de Chrome, Firefox et Edge",
+                                "clear_browser_cache",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer logs d'événements",
+                                "Vide les journaux d'événements Windows",
+                                "clean_event_logs",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Désactiver Superfetch/Prefetch",
+                                "Recommandé pour SSD, améliore les performances",
+                                "disable_superfetch",
+                                False,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Désactiver Cortana",
+                                "Libère de la RAM et améliore la confidentialité",
+                                "disable_cortana",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Optimiser TCP/IP",
+                                "Reset Winsock et TCP/IP pour améliorer le réseau",
+                                "optimize_tcp_ip",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Désactiver services inutiles",
+                                "Désactive Fax, Tablet Input et autres services non essentiels",
+                                "disable_services",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Mode Gaming",
+                                "Optimisations pour améliorer les performances en jeu",
+                                "gaming_mode",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer pilotes obsolètes",
+                                "Supprime les anciens pilotes inutilisés",
+                                "clean_drivers",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Vider WinSxS",
+                                "Nettoie les composants Windows obsolètes",
+                                "clean_winsxs",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Optimiser fichier de pagination",
+                                "Configure automatiquement la taille du pagefile",
+                                "optimize_pagefile",
+                                False,
+                                recommended=False
+                            ),
                         ],
                         spacing=0,
+                        scroll=ft.ScrollMode.AUTO,
                     ),
+                    height=600,  # Hauteur fixe pour activer le scroll
                 ),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.START,
@@ -1605,6 +1953,110 @@ class MainPage:
                 "✓ Sécurité: Logs système critiques protégés\n"
                 "✓ Espace: Variable (100 MB - 2 GB)\n\n"
                 "Note: Les logs actifs sont préservés"
+            ),
+            "disable_hibernation": (
+                "Désactive l'hibernation et supprime hiberfil.sys.\n\n"
+                "✓ Espace libéré: Plusieurs GB (taille = RAM)\n"
+                "✓ Commande: powercfg /hibernate off\n"
+                "✓ Effet: Immédiat\n\n"
+                "⚠️ Attention: Vous ne pourrez plus utiliser l'hibernation\n"
+                "💡 Recommandé: Si vous n'utilisez jamais l'hibernation"
+            ),
+            "clean_restore_points": (
+                "Nettoie les anciens points de restauration système.\n\n"
+                "✓ Conservation: Garde les 2 plus récents\n"
+                "✓ Espace libéré: Variable (peut être plusieurs GB)\n"
+                "✓ Sécurité: Points récents préservés\n\n"
+                "⚠️ Attention: Impossible de revenir aux anciens points\n"
+                "💡 Utile: Si vous avez beaucoup de points anciens"
+            ),
+            "optimize_startup": (
+                "Analyse et optimise les programmes au démarrage.\n\n"
+                "✓ Action: Liste les programmes de démarrage\n"
+                "✓ Effet: Améliore le temps de boot\n"
+                "✓ Sécurité: Analyse uniquement, pas de suppression\n\n"
+                "💡 Recommandé: Pour accélérer le démarrage de Windows\n"
+                "Note: Vous pourrez choisir quoi désactiver"
+            ),
+            "clear_browser_cache": (
+                "Vide le cache des navigateurs web.\n\n"
+                "✓ Navigateurs: Chrome, Firefox, Edge\n"
+                "✓ Espace libéré: 100 MB - 2 GB\n"
+                "✓ Effet: Cache, cookies, historique\n\n"
+                "⚠️ Attention: Vous serez déconnecté des sites web\n"
+                "💡 Utile: Pour libérer de l'espace ou résoudre des bugs"
+            ),
+            "clean_event_logs": (
+                "Nettoie les journaux d'événements Windows.\n\n"
+                "✓ Logs nettoyés: Application, System, Security\n"
+                "✓ Espace libéré: 50-500 MB\n"
+                "✓ Commande: wevtutil cl\n\n"
+                "⚠️ Attention: Perte de l'historique des événements\n"
+                "💡 Utile: Pour libérer de l'espace disque"
+            ),
+            "disable_superfetch": (
+                "Désactive le service Superfetch/Prefetch.\n\n"
+                "✓ Service: SysMain (Superfetch)\n"
+                "✓ Effet: Réduit utilisation disque\n"
+                "✓ Impact: Améliore performances SSD\n\n"
+                "💡 Recommandé: Si vous avez un SSD\n"
+                "⚠️ Déconseillé: Sur disque dur classique (HDD)"
+            ),
+            "disable_cortana": (
+                "Désactive l'assistant vocal Cortana.\n\n"
+                "✓ Méthode: Modification du registre\n"
+                "✓ Effet: Libère de la RAM\n"
+                "✓ Confidentialité: Réduit collecte de données\n\n"
+                "💡 Recommandé: Si vous n'utilisez pas Cortana\n"
+                "Note: Peut être réactivé ultérieurement"
+            ),
+            "optimize_tcp_ip": (
+                "Optimise les paramètres réseau TCP/IP.\n\n"
+                "✓ Actions: Reset Winsock + TCP/IP\n"
+                "✓ Effet: Améliore vitesse réseau\n"
+                "✓ Résout: Problèmes de connexion\n\n"
+                "⚠️ Attention: Nécessite un redémarrage\n"
+                "💡 Utile: En cas de problèmes réseau persistants"
+            ),
+            "disable_services": (
+                "Désactive les services Windows inutiles.\n\n"
+                "✓ Services: Fax, Tablet Input, WMP Network\n"
+                "✓ Effet: Réduit utilisation CPU/RAM\n"
+                "✓ Sécurité: Uniquement services non essentiels\n\n"
+                "💡 Recommandé: Pour optimiser les performances\n"
+                "Note: Services sélectionnés avec soin"
+            ),
+            "gaming_mode": (
+                "Active les optimisations pour le gaming.\n\n"
+                "✓ Actions: Désactive Game Bar\n"
+                "✓ Effet: Améliore FPS et latence\n"
+                "✓ Impact: Réduit utilisation ressources\n\n"
+                "💡 Recommandé: Pour les joueurs\n"
+                "Note: Optimise les performances en jeu"
+            ),
+            "clean_drivers": (
+                "Nettoie les pilotes obsolètes.\n\n"
+                "✓ Action: Liste et analyse les pilotes\n"
+                "✓ Espace libéré: 100-500 MB\n"
+                "✓ Sécurité: Pilotes actifs préservés\n\n"
+                "💡 Utile: Après plusieurs mises à jour\n"
+                "Note: Évite les conflits de pilotes"
+            ),
+            "clean_winsxs": (
+                "Nettoie le dossier WinSxS (composants Windows).\n\n"
+                "✓ Commande: DISM /StartComponentCleanup\n"
+                "✓ Espace libéré: Plusieurs GB possibles\n"
+                "✓ Sécurité: Opération système officielle\n\n"
+                "⚠️ Attention: Opération longue (5-15 minutes)\n"
+                "💡 Recommandé: Après mises à jour Windows"
+            ),
+            "optimize_pagefile": (
+                "Optimise le fichier de pagination (pagefile.sys).\n\n"
+                "✓ Action: Gestion automatique par Windows\n"
+                "✓ Effet: Améliore performances mémoire\n"
+                "✓ Méthode: Configuration optimale\n\n"
+                "💡 Recommandé: Pour optimiser la RAM\n"
+                "Note: Windows ajuste automatiquement la taille"
             ),
         }
         return descriptions.get(key, "Aucune description détaillée disponible.")
@@ -2971,6 +3423,87 @@ class MainPage:
             else:
                 self._update_task_status("logs", "completed")
                 current_task += 1
+            
+            # ===== NOUVELLES OPTIONS AVANCÉES =====
+            from backend import advanced_optimizations
+            
+            # Désactiver l'hibernation
+            if self.app.advanced_options.get("disable_hibernation", False):
+                self._update_cleaning_progress("Désactivation de l'hibernation...", current_task / total_tasks)
+                advanced_optimizations.disable_hibernation()
+                time.sleep(0.2)
+            
+            # Nettoyer points de restauration
+            if self.app.advanced_options.get("clean_restore_points", False):
+                self._update_cleaning_progress("Nettoyage des points de restauration...", current_task / total_tasks)
+                advanced_optimizations.clean_old_restore_points()
+                time.sleep(0.2)
+            
+            # Optimiser démarrage
+            if self.app.advanced_options.get("optimize_startup", False):
+                self._update_cleaning_progress("Optimisation du démarrage...", current_task / total_tasks)
+                advanced_optimizations.optimize_startup_programs()
+                time.sleep(0.2)
+            
+            # Vider cache navigateurs
+            if self.app.advanced_options.get("clear_browser_cache", False):
+                self._update_cleaning_progress("Nettoyage du cache des navigateurs...", current_task / total_tasks)
+                advanced_optimizations.clear_browser_cache()
+                time.sleep(0.2)
+            
+            # Nettoyer logs événements
+            if self.app.advanced_options.get("clean_event_logs", False):
+                self._update_cleaning_progress("Nettoyage des logs d'événements...", current_task / total_tasks)
+                advanced_optimizations.clean_event_logs()
+                time.sleep(0.2)
+            
+            # Désactiver Superfetch
+            if self.app.advanced_options.get("disable_superfetch", False):
+                self._update_cleaning_progress("Désactivation de Superfetch...", current_task / total_tasks)
+                advanced_optimizations.disable_superfetch()
+                time.sleep(0.2)
+            
+            # Désactiver Cortana
+            if self.app.advanced_options.get("disable_cortana", False):
+                self._update_cleaning_progress("Désactivation de Cortana...", current_task / total_tasks)
+                advanced_optimizations.disable_cortana()
+                time.sleep(0.2)
+            
+            # Optimiser TCP/IP
+            if self.app.advanced_options.get("optimize_tcp_ip", False):
+                self._update_cleaning_progress("Optimisation TCP/IP...", current_task / total_tasks)
+                advanced_optimizations.optimize_tcp_ip()
+                time.sleep(0.2)
+            
+            # Désactiver services
+            if self.app.advanced_options.get("disable_services", False):
+                self._update_cleaning_progress("Désactivation des services inutiles...", current_task / total_tasks)
+                advanced_optimizations.disable_unnecessary_services()
+                time.sleep(0.2)
+            
+            # Mode Gaming
+            if self.app.advanced_options.get("gaming_mode", False):
+                self._update_cleaning_progress("Activation du mode Gaming...", current_task / total_tasks)
+                advanced_optimizations.enable_gaming_mode()
+                time.sleep(0.2)
+            
+            # Nettoyer pilotes
+            if self.app.advanced_options.get("clean_drivers", False):
+                self._update_cleaning_progress("Nettoyage des pilotes obsolètes...", current_task / total_tasks)
+                advanced_optimizations.clean_old_drivers()
+                time.sleep(0.2)
+            
+            # Vider WinSxS
+            if self.app.advanced_options.get("clean_winsxs", False):
+                self._update_cleaning_progress("Nettoyage de WinSxS...", current_task / total_tasks)
+                advanced_optimizations.clean_winsxs()
+                time.sleep(0.2)
+            
+            # Optimiser pagefile
+            if self.app.advanced_options.get("optimize_pagefile", False):
+                self._update_cleaning_progress("Optimisation du fichier de pagination...", current_task / total_tasks)
+                advanced_optimizations.optimize_pagefile()
+                time.sleep(0.2)
             
             # Finalisation
             current_task += 1

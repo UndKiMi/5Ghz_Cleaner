@@ -39,6 +39,12 @@ from backend.elevation import is_admin, elevate_if_needed, elevate
 # Importer le script de téléchargement
 from download_librehardwaremonitor import download_librehardwaremonitor
 
+# Importer les utilitaires de console colorée
+from utils.console_colors import (
+    Colors, print_banner, print_header, print_section,
+    print_success, print_error, print_warning, print_info, print_separator
+)
+
 # Optimisation mémoire: Activer le garbage collector agressif
 gc.enable()
 gc.set_threshold(700, 10, 10)  # Plus agressif pour libérer la mémoire rapidement
@@ -341,32 +347,31 @@ def optimize_process():
 
 
 if __name__ == "__main__":
-    # En-tête propre et organisé
-    print("\n" + "=" * 70)
-    print("  5GH'z CLEANER - Windows 11 Cleaning & Optimization Tool")
-    print("  Auteur : UndKiMi | Version : 1.6.0 | Licence : CC BY-NC-SA 4.0")
-    print("=" * 70 + "\n")
+    # Bannière colorée
+    print_banner()
     
     # Etape 1: Verification Windows 11
-    print("[1/6] System Verification")
+    print_section(1, 6, "System Verification")
     if not check_windows_11():
-        print("  [X] ERROR: Windows 11 required\n")
-        print("This application requires Windows 11 (Build 22000+)")
-        input("\nPress Enter to exit...")
+        print_error("Windows 11 required")
+        print_info("This application requires Windows 11 (Build 22000+)", indent=2)
+        input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.RESET}")
         sys.exit(1)
-    print("  [OK] Windows 11 detected\n")
+    print_success("Windows 11 detected")
+    print()
     
     # Etape 2: Optimisation des ressources
-    print("[2/6] Process Optimization")
+    print_section(2, 6, "Process Optimization")
     optimize_process()
-    print("  [OK] Resources optimized\n")
+    print_success("Resources optimized")
+    print()
     
     # Etape 3: Privileges administrateur
-    print("[3/6] Administrator Privileges")
+    print_section(3, 6, "Administrator Privileges")
     request_admin_if_needed()
     if not check_windows_version():
-        print("  [X] Incompatible system\n")
-        input("Press Enter to exit...")
+        print_error("Incompatible system")
+        input(f"{Colors.YELLOW}Press Enter to exit...{Colors.RESET}")
         sys.exit(1)
     verify_disk_space()
     check_critical_processes()
@@ -374,29 +379,33 @@ if __name__ == "__main__":
     try:
         has_admin = elevate(force=False)
         if has_admin:
-            print("  [OK] Administrator mode - Full access granted\n")
+            print_success("Administrator mode - Full access granted")
         else:
-            print("  [!] Standard mode - Limited access\n")
+            print_warning("Standard mode - Limited access")
     except Exception as e:
-        print(f"  [!] Privilege check failed: {e}\n")
+        print_warning(f"Privilege check failed: {e}")
+    print()
     
     # Etape 4: Point de restauration
-    print("[4/6] System Restore Point")
+    print_section(4, 6, "System Restore Point")
     restore_created = create_restore_point()
     if restore_created:
-        print("  [OK] Restore point created successfully\n")
+        print_success("Restore point created successfully")
     else:
-        print("  [!] Restore point not created\n")
+        print_warning("Restore point not created")
+    print()
     
     # Etape 5: LibreHardwareMonitor
-    print("[5/6] Hardware Monitoring Setup")
+    print_section(5, 6, "Hardware Monitoring Setup")
     check_and_download_librehardwaremonitor()
-    print("  [OK] Hardware monitoring ready\n")
+    print_success("Hardware monitoring ready")
+    print()
     
     # Etape 6: Lancement de l'application
-    print("[6/6] Application Launch")
-    print("  [>>] Starting Flet application...\n")
-    print("=" * 70 + "\n")
+    print_section(6, 6, "Application Launch")
+    print_info("Starting Flet application...")
+    print_separator()
+    print()
     
     def main(page: ft.Page):
         """Point d'entrée de l'application Flet"""
@@ -405,12 +414,17 @@ if __name__ == "__main__":
     try:
         ft.app(target=main)
     except Exception as e:
-        print(f"\n[X] Application crashed: {e}")
+        print()
+        print_error(f"Application crashed: {e}", indent=0)
         import traceback
         traceback.print_exc()
-        input("\nPress Enter to exit...")
+        input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.RESET}")
         sys.exit(1)
     
-    print("\n" + "=" * 70)
-    print("  Application fermée avec succès - Merci d'utiliser 5GH'z Cleaner !")
-    print("=" * 70 + "\n")
+    # Message de fermeture coloré
+    print()
+    print_separator()
+    print(f"{Colors.BOLD_GREEN}  ✓ Application fermée avec succès{Colors.RESET}")
+    print(f"{Colors.CYAN}  Merci d'utiliser {Colors.BOLD_CYAN}5GH'z Cleaner{Colors.CYAN} !{Colors.RESET}")
+    print_separator()
+    print()

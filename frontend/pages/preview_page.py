@@ -157,9 +157,12 @@ class PreviewPage:
             border=ft.border.all(1, Colors.BORDER_DEFAULT),
         )
         
-        # Estimation du temps basée sur le nombre de fichiers et la taille
-        # Formule : (fichiers / 1000) + (taille_mb / 500) minutes
-        estimated_minutes = max(1, int((total_files / 1000) + (total_size_mb / 500)))
+        # Estimation du temps basée PRINCIPALEMENT sur la taille des fichiers
+        # Formule : taille_mb / 300 (vitesse moyenne de suppression : 300 MB/min)
+        # Ajout d'un petit facteur pour les très nombreux petits fichiers
+        size_factor = total_size_mb / 300  # Temps basé sur la taille
+        file_factor = (total_files / 10000) * 0.2  # Petit ajustement pour quantité
+        estimated_minutes = max(1, int(size_factor + file_factor))
         if estimated_minutes < 1:
             time_text = "< 1 min"
         elif estimated_minutes == 1:
@@ -525,8 +528,10 @@ class PreviewPage:
             self.stats_operations_text.value = f"{selected_count}"
         
         if self.stats_time_text:
-            # Estimation améliorée du temps
-            estimated_minutes = max(1, int((total_files / 1000) + (total_size_mb / 500)))
+            # Estimation basée PRINCIPALEMENT sur la taille
+            size_factor = total_size_mb / 300  # Vitesse: 300 MB/min
+            file_factor = (total_files / 10000) * 0.2  # Petit ajustement
+            estimated_minutes = max(1, int(size_factor + file_factor))
             if estimated_minutes < 1:
                 time_text = "< 1 min"
             elif estimated_minutes == 1:
