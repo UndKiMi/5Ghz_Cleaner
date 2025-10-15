@@ -23,7 +23,7 @@
 
 **Nettoyeur Windows 11 avec sécurité maximale et transparence totale**
 
-## 🎉 Nouveautés v1.6.0 - Major Update
+## 🎉 Nouveautés Version: Major Update
 
 ### 🔒 Sécurité Renforcée
 - ✨ **350+ chemins protégés** (était 200+) - Protection étendue Adobe, Autodesk, Cloud Storage, IDEs
@@ -229,9 +229,6 @@ Pour plus de détails, consultez [SECURITY.md](SECURITY.md)
 
 ### Installation et Utilisation
 
-**Q: Dois-je exécuter l'application en tant qu'administrateur ?**
-R: Non, l'application fonctionne en mode utilisateur standard. Elle demandera les privilèges administrateur uniquement si nécessaire pour certaines opérations.
-
 **Q: Pourquoi Windows SmartScreen bloque-t-il l'application ?**
 R: C'est normal pour les applications sans certificat officiel (coût: 500€/an). Cliquez sur "Plus d'infos" puis "Exécuter quand même". Vous pouvez vérifier l'intégrité du fichier avec les checksums fournis.
 
@@ -362,7 +359,7 @@ Pour toute demande d'utilisation commerciale, ouvrez une issue sur GitHub.
 
 **5GH'z Cleaner** - Nettoyeur Windows 11 avec sécurité maximale
 
-**Version**: 1.6.0 (Major Update) | **Chemins protégés**: 350+ | **Statut**: ✅ Production Ready
+**Version**: Major Update | **Chemins protégés**: 350+ | **Statut**: ✅ Production Ready
 
 **Sécurité**: 100% | **Performance**: +30% | **Tests**: 2/2 Passing
 
