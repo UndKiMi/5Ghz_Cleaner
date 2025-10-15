@@ -359,7 +359,7 @@ Pour toute demande d'utilisation commerciale, ouvrez une issue sur GitHub.
 
 **5GH'z Cleaner** - Nettoyeur Windows 11 avec sécurité maximale
 
-**Version**: 1.6.0 (Major Update) | **Chemins protégés**: 350+ | **Statut**: ✅ Production Ready
+**Version**: Major Update | **Chemins protégés**: 350+ | **Statut**: ✅ Production Ready
 
 **Sécurité**: 100% | **Performance**: +30% | **Tests**: 2/2 Passing
 
