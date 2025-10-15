@@ -147,181 +147,209 @@ class MainPage:
         )
     
     def _build_actions_section(self):
-        """Construit la section des actions rapides avec animations"""
+        """Construit la section des actions - DESIGN CENTRÉ ET MODERNE"""
         return ft.Container(
             content=ft.Column(
                 [
-                    # En-tête de section amélioré
+                    # En-tête centré
                     ft.Container(
                         content=ft.Column(
                             [
-                                ft.Row(
-                                    [
-                                        ft.Icon(
-                                            ft.Icons.FLASH_ON_ROUNDED,
-                                            size=22,
-                                            color=Colors.ACCENT_PRIMARY,
-                                        ),
-                                        ft.Container(width=Spacing.XS),
-                                        BodyText("Actions rapides", weight=Typography.WEIGHT_BOLD, size=18),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.START,
+                                BodyText(
+                                    "Actions rapides", 
+                                    weight=ft.FontWeight.W_600, 
+                                    size=22,
+                                    color=Colors.FG_PRIMARY,
                                 ),
                                 Spacer(height=Spacing.XS),
                                 Caption(
-                                    "Actions one-click pour optimiser votre système Windows",
+                                    "Optimisez votre système en un clic",
                                     color=Colors.FG_SECONDARY,
-                                    size=12,
+                                    size=13,
                                 ),
                             ],
                             spacing=0,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         ),
-                        padding=ft.padding.only(bottom=Spacing.LG),
-                        animate=ft.Animation(400, ft.AnimationCurve.EASE_IN_OUT),
+                        padding=ft.padding.only(bottom=Spacing.XL),
                     ),
                     
-                    # Boutons d'actions rapides one-click
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                self._build_quick_action_button(
-                                    icon=ft.Icons.RESTORE,
-                                    title="Point de restauration",
-                                    action="restore_point",
-                                ),
-                                ft.Container(width=Spacing.MD),
-                                self._build_quick_action_button(
-                                    icon=ft.Icons.SECURITY,
-                                    title="Vérifier télémétrie",
-                                    action="check_telemetry",
-                                ),
-                                ft.Container(width=Spacing.MD),
-                                self._build_quick_action_button(
-                                    icon=ft.Icons.CLEANING_SERVICES,
-                                    title="Vider corbeille",
-                                    action="empty_recycle",
-                                ),
-                                ft.Container(width=Spacing.MD),
-                                self._build_quick_action_button(
-                                    icon=ft.Icons.DNS,
-                                    title="Flush DNS",
-                                    action="flush_dns",
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.START,
-                            wrap=True,
-                        ),
-                        animate=ft.Animation(500, ft.AnimationCurve.EASE_OUT),
-                    ),
-                    
-                    Spacer(height=Spacing.MEGA),
-                    
-                    # Section Informations système améliorée
+                    # Grille d'actions rapides CENTRÉE - 2x2
                     ft.Container(
                         content=ft.Column(
                             [
-                                # En-tête de section avec icône
+                                # Ligne 1
                                 ft.Row(
                                     [
-                                        ft.Icon(
-                                            ft.Icons.INFO_OUTLINE_ROUNDED,
-                                            size=20,
-                                            color=Colors.ACCENT_PRIMARY,
-                                        ),
-                                        ft.Container(width=Spacing.XS),
-                                        BodyText("Informations système", weight=Typography.WEIGHT_BOLD, size=16),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.START,
-                                ),
-                                Spacer(height=Spacing.XS),
-                                Caption(
-                                    "Aperçu des optimisations disponibles pour votre système",
-                                    color=Colors.FG_SECONDARY,
-                                    size=12,
-                                ),
-                                Spacer(height=Spacing.LG),
-                                # Cartes d'information avec espacement optimisé
-                                ft.Row(
-                                    [
-                                        self._build_action_card(
-                                            icon="assets/icons/dossier.svg",
-                                            title="Fichiers temporaires",
-                                            description="Libère de l'espace disque en supprimant les fichiers temporaires inutiles.",
-                                            action_key="temp_files",
+                                        self._build_quick_action_button(
+                                            icon=ft.Icons.RESTORE_ROUNDED,
+                                            title="Point de restauration",
+                                            description="Créer une sauvegarde système",
+                                            action="restore_point",
                                         ),
                                         ft.Container(width=Spacing.LG),
-                                        self._build_action_card(
-                                            icon=ft.Icons.MEMORY_OUTLINED,
-                                            title="RAM Standby",
-                                            description="Optimise la vitesse en vidant la mémoire standby.",
-                                            action_key="ram_standby",
-                                        ),
-                                        ft.Container(width=Spacing.LG),
-                                        self._build_action_card(
-                                            icon=ft.Icons.STORAGE_OUTLINED,
-                                            title="Cache DNS",
-                                            description="Réinitialise le cache DNS pour résoudre les problèmes réseau.",
-                                            action_key="cache_dns",
+                                        self._build_quick_action_button(
+                                            icon=ft.Icons.SECURITY_ROUNDED,
+                                            title="Vérifier télémétrie",
+                                            description="Scanner les trackers",
+                                            action="check_telemetry",
                                         ),
                                     ],
                                     alignment=ft.MainAxisAlignment.CENTER,
-                                    wrap=False,
+                                ),
+                                Spacer(height=Spacing.LG),
+                                # Ligne 2
+                                ft.Row(
+                                    [
+                                        self._build_quick_action_button(
+                                            icon=ft.Icons.DELETE_SWEEP_ROUNDED,
+                                            title="Vider corbeille",
+                                            description="Supprimer définitivement",
+                                            action="empty_recycle",
+                                        ),
+                                        ft.Container(width=Spacing.LG),
+                                        self._build_quick_action_button(
+                                            icon=ft.Icons.DNS_ROUNDED,
+                                            title="Flush DNS",
+                                            description="Réinitialiser le cache",
+                                            action="flush_dns",
+                                        ),
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                ),
+                            ],
+                            spacing=0,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        ),
+                    ),
+                    
+                    Spacer(height=Spacing.MEGA * 3),
+                    
+                    # Section Stockage et Optimisations EN BAS
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                BodyText(
+                                    "Espace à libérer", 
+                                    weight=ft.FontWeight.W_600, 
+                                    size=20,
+                                    color=Colors.FG_PRIMARY,
+                                ),
+                                Spacer(height=Spacing.XS),
+                                Caption(
+                                    "Aperçu de l'espace qui sera récupéré",
+                                    color=Colors.FG_SECONDARY,
+                                    size=13,
+                                ),
+                                Spacer(height=Spacing.XL),
+                                # Liste des optimisations avec barres
+                                ft.Column(
+                                    [
+                                        self._build_storage_item(
+                                            icon=ft.Icons.FOLDER_DELETE_OUTLINED,
+                                            title="Fichiers temporaires",
+                                            current="2.5 GB",
+                                            percentage=0.65,
+                                            color=Colors.WARNING,
+                                        ),
+                                        Spacer(height=Spacing.MD),
+                                        self._build_storage_item(
+                                            icon=ft.Icons.MEMORY_OUTLINED,
+                                            title="RAM Standby",
+                                            current="1.2 GB",
+                                            percentage=0.35,
+                                            color=Colors.INFO,
+                                        ),
+                                        Spacer(height=Spacing.MD),
+                                        self._build_storage_item(
+                                            icon=ft.Icons.DNS_OUTLINED,
+                                            title="Cache DNS",
+                                            current="150 MB",
+                                            percentage=0.15,
+                                            color=Colors.SUCCESS,
+                                        ),
+                                    ],
+                                    spacing=0,
                                 ),
                             ],
                             spacing=0,
                         ),
-                        padding=ft.padding.only(top=Spacing.MD, bottom=Spacing.MD),
-                        animate=ft.Animation(600, ft.AnimationCurve.EASE_IN_OUT),
                     ),
                 ],
-                horizontal_alignment=ft.CrossAxisAlignment.START,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=0,
             ),
         )
     
-    def _build_quick_action_button(self, icon, title, action):
-        """Construit un bouton d'action rapide one-click"""
-        # Créer une référence au container pour pouvoir le modifier
+    def _build_quick_action_button(self, icon, title, description, action):
+        """Construit un bouton d'action - REFONTE TOTALE CARD DESIGN"""
         button_ref = {"container": None, "progress_bar": None, "icon": None, "title": None}
         
         def on_button_click(e):
-            # Récupérer le container depuis la référence
             self._execute_quick_action(action, button_ref)
         
-        # Créer les éléments
-        icon_widget = ft.Icon(icon, size=24, color=Colors.ACCENT_PRIMARY)
+        # Icône moderne
+        icon_widget = ft.Icon(
+            icon, 
+            size=32, 
+            color=Colors.ACCENT_PRIMARY
+        )
+        
+        # Titre
         title_text = ft.Text(
             title,
-            text_align=ft.TextAlign.CENTER,
             color=Colors.FG_PRIMARY,
-            weight=Typography.WEIGHT_MEDIUM,
-            size=Typography.SIZE_SM,
+            weight=ft.FontWeight.W_600,
+            size=15,
+        )
+        
+        # Description
+        desc_text = ft.Text(
+            description,
+            color=Colors.FG_SECONDARY,
+            size=12,
         )
         
         # Barre de progression (cachée par défaut)
         progress_bar = ft.ProgressBar(
             value=0,
-            width=120,
-            height=4,
+            height=2,
             color=Colors.ACCENT_PRIMARY,
             bgcolor=Colors.BORDER_DEFAULT,
             visible=False,
         )
         
         button = ft.Container(
-            content=ft.Column(
+            content=ft.Row(
                 [
-                    icon_widget,
-                    Spacer(height=Spacing.XS),
-                    title_text,
-                    ft.Container(height=4),
-                    progress_bar,
+                    # Icône à gauche
+                    ft.Container(
+                        content=icon_widget,
+                        width=56,
+                        height=56,
+                        border_radius=BorderRadius.SM,
+                        bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
+                        alignment=ft.alignment.center,
+                    ),
+                    ft.Container(width=Spacing.MD),
+                    # Texte à droite
+                    ft.Column(
+                        [
+                            title_text,
+                            Spacer(height=Spacing.XS),
+                            desc_text,
+                            ft.Container(height=Spacing.XS),
+                            progress_bar,
+                        ],
+                        spacing=0,
+                        expand=True,
+                        alignment=ft.MainAxisAlignment.CENTER,
+                    ),
                 ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=0,
+                alignment=ft.MainAxisAlignment.START,
             ),
-            width=140,
-            height=90,
+            width=320,
+            height=80,
             bgcolor=Colors.BG_SECONDARY,
             border_radius=BorderRadius.MD,
             border=ft.border.all(1, Colors.BORDER_DEFAULT),
@@ -331,16 +359,98 @@ class MainPage:
             tooltip=self._get_quick_action_tooltip(action),
             data=action,
             animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
-            animate_scale=ft.Animation(150, ft.AnimationCurve.EASE_IN_OUT),
         )
         
-        # Stocker les références
         button_ref["container"] = button
         button_ref["progress_bar"] = progress_bar
         button_ref["icon"] = icon_widget
         button_ref["title"] = title_text
         
         return button
+    
+    def _build_storage_item(self, icon, title, current, percentage, color):
+        """Construit un item de stockage avec barre de progression"""
+        return ft.Container(
+            content=ft.Column(
+                [
+                    # En-tête avec icône et titre
+                    ft.Row(
+                        [
+                            # Icône avec effet subtil
+                            ft.Container(
+                                content=ft.Icon(icon, size=24, color=color),
+                                width=48,
+                                height=48,
+                                border_radius=BorderRadius.SM,
+                                bgcolor=ft.Colors.with_opacity(0.15, color),
+                                alignment=ft.alignment.center,
+                                shadow=ft.BoxShadow(
+                                    spread_radius=0,
+                                    blur_radius=8,
+                                    color=ft.Colors.with_opacity(0.2, color),
+                                    offset=ft.Offset(0, 2),
+                                ),
+                            ),
+                            ft.Container(width=Spacing.MD),
+                            # Titre et taille
+                            ft.Column(
+                                [
+                                    ft.Text(
+                                        title,
+                                        color=Colors.FG_PRIMARY,
+                                        weight=ft.FontWeight.W_600,
+                                        size=15,
+                                    ),
+                                    ft.Text(
+                                        f"À libérer: {current}",
+                                        color=Colors.FG_SECONDARY,
+                                        size=12,
+                                    ),
+                                ],
+                                spacing=Spacing.XS,
+                                expand=True,
+                            ),
+                            # Badge pourcentage
+                            ft.Container(
+                                content=ft.Text(
+                                    f"{int(percentage * 100)}%",
+                                    color=color,
+                                    weight=ft.FontWeight.W_700,
+                                    size=14,
+                                ),
+                                padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                                border_radius=BorderRadius.SM,
+                                bgcolor=ft.Colors.with_opacity(0.15, color),
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.START,
+                    ),
+                    Spacer(height=Spacing.MD),
+                    # Barre de progression avec effet
+                    ft.Container(
+                        content=ft.ProgressBar(
+                            value=percentage,
+                            height=8,
+                            color=color,
+                            bgcolor=ft.Colors.with_opacity(0.2, color),
+                            border_radius=BorderRadius.SM,
+                        ),
+                        shadow=ft.BoxShadow(
+                            spread_radius=0,
+                            blur_radius=6,
+                            color=ft.Colors.with_opacity(0.3, color),
+                            offset=ft.Offset(0, 2),
+                        ),
+                    ),
+                ],
+                spacing=0,
+            ),
+            padding=Spacing.LG,
+            border_radius=BorderRadius.MD,
+            bgcolor=Colors.BG_SECONDARY,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.3, color)),
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+        )
     
     def _get_quick_action_tooltip(self, action):
         """Retourne le tooltip pour une action rapide"""
@@ -1140,19 +1250,19 @@ class MainPage:
             traceback.print_exc()
     
     def _build_action_card(self, icon, title, description, action_key):
-        """Construit une carte d'action avec tooltip d'information"""
-        # Icône SVG ou Material
+        """Construit une carte d'action - DESIGN SOBRE ET MODERNE"""
+        # Icône SVG ou Material simple
         if isinstance(icon, str) and icon.endswith('.svg'):
             icon_widget = ft.Image(
                 src=icon,
-                width=40,
-                height=40,
+                width=48,
+                height=48,
                 fit=ft.ImageFit.CONTAIN,
             )
         else:
-            icon_widget = ft.Icon(icon, size=40, color=Colors.ACCENT_PRIMARY)
+            icon_widget = ft.Icon(icon, size=48, color=Colors.ACCENT_PRIMARY)
         
-        # Icône d'information avec tooltip personnalisé
+        # Icône d'information avec tooltip
         from frontend.design_system.tooltip import create_info_icon_with_tooltip
         info_icon = create_info_icon_with_tooltip(
             self._get_detailed_description(action_key),
@@ -1162,36 +1272,45 @@ class MainPage:
         return ft.Container(
             content=ft.Column(
                 [
+                    # Info icon en haut à droite
                     ft.Row(
                         [info_icon],
                         alignment=ft.MainAxisAlignment.END,
                     ),
-                    ft.Container(
-                        content=icon_widget,
-                        padding=ft.padding.only(top=0, bottom=Spacing.MD),
-                    ),
+                    Spacer(height=Spacing.SM),
+                    
+                    # Icône principale simple
+                    icon_widget,
+                    Spacer(height=Spacing.MD),
+                    
+                    # Titre
                     BodyText(
                         title,
-                        weight=Typography.WEIGHT_MEDIUM,
+                        weight=ft.FontWeight.W_600,
                         text_align=ft.TextAlign.CENTER,
-                        size=14,
+                        size=15,
+                        color=Colors.FG_PRIMARY,
                     ),
-                    Spacer(height=Spacing.XS),
+                    Spacer(height=Spacing.SM),
+                    
+                    # Description
                     Caption(
                         description,
                         text_align=ft.TextAlign.CENTER,
                         color=Colors.FG_SECONDARY,
+                        size=12,
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=0,
             ),
             width=220,
-            height=180,
+            height=200,
             bgcolor=Colors.BG_SECONDARY,
             border_radius=BorderRadius.MD,
             border=ft.border.all(1, Colors.BORDER_DEFAULT),
             padding=Spacing.LG,
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
         )
     
     def _build_action_button(self):
@@ -1225,22 +1344,33 @@ class MainPage:
             visible=False,
         )
         
-        # Bouton Prévisualisation (seul bouton d'action)
+        # Bouton Prévisualisation SOBRE ET MODERNE
         def on_dry_run_click(e):
             print("[DEBUG] Preview button clicked!")
             self._start_dry_run(e)
         
-        self.dry_run_button = ft.ElevatedButton(
-            text="Prévisualiser le nettoyage",
-            icon=ft.Icons.PREVIEW_ROUNDED,
-            on_click=on_dry_run_click,
-            bgcolor=Colors.ACCENT_PRIMARY,
-            color=Colors.BG_PRIMARY,
-            height=55,
-            width=350,
-            style=ft.ButtonStyle(
-                shape=ft.RoundedRectangleBorder(radius=BorderRadius.MD),
+        # Bouton simple et élégant
+        self.dry_run_button = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Icon(ft.Icons.PREVIEW_ROUNDED, size=20, color=ft.Colors.WHITE),
+                    ft.Container(width=Spacing.SM),
+                    ft.Text(
+                        "Prévisualiser le nettoyage",
+                        size=14,
+                        weight=ft.FontWeight.W_500,
+                        color=ft.Colors.WHITE,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
             ),
+            width=350,
+            height=50,
+            border_radius=BorderRadius.MD,
+            bgcolor=Colors.ACCENT_PRIMARY,
+            on_click=on_dry_run_click,
+            ink=True,
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
         )
         
         # Container pour le bouton d'action (sera masqué dans l'onglet Configuration)
@@ -1863,6 +1993,7 @@ class MainPage:
                 driver_date = data.get("driver_date", "N/A")
                 
                 # Barre de progression pour l'utilisation GPU
+                # Ne pas afficher la barre si usage == 0 (monitoring non disponible)
                 if usage > 0:
                     cpu_progress = ft.Container(
                         content=ft.Column(
@@ -1882,7 +2013,7 @@ class MainPage:
                                     color=Colors.ACCENT_PRIMARY if usage < 80 else ft.Colors.ORANGE if usage < 95 else ft.Colors.RED,
                                     bgcolor=Colors.BORDER_DEFAULT,
                                     border_radius=BorderRadius.SM,
-                                    animate_opacity=300,  # Animation fluide de 300ms
+                                    animate_opacity=300,
                                 ),
                             ],
                             spacing=0,
@@ -1899,7 +2030,7 @@ class MainPage:
                 else:
                     details.append("Pilote : Non disponible")
                 
-                # Ajouter note si pas d'utilisation
+                # Ajouter note UNIQUEMENT si monitoring non disponible ET pas de barre affichée
                 if usage == 0:
                     details.append("Monitoring GPU non disponible pour AMD")
             elif component_type == "Disque":
@@ -2149,8 +2280,19 @@ class MainPage:
     def _update_hardware_card(self, card_container, component_type, data):
         """Met à jour une carte de composant matériel en temps réel"""
         try:
+            # Pour les GPU AMD, garder le dernier état valide d'utilisation
+            if component_type == "GPU" and hasattr(card_container, 'data'):
+                old_data = card_container.data.get("data", {})
+                old_usage = old_data.get("usage", 0)
+                new_usage = data.get("usage", 0)
+                
+                # Si l'ancienne valeur était > 0 et la nouvelle est 0,
+                # garder l'ancienne valeur pour éviter le clignotement
+                if old_usage > 0 and new_usage == 0:
+                    data = old_data.copy()
+                    data.update({"usage": old_usage})
+            
             # Reconstruire complètement la carte avec les nouvelles données
-            # C'est plus simple et plus fiable que de mettre à jour chaque élément
             new_card = self._build_hardware_card(component_type, data)
             
             # Remplacer le contenu de la carte
@@ -2277,7 +2419,7 @@ class MainPage:
             return
         
         # PROTECTION ANTI-SPAM: Bloquer si le bouton est désactivé
-        if self.dry_run_button and self.dry_run_button.disabled:
+        if self.dry_run_button and hasattr(self.dry_run_button, 'data') and self.dry_run_button.data == 'disabled':
             print("[DEBUG] Button disabled - SPAM BLOCKED")
             return
         
@@ -2286,8 +2428,8 @@ class MainPage:
         
         try:
             # Désactiver le bouton dry-run pendant l'analyse
-            self.dry_run_button.disabled = True
-            self.dry_run_button.text = "Analyse en cours..."
+            self.dry_run_button.data = 'disabled'
+            self.dry_run_button.opacity = 0.5
             self.page.update()
             
             # Lancer le dry-run dans un thread
@@ -2301,8 +2443,8 @@ class MainPage:
             self.cleaning_in_progress = False
             # Réactiver le bouton en cas d'erreur
             if self.dry_run_button:
-                self.dry_run_button.disabled = False
-                self.dry_run_button.text = "Prévisualiser le nettoyage"
+                self.dry_run_button.data = None
+                self.dry_run_button.opacity = 1
                 self.page.update()
     
     def _run_dry_run(self):
@@ -2341,8 +2483,8 @@ class MainPage:
             traceback.print_exc()
             
             # Réactiver le bouton dry-run
-            self.dry_run_button.disabled = False
-            self.dry_run_button.text = "Prévisualiser le nettoyage"
+            self.dry_run_button.data = None
+            self.dry_run_button.opacity = 1
             
             self.status_text.value = f"❌ Erreur lors de la prévisualisation : {str(ex)}"
             self.status_text.color = Colors.ERROR
@@ -2396,8 +2538,8 @@ class MainPage:
             traceback.print_exc()
             
             # En cas d'erreur, réactiver les boutons
-            self.dry_run_button.disabled = False
-            self.dry_run_button.text = "Prévisualiser le nettoyage"
+            self.dry_run_button.data = None
+            self.dry_run_button.opacity = 1
             self.page.update()
     
     def _show_security_warning(self):
