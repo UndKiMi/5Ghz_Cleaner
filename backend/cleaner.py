@@ -288,6 +288,189 @@ def is_path_in_allowed_temp(filepath):
     """
     return security_core.is_in_allowed_temp_directory(filepath)
 
+def scan_all_cleanable_files(progress_callback=None):
+    """
+    Scanne TOUS les fichiers nettoyables: temporaires, logs, Windows updates, corbeille.
+    Retourne la taille totale et le nombre de fichiers.
+    Optimisé pour être appelé fréquemment (toutes les 2 secondes).
+    
+    Returns:
+        dict: {
+            'total_size_bytes': int,
+            'total_size_mb': float,
+            'total_size_gb': float,
+            'file_count': int,
+            'breakdown': {
+                'temp': {'size_mb': float, 'count': int},
+                'logs': {'size_mb': float, 'count': int},
+                'windows_update': {'size_mb': float, 'count': int},
+                'recycle_bin': {'size_mb': float, 'count': int}
+            }
+        }
+    """
+    total_size_bytes = 0
+    total_file_count = 0
+    breakdown = {
+        'temp': {'size_mb': 0, 'count': 0},
+        'logs': {'size_mb': 0, 'count': 0},
+        'windows_update': {'size_mb': 0, 'count': 0},
+        'recycle_bin': {'size_mb': 0, 'count': 0}
+    }
+    
+    # 1. Scanner les fichiers temporaires (scan optimisé sans validation stricte)
+    try:
+        temp_dirs = [
+            os.getenv('TEMP'),
+            os.getenv('TMP'),
+            os.path.join(os.getenv('WINDIR', 'C:\\Windows'), 'Temp')
+        ]
+        
+        temp_size = 0
+        temp_count = 0
+        
+        for d in temp_dirs:
+            if not d or not os.path.exists(d):
+                continue
+            
+            try:
+                for f in os.listdir(d):
+                    fpath = os.path.join(d, f)
+                    try:
+                        # Vérification basique uniquement pour le scan
+                        if os.path.isfile(fpath):
+                            # Vérifier l'âge (plus de 2 heures)
+                            file_time = os.path.getmtime(fpath)
+                            age_hours = (datetime.now().timestamp() - file_time) / 3600
+                            if age_hours > 2:
+                                file_size = os.path.getsize(fpath)
+                                # Ignorer les très gros fichiers (>500 MB) et les fichiers système
+                                if file_size < 500 * 1024 * 1024 and not f.lower().endswith(('.sys', '.dll', '.exe')):
+                                    temp_size += file_size
+                                    temp_count += 1
+                        elif os.path.isdir(fpath):
+                            # Scanner les sous-dossiers
+                            try:
+                                for dirpath, dirnames, filenames in os.walk(fpath):
+                                    for filename in filenames:
+                                        fp = os.path.join(dirpath, filename)
+                                        try:
+                                            file_time = os.path.getmtime(fp)
+                                            age_hours = (datetime.now().timestamp() - file_time) / 3600
+                                            if age_hours > 2:
+                                                file_size = os.path.getsize(fp)
+                                                if file_size < 500 * 1024 * 1024 and not filename.lower().endswith(('.sys', '.dll', '.exe')):
+                                                    temp_size += file_size
+                                                    temp_count += 1
+                                        except (OSError, PermissionError):
+                                            pass
+                            except (OSError, PermissionError):
+                                pass
+                    except (OSError, PermissionError):
+                        pass
+            except (OSError, PermissionError):
+                pass
+        
+        breakdown['temp']['size_mb'] = temp_size / (1024 * 1024)
+        breakdown['temp']['count'] = temp_count
+        total_size_bytes += temp_size
+        total_file_count += temp_count
+    except Exception as e:
+        print(f"[WARNING] Failed to scan temp files: {e}")
+    
+    # 2. Scanner les fichiers de logs
+    try:
+        log_dirs = [
+            os.path.expandvars(r'%WINDIR%\Logs'),
+            os.path.expandvars(r'%LOCALAPPDATA%\Temp')
+        ]
+        log_size = 0
+        log_count = 0
+        
+        for d in log_dirs:
+            if os.path.isdir(d):
+                try:
+                    for f in os.listdir(d):
+                        if f.lower().endswith('.log'):
+                            fpath = os.path.join(d, f)
+                            try:
+                                if os.path.isfile(fpath):
+                                    log_size += os.path.getsize(fpath)
+                                    log_count += 1
+                            except (OSError, PermissionError):
+                                pass
+                except (OSError, PermissionError):
+                    pass
+        
+        breakdown['logs']['size_mb'] = log_size / (1024 * 1024)
+        breakdown['logs']['count'] = log_count
+        total_size_bytes += log_size
+        total_file_count += log_count
+    except Exception as e:
+        print(f"[WARNING] Failed to scan log files: {e}")
+    
+    # 3. Scanner le cache Windows Update
+    try:
+        wu_folder = os.path.join(os.getenv('WINDIR', 'C:\\Windows'), 'SoftwareDistribution', 'Download')
+        wu_size = 0
+        wu_count = 0
+        
+        if os.path.isdir(wu_folder):
+            try:
+                for f in os.listdir(wu_folder):
+                    fpath = os.path.join(wu_folder, f)
+                    try:
+                        # Vérifier l'âge (plus de 14 jours)
+                        file_time = os.path.getmtime(fpath)
+                        age_days = (datetime.now().timestamp() - file_time) / 86400
+                        
+                        if age_days > 14:
+                            if os.path.isfile(fpath):
+                                wu_size += os.path.getsize(fpath)
+                                wu_count += 1
+                            elif os.path.isdir(fpath):
+                                # Calculer la taille du dossier
+                                for dirpath, dirnames, filenames in os.walk(fpath):
+                                    for filename in filenames:
+                                        fp = os.path.join(dirpath, filename)
+                                        try:
+                                            wu_size += os.path.getsize(fp)
+                                        except (OSError, PermissionError):
+                                            pass
+                                wu_count += 1
+                    except (OSError, PermissionError):
+                        pass
+            except (OSError, PermissionError):
+                pass
+        
+        breakdown['windows_update']['size_mb'] = wu_size / (1024 * 1024)
+        breakdown['windows_update']['count'] = wu_count
+        total_size_bytes += wu_size
+        total_file_count += wu_count
+    except Exception as e:
+        print(f"[WARNING] Failed to scan Windows Update cache: {e}")
+    
+    # 4. Scanner la corbeille
+    try:
+        recycle_count = get_recycle_bin_count()
+        # Estimation: 1 MB par élément en moyenne
+        recycle_size = recycle_count * 1024 * 1024
+        
+        breakdown['recycle_bin']['size_mb'] = recycle_size / (1024 * 1024)
+        breakdown['recycle_bin']['count'] = recycle_count
+        total_size_bytes += recycle_size
+        total_file_count += recycle_count
+    except Exception as e:
+        print(f"[WARNING] Failed to scan recycle bin: {e}")
+    
+    return {
+        'total_size_bytes': total_size_bytes,
+        'total_size_mb': total_size_bytes / (1024 * 1024),
+        'total_size_gb': total_size_bytes / (1024 * 1024 * 1024),
+        'file_count': total_file_count,
+        'breakdown': breakdown
+    }
+
+
 def clear_temp(progress_callback=None, dry_run=False):
     """
     Clear temporary files - SÉCURITÉ MAXIMALE - Ne touche JAMAIS aux fichiers système
@@ -848,6 +1031,27 @@ def clear_standby_memory(progress_callback=None):
     except Exception as e:
         print(f"[WARNING] Failed to clear standby memory: {e}")
         return {"ram_standby_cleared": False}
+
+
+def get_dns_cache_size():
+    """
+    Obtient la taille estimée du cache DNS.
+    Retourne une estimation en MB.
+    """
+    try:
+        # Utiliser ipconfig /displaydns pour compter les entrées
+        result = run_hidden(["ipconfig", "/displaydns"])
+        if result.returncode == 0:
+            output = result.stdout.decode('utf-8', errors='ignore')
+            # Compter le nombre d'entrées (chaque entrée commence par un nom)
+            entry_count = output.count('Record Name')
+            # Estimation: ~1 KB par entrée DNS
+            size_mb = (entry_count * 1024) / (1024 * 1024)
+            return max(size_mb, 0.05)  # Minimum 50 KB
+        return 0.05  # Valeur par défaut
+    except Exception as e:
+        print(f"[WARNING] Failed to get DNS cache size: {e}")
+        return 0.05  # Valeur par défaut
 
 
 def flush_dns(progress_callback=None):

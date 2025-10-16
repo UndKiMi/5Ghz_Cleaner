@@ -324,7 +324,7 @@ class PreviewPage:
                             scroll=ft.ScrollMode.AUTO,
                             spacing=0,
                         ),
-                        height=350,  # Hauteur optimisée pour éviter le scroll excessif
+                        height=500,  # Hauteur augmentée pour plus d'espace et meilleure visibilité
                     ),
                 ],
                 spacing=0,
@@ -394,7 +394,7 @@ class PreviewPage:
                                         [
                                             ft.Icon(ft.Icons.DESCRIPTION_OUTLINED, size=14, color=Colors.FG_TERTIARY),
                                             ft.Container(width=4),
-                                            Caption(f"{files_count:,}", color=Colors.FG_SECONDARY),
+                                            Caption(f"{files_count:,} fichiers", color=Colors.FG_SECONDARY),
                                             ft.Container(width=Spacing.SM),
                                             ft.Icon(ft.Icons.STORAGE_OUTLINED, size=14, color=Colors.FG_TERTIARY),
                                             ft.Container(width=4),
@@ -406,6 +406,12 @@ class PreviewPage:
                                             ),
                                         ],
                                         spacing=0,
+                                    ),
+                                    ft.Container(height=Spacing.XS),
+                                    Caption(
+                                        self._get_operation_description(name),
+                                        color=Colors.FG_TERTIARY,
+                                        size=11,
                                     ),
                                 ],
                                 spacing=Spacing.XS,
@@ -475,6 +481,20 @@ class PreviewPage:
         }
         return icons_map.get(operation_name, ft.Icons.CLEANING_SERVICES_ROUNDED)
     
+    def _get_operation_description(self, operation_name):
+        """Retourne une description détaillée de l'opération"""
+        descriptions = {
+            "Fichiers temporaires": "Supprime les fichiers temporaires de Windows et des applications (TEMP, TMP)",
+            "Cache Windows Update": "Nettoie les fichiers de téléchargement Windows Update obsolètes (>14 jours)",
+            "Prefetch": "Supprime les fichiers prefetch anciens (>30 jours) pour optimiser le démarrage",
+            "Historique récent": "Efface l'historique des fichiers récemment ouverts",
+            "Cache miniatures": "Supprime le cache des miniatures d'images (thumbcache)",
+            "Dumps de crash": "Supprime les fichiers de dump de crash et minidump",
+            "Windows.old": "Supprime l'ancien dossier Windows après une mise à jour majeure",
+            "Corbeille": "Vide complètement la corbeille Windows",
+        }
+        return descriptions.get(operation_name, "Opération de nettoyage système")
+    
     def _select_all(self, e):
         """Sélectionne toutes les opérations"""
         for name in self.selected_operations:
@@ -540,7 +560,25 @@ class PreviewPage:
                 time_text = f"~{estimated_minutes} min"
             self.stats_time_text.value = time_text
         
-        # La bannière garde son style minimaliste (pas de changement de couleur)
+        # Mettre à jour le bouton de nettoyage
+        if hasattr(self, 'clean_button') and self.clean_button:
+            # Mettre à jour le texte
+            text_widget = self.clean_button.content.controls[0]
+            text_widget.value = f"Lancer le nettoyage ({selected_count} opération{'s' if selected_count > 1 else ''})"
+            
+            # Mettre à jour l'état du bouton
+            self.clean_button.disabled = selected_count == 0
+            self.clean_button.on_click = self._start_cleaning if selected_count > 0 else None
+            
+            # Changer l'apparence si désactivé
+            if selected_count == 0:
+                self.clean_button.bgcolor = Colors.BORDER_DEFAULT
+                self.clean_button.opacity = 0.5
+                text_widget.color = Colors.FG_SECONDARY
+            else:
+                self.clean_button.bgcolor = Colors.ACCENT_PRIMARY
+                self.clean_button.opacity = 1
+                text_widget.color = ft.Colors.WHITE
         
         # Mettre à jour la page
         self.page.update()
@@ -551,6 +589,30 @@ class PreviewPage:
         """Construit les boutons d'action"""
         selected_count = sum(1 for v in self.selected_operations.values() if v)
         
+        # Créer le bouton de nettoyage et stocker la référence
+        self.clean_button = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Text(
+                        f"Lancer le nettoyage ({selected_count} opération{'s' if selected_count > 1 else ''})",
+                        size=14,
+                        weight=ft.FontWeight.W_600,
+                        color=ft.Colors.WHITE,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            width=350,
+            height=50,
+            border_radius=BorderRadius.MD,
+            bgcolor=Colors.ACCENT_PRIMARY if selected_count > 0 else Colors.BORDER_DEFAULT,
+            opacity=1 if selected_count > 0 else 0.5,
+            disabled=selected_count == 0,
+            on_click=self._start_cleaning if selected_count > 0 else None,
+            ink=True,
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+        )
+        
         return ft.Row(
             [
                 SecondaryButton(
@@ -560,13 +622,7 @@ class PreviewPage:
                     width=200,
                 ),
                 ft.Container(width=Spacing.LG),
-                PrimaryButton(
-                    f"Lancer le nettoyage ({selected_count} opérations)",
-                    icon=ft.Icons.PLAY_ARROW_ROUNDED,
-                    on_click=self._start_cleaning,
-                    width=300,
-                    disabled=selected_count == 0,
-                ),
+                self.clean_button,
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )

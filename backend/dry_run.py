@@ -125,6 +125,127 @@ class DryRunManager:
                 "note": "Impossible de compter les éléments"
             })
         
+        # 9. Options avancées cochées par l'utilisateur
+        print("[9/9] Analyse des options avancées...")
+        if options.get("clear_standby_memory"):
+            self._add_operation("Libérer RAM Standby", {
+                "ram_cleared": 1,
+                "dry_run": True,
+                "note": "Libère la mémoire RAM en attente"
+            })
+        
+        if options.get("flush_dns"):
+            self._add_operation("Flush DNS", {
+                "dns_flushed": 1,
+                "dry_run": True,
+                "note": "Vide le cache DNS système"
+            })
+        
+        if options.get("disable_telemetry"):
+            self._add_operation("Désactiver télémétrie", {
+                "telemetry_disabled": 1,
+                "dry_run": True,
+                "warning": "Arrête les services DiagTrack et dmwappushservice"
+            })
+        
+        if options.get("clear_large_logs"):
+            self._add_operation("Nettoyer logs volumineux", {
+                "logs_cleared": 1,
+                "dry_run": True,
+                "note": "Supprime les fichiers .log volumineux"
+            })
+        
+        if options.get("disable_hibernation"):
+            self._add_operation("Désactiver hibernation", {
+                "hibernation_disabled": 1,
+                "dry_run": True,
+                "warning": "Supprime hiberfil.sys - Vous ne pourrez plus hiberner"
+            })
+        
+        if options.get("clean_restore_points"):
+            self._add_operation("Nettoyer points de restauration", {
+                "restore_points_cleaned": 1,
+                "dry_run": True,
+                "note": "Garde les 2 plus récents"
+            })
+        
+        if options.get("optimize_startup"):
+            self._add_operation("Optimiser démarrage", {
+                "startup_optimized": 1,
+                "dry_run": True,
+                "note": "Analyse les programmes au démarrage"
+            })
+        
+        if options.get("clear_browser_cache"):
+            self._add_operation("Vider cache navigateurs", {
+                "browser_cache_cleared": 1,
+                "dry_run": True,
+                "warning": "Vous serez déconnecté des sites web"
+            })
+        
+        if options.get("clean_event_logs"):
+            self._add_operation("Nettoyer journaux événements", {
+                "event_logs_cleaned": 1,
+                "dry_run": True,
+                "note": "Vide les logs Application, System, Security"
+            })
+        
+        if options.get("disable_superfetch"):
+            self._add_operation("Désactiver Superfetch", {
+                "superfetch_disabled": 1,
+                "dry_run": True,
+                "note": "Recommandé pour SSD"
+            })
+        
+        if options.get("disable_cortana"):
+            self._add_operation("Désactiver Cortana", {
+                "cortana_disabled": 1,
+                "dry_run": True,
+                "note": "Libère de la RAM"
+            })
+        
+        if options.get("optimize_tcp_ip"):
+            self._add_operation("Optimiser TCP/IP", {
+                "tcp_ip_optimized": 1,
+                "dry_run": True,
+                "warning": "Nécessite un redémarrage"
+            })
+        
+        if options.get("disable_services"):
+            self._add_operation("Désactiver services inutiles", {
+                "services_disabled": 1,
+                "dry_run": True,
+                "note": "Désactive Fax, Tablet Input, etc."
+            })
+        
+        if options.get("gaming_mode"):
+            self._add_operation("Mode Gaming", {
+                "gaming_mode_enabled": 1,
+                "dry_run": True,
+                "note": "Désactive Game Bar, optimise FPS"
+            })
+        
+        if options.get("clean_drivers"):
+            self._add_operation("Nettoyer pilotes obsolètes", {
+                "drivers_cleaned": 1,
+                "dry_run": True,
+                "note": "Supprime les anciens pilotes"
+            })
+        
+        if options.get("clean_winsxs"):
+            self._add_operation("Nettoyer WinSxS", {
+                "winsxs_cleaned": 1,
+                "dry_run": True,
+                "warning": "Opération longue (5-15 minutes)"
+            })
+        
+        if options.get("optimize_pagefile"):
+            self._add_operation("Optimiser fichier de pagination", {
+                "pagefile_optimized": 1,
+                "dry_run": True,
+                "note": "Configure automatiquement le pagefile"
+            })
+        
         # Calculer totaux
         self._calculate_totals()
         

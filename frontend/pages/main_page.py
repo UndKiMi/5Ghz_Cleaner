@@ -155,11 +155,23 @@ class MainPage:
                     ft.Container(
                         content=ft.Column(
                             [
-                                BodyText(
-                                    "Actions rapides", 
-                                    weight=ft.FontWeight.W_600, 
-                                    size=22,
-                                    color=Colors.FG_PRIMARY,
+                                ft.Row(
+                                    [
+                                        BodyText(
+                                            "Actions rapides", 
+                                            weight=ft.FontWeight.W_600, 
+                                            size=22,
+                                            color=Colors.FG_PRIMARY,
+                                        ),
+                                        ft.Container(width=Spacing.XS),
+                                        ft.Icon(
+                                            ft.Icons.INFO_OUTLINE_ROUNDED,
+                                            size=18,
+                                            color=Colors.FG_TERTIARY,
+                                            tooltip="Actions instantanées: Point de restauration, Vérification télémétrie, Vider corbeille, Flush DNS.",
+                                        ),
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER,
                                 ),
                                 Spacer(height=Spacing.XS),
                                 Caption(
@@ -325,31 +337,22 @@ class MainPage:
         """
         Calcule les données de stockage de manière optimisée et centralisée
         Retourne un dictionnaire avec toutes les valeurs calculées
+        NOUVELLE VERSION: Utilise scan_all_cleanable_files pour les fichiers
         """
         from backend import cleaner
         import psutil
         import time
         
-        # Vérifier si on peut utiliser le cache (moins de 2 secondes depuis la dernière mise à jour)
-        current_time = time.time()
-        if hasattr(self, 'last_update_time') and (current_time - self.last_update_time) < 2:
-            # Utiliser les valeurs en cache
-            return {
-                'temp_mb': self.last_temp_size,
-                'temp_gb': self.last_temp_size / 1024,
-                'standby_mb': self.last_standby_size,
-                'standby_gb': self.last_standby_size / 1024,
-                'dns_mb': 50,
-                'from_cache': True
-            }
-        
-        # === CALCUL DES FICHIERS TEMPORAIRES ===
+        # === CALCUL DES FICHIERS À NETTOYER (tous types) ===
         try:
-            temp_result = cleaner.clear_temp(dry_run=True)
-            temp_size_mb = temp_result.get("total_size_mb", 0)
+            # Utiliser la nouvelle fonction qui scanne TOUT
+            scan_result = cleaner.scan_all_cleanable_files()
+            cleanable_size_mb = scan_result.get('total_size_mb', 0)
+            cleanable_count = scan_result.get('file_count', 0)
         except Exception as e:
-            print(f"[ERROR] Failed to calculate temp files: {e}")
-            temp_size_mb = 0
+            print(f"[ERROR] Failed to scan cleanable files: {e}")
+            cleanable_size_mb = 0
+            cleanable_count = 0
         
         # === CALCUL DE LA RAM STANDBY ===
         try:
@@ -373,22 +376,30 @@ class MainPage:
                 else:
                     # Estimation sûre: 10% de la RAM totale
                     standby_mb = total_mb_ram * 0.10
+                    
+            # Calculer le pourcentage de RAM standby
+            standby_percent = (standby_mb / total_mb_ram * 100) if total_mb_ram > 0 else 0
         except Exception as e:
             print(f"[ERROR] Failed to calculate RAM standby: {e}")
             standby_mb = 0
+            standby_percent = 0
         
-        # Mettre à jour le cache
-        self.last_temp_size = temp_size_mb
-        self.last_standby_size = standby_mb
-        self.last_update_time = current_time
+        # === CALCUL DU CACHE DNS ===
+        try:
+            dns_mb = cleaner.get_dns_cache_size()
+        except Exception as e:
+            print(f"[ERROR] Failed to get DNS cache size: {e}")
+            dns_mb = 0.05
         
         return {
-            'temp_mb': temp_size_mb,
-            'temp_gb': temp_size_mb / 1024,
+            'cleanable_mb': cleanable_size_mb,
+            'cleanable_gb': cleanable_size_mb / 1024,
+            'cleanable_count': cleanable_count,
             'standby_mb': standby_mb,
             'standby_gb': standby_mb / 1024,
-            'dns_mb': 50,
-            'from_cache': False
+            'standby_percent': standby_percent,
+            'dns_mb': dns_mb,
+            'dns_gb': dns_mb / 1024
         }
     
     def _build_storage_preview_section(self):
@@ -427,6 +438,20 @@ class MainPage:
         self.last_standby_size = 0
         self.last_update_time = 0
         
+        # Initialiser les compteurs pour les scans
+        self.last_cleanable_scan = 0
+        self.last_ram_scan = 0
+        self.last_dns_scan = 0
+        
+        # Créer les widgets de texte qui seront mis à jour (pas recréés)
+        self.storage_total_text = None
+        self.storage_cleanable_text = None
+        self.storage_cleanable_progress = None
+        self.storage_ram_text = None
+        self.storage_ram_progress = None
+        self.storage_dns_text = None
+        self.storage_dns_progress = None
+        
         # Lancer le calcul en arrière-plan
         import threading
         def calculate_storage():
@@ -434,65 +459,26 @@ class MainPage:
                 # Utiliser la fonction centralisée
                 storage_data = self._calculate_storage_data()
                 
-                temp_size_mb = storage_data['temp_mb']
-                temp_size_gb = storage_data['temp_gb']
+                cleanable_mb = storage_data['cleanable_mb']
+                cleanable_gb = storage_data['cleanable_gb']
                 standby_mb = storage_data['standby_mb']
                 standby_gb = storage_data['standby_gb']
-                
-                # Cache DNS (estimation fixe car non mesurable)
-                dns_mb = 50  # Valeur réaliste
+                standby_percent = storage_data['standby_percent']
+                dns_mb = storage_data['dns_mb']
                 
                 # Calculer le total pour les pourcentages
-                total_mb = temp_size_mb + standby_mb + dns_mb
+                total_mb = cleanable_mb + standby_mb + dns_mb
                 
                 # Mettre à jour l'interface avec les vraies données
-                storage_container.content = ft.Column(
-                    [
-                        BodyText(
-                            "Espace à libérer", 
-                            weight=ft.FontWeight.W_600, 
-                            size=20,
-                            color=Colors.FG_PRIMARY,
-                        ),
-                        Spacer(height=Spacing.XS),
-                        Caption(
-                            f"Total estimé: {total_mb / 1024:.2f} GB",
-                            color=Colors.FG_SECONDARY,
-                            size=13,
-                        ),
-                        Spacer(height=Spacing.XL),
-                        ft.Column(
-                            [
-                                self._build_storage_item(
-                                    icon=ft.Icons.FOLDER_DELETE_OUTLINED,
-                                    title="Fichiers temporaires",
-                                    current=f"{temp_size_gb:.2f} GB" if temp_size_gb >= 1 else f"{temp_size_mb:.0f} MB",
-                                    percentage=temp_size_mb / total_mb if total_mb > 0 else 0,
-                                    color=Colors.WARNING,
-                                ),
-                                Spacer(height=Spacing.MD),
-                                self._build_storage_item(
-                                    icon=ft.Icons.MEMORY_OUTLINED,
-                                    title="RAM Standby",
-                                    current=f"{standby_gb:.2f} GB" if standby_gb >= 1 else f"{standby_mb:.0f} MB",
-                                    percentage=standby_mb / total_mb if total_mb > 0 else 0,
-                                    color=Colors.INFO,
-                                ),
-                                Spacer(height=Spacing.MD),
-                                self._build_storage_item(
-                                    icon=ft.Icons.DNS_OUTLINED,
-                                    title="Cache DNS",
-                                    current=f"{dns_mb} MB",
-                                    percentage=dns_mb / total_mb if total_mb > 0 else 0,
-                                    color=Colors.SUCCESS,
-                                ),
-                            ],
-                            spacing=0,
-                        ),
-                    ],
-                    spacing=0,
+                storage_container.content = self._build_storage_content(
+                    cleanable_mb, cleanable_gb, 
+                    standby_mb, standby_gb, standby_percent,
+                    dns_mb, total_mb
                 )
                 self.page.update()
+                
+                # Démarrer la mise à jour automatique
+                self._start_storage_auto_update()
                 
             except Exception as e:
                 print(f"[ERROR] Failed to calculate storage: {e}")
@@ -518,95 +504,422 @@ class MainPage:
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
                 self.page.update()
-                
-                # Démarrer la mise à jour automatique toutes les secondes
-                self._start_storage_auto_update()
         
         # Lancer le thread de calcul
         threading.Thread(target=calculate_storage, daemon=True).start()
         
         return storage_container
     
+    def _build_storage_content(self, cleanable_mb, cleanable_gb, standby_mb, standby_gb, standby_percent, dns_mb, total_mb):
+        """Construit le contenu de la section de stockage - CRÉATION UNIQUE"""
+        # Si c'est la première fois, créer les widgets et stocker les références
+        if self.storage_total_text is None:
+            # Créer les widgets de texte
+            self.storage_total_text = Caption(
+                f"Total estimé: {total_mb / 1024:.2f} GB",
+                color=Colors.FG_SECONDARY,
+                size=13,
+            )
+            
+            # Créer les items de stockage avec références
+            self.storage_cleanable_item = self._build_storage_item_with_tooltip(
+                icon=ft.Icons.CLEANING_SERVICES_OUTLINED,
+                title="Fichiers à nettoyer",
+                current=f"{cleanable_gb:.2f} GB" if cleanable_gb >= 1 else f"{cleanable_mb:.0f} MB",
+                percentage=cleanable_mb / total_mb if total_mb > 0 else 0,
+                color=Colors.WARNING,
+                show_button=False,
+                tooltip="Fichiers temporaires, logs, cache Windows Update et corbeille. Scan toutes les 2s.",
+                item_key="cleanable"
+            )
+            
+            self.storage_ram_item = self._build_storage_item_with_tooltip(
+                icon=ft.Icons.MEMORY_OUTLINED,
+                title=f"RAM Standby ({standby_percent:.1f}%)",
+                current=f"{standby_gb:.2f} GB" if standby_gb >= 1 else f"{standby_mb:.0f} MB",
+                percentage=standby_mb / total_mb if total_mb > 0 else 0,
+                color=Colors.INFO,
+                show_button=True,
+                button_text="Vider la RAM",
+                button_action=lambda e: self._clear_ram_action(),
+                button_ref_key="ram_button",
+                tooltip="Mémoire en attente libérable. Clic sur 'Vider la RAM' pour libérer. Scan toutes les 3s.",
+                item_key="ram"
+            )
+            
+            self.storage_dns_item = self._build_storage_item_with_tooltip(
+                icon=ft.Icons.DNS_OUTLINED,
+                title="Cache DNS",
+                current=f"{dns_mb:.2f} MB" if dns_mb >= 1 else f"{dns_mb * 1024:.0f} KB",
+                percentage=dns_mb / total_mb if total_mb > 0 else 0,
+                color=Colors.SUCCESS,
+                show_button=False,
+                tooltip="Cache DNS système. Vidé avec 'Flush DNS' ou nettoyage complet. Scan toutes les 5s.",
+                item_key="dns"
+            )
+            
+            return ft.Column(
+                [
+                    ft.Row(
+                        [
+                            BodyText(
+                                "Espace à libérer", 
+                                weight=ft.FontWeight.W_600, 
+                                size=20,
+                                color=Colors.FG_PRIMARY,
+                            ),
+                            ft.Container(width=Spacing.XS),
+                            ft.Icon(
+                                ft.Icons.INFO_OUTLINE_ROUNDED,
+                                size=18,
+                                color=Colors.FG_TERTIARY,
+                                tooltip="Espace disque et mémoire libérables. Mise à jour automatique toutes les 2-5 secondes.",
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.START,
+                    ),
+                    Spacer(height=Spacing.XS),
+                    self.storage_total_text,
+                    Spacer(height=Spacing.XL),
+                    ft.Column(
+                        [
+                            self.storage_cleanable_item,
+                            Spacer(height=Spacing.MD),
+                            self.storage_ram_item,
+                            Spacer(height=Spacing.MD),
+                            self.storage_dns_item,
+                        ],
+                        spacing=0,
+                    ),
+                ],
+                spacing=0,
+            )
+        else:
+            # Mise à jour uniquement des valeurs (pas de recréation)
+            self._update_storage_values(cleanable_mb, cleanable_gb, standby_mb, standby_gb, standby_percent, dns_mb, total_mb)
+            # Retourner None pour indiquer qu'on a juste mis à jour
+            return None
+    
+    def _update_storage_values(self, cleanable_mb, cleanable_gb, standby_mb, standby_gb, standby_percent, dns_mb, total_mb):
+        """Met à jour uniquement les valeurs sans recréer les widgets"""
+        # Mettre à jour le total
+        if self.storage_total_text:
+            self.storage_total_text.value = f"Total estimé: {total_mb / 1024:.2f} GB"
+        
+        # Mettre à jour les items via leurs références stockées
+        if hasattr(self, 'storage_item_refs'):
+            # Fichiers à nettoyer
+            if 'cleanable' in self.storage_item_refs:
+                refs = self.storage_item_refs['cleanable']
+                refs['title'].value = "Fichiers à nettoyer"
+                refs['current'].value = f"À libérer: {cleanable_gb:.2f} GB" if cleanable_gb >= 1 else f"À libérer: {cleanable_mb:.0f} MB"
+                refs['progress'].value = cleanable_mb / total_mb if total_mb > 0 else 0
+            
+            # RAM Standby
+            if 'ram' in self.storage_item_refs:
+                refs = self.storage_item_refs['ram']
+                refs['title'].value = f"RAM Standby ({standby_percent:.1f}%)"
+                refs['current'].value = f"À libérer: {standby_gb:.2f} GB" if standby_gb >= 1 else f"À libérer: {standby_mb:.0f} MB"
+                refs['progress'].value = standby_mb / total_mb if total_mb > 0 else 0
+            
+            # Cache DNS
+            if 'dns' in self.storage_item_refs:
+                refs = self.storage_item_refs['dns']
+                refs['title'].value = "Cache DNS"
+                refs['current'].value = f"À libérer: {dns_mb:.2f} MB" if dns_mb >= 1 else f"À libérer: {dns_mb * 1024:.0f} KB"
+                refs['progress'].value = dns_mb / total_mb if total_mb > 0 else 0
+    
     def _start_storage_auto_update(self):
-        """Démarre la mise à jour automatique des barres de stockage - VERSION OPTIMISÉE"""
+        """Démarre la mise à jour automatique avec intervalles différents pour chaque section"""
         import threading
         import time
         
         def auto_update_loop():
             while True:
                 try:
-                    time.sleep(1)  # Attendre 1 seconde
+                    current_time = time.time()
                     
-                    # Utiliser la fonction centralisée pour recalculer
-                    storage_data = self._calculate_storage_data()
+                    # Déterminer quoi scanner selon les intervalles
+                    scan_cleanable = (current_time - self.last_cleanable_scan) >= 2  # 2 secondes
+                    scan_ram = (current_time - self.last_ram_scan) >= 3  # 3 secondes
+                    scan_dns = (current_time - self.last_dns_scan) >= 5  # 5 secondes
                     
-                    temp_size_mb = storage_data['temp_mb']
-                    temp_size_gb = storage_data['temp_gb']
-                    standby_mb = storage_data['standby_mb']
-                    standby_gb = storage_data['standby_gb']
-                    dns_mb = storage_data['dns_mb']
-                    
-                    total_mb = temp_size_mb + standby_mb + dns_mb
-                    
-                    # Mettre à jour l'interface
-                    if hasattr(self, 'storage_container') and self.storage_container:
-                        self.storage_container.content = ft.Column(
-                            [
-                                BodyText(
-                                    "Espace à libérer", 
-                                    weight=ft.FontWeight.W_600, 
-                                    size=20,
-                                    color=Colors.FG_PRIMARY,
-                                ),
-                                Spacer(height=Spacing.XS),
-                                Caption(
-                                    f"Total estimé: {total_mb / 1024:.2f} GB",
-                                    color=Colors.FG_SECONDARY,
-                                    size=13,
-                                ),
-                                Spacer(height=Spacing.XL),
-                                ft.Column(
-                                    [
-                                        self._build_storage_item(
-                                            icon=ft.Icons.FOLDER_DELETE_OUTLINED,
-                                            title="Fichiers temporaires",
-                                            current=f"{temp_size_gb:.2f} GB" if temp_size_gb >= 1 else f"{temp_size_mb:.0f} MB",
-                                            percentage=temp_size_mb / total_mb if total_mb > 0 else 0,
-                                            color=Colors.WARNING,
-                                        ),
-                                        Spacer(height=Spacing.MD),
-                                        self._build_storage_item(
-                                            icon=ft.Icons.MEMORY_OUTLINED,
-                                            title="RAM Standby",
-                                            current=f"{standby_gb:.2f} GB" if standby_gb >= 1 else f"{standby_mb:.0f} MB",
-                                            percentage=standby_mb / total_mb if total_mb > 0 else 0,
-                                            color=Colors.INFO,
-                                        ),
-                                        Spacer(height=Spacing.MD),
-                                        self._build_storage_item(
-                                            icon=ft.Icons.DNS_OUTLINED,
-                                            title="Cache DNS",
-                                            current=f"{dns_mb} MB",
-                                            percentage=dns_mb / total_mb if total_mb > 0 else 0,
-                                            color=Colors.SUCCESS,
-                                        ),
-                                    ],
-                                    spacing=0,
-                                ),
-                            ],
-                            spacing=0,
+                    # Scanner uniquement ce qui est nécessaire
+                    if scan_cleanable or scan_ram or scan_dns:
+                        storage_data = self._calculate_storage_data_selective(
+                            scan_cleanable, scan_ram, scan_dns
                         )
-                        self.page.update()
+                        
+                        # Mettre à jour les timestamps
+                        if scan_cleanable:
+                            self.last_cleanable_scan = current_time
+                        if scan_ram:
+                            self.last_ram_scan = current_time
+                        if scan_dns:
+                            self.last_dns_scan = current_time
+                        
+                        cleanable_mb = storage_data['cleanable_mb']
+                        cleanable_gb = storage_data['cleanable_gb']
+                        standby_mb = storage_data['standby_mb']
+                        standby_gb = storage_data['standby_gb']
+                        standby_percent = storage_data['standby_percent']
+                        dns_mb = storage_data['dns_mb']
+                        
+                        total_mb = cleanable_mb + standby_mb + dns_mb
+                        
+                        # Mettre à jour l'interface (sans recréer les widgets)
+                        if hasattr(self, 'storage_container') and self.storage_container:
+                            # Appeler _build_storage_content qui va juste mettre à jour les valeurs
+                            result = self._build_storage_content(
+                                cleanable_mb, cleanable_gb,
+                                standby_mb, standby_gb, standby_percent,
+                                dns_mb, total_mb
+                            )
+                            # Si result n'est pas None, c'est la première création
+                            if result is not None:
+                                self.storage_container.content = result
+                            # Sinon, les valeurs ont juste été mises à jour
+                            self.page.update()
+                    
+                    time.sleep(0.5)  # Vérifier toutes les 0.5 secondes
                 
                 except Exception as e:
                     print(f"[ERROR] Auto-update storage failed: {e}")
+                    time.sleep(1)
         
         # Lancer le thread de mise à jour automatique
         self.storage_update_timer = threading.Thread(target=auto_update_loop, daemon=True)
         self.storage_update_timer.start()
     
-    def _build_storage_item(self, icon, title, current, percentage, color):
-        """Construit un item de stockage avec barre de progression"""
+    def _calculate_storage_data_selective(self, scan_cleanable, scan_ram, scan_dns):
+        """Calcule sélectivement les données selon ce qui doit être scanné"""
+        from backend import cleaner
+        import psutil
+        
+        # Utiliser les valeurs en cache si pas besoin de rescanner
+        if not hasattr(self, '_cached_storage_data'):
+            self._cached_storage_data = {
+                'cleanable_mb': 0,
+                'cleanable_gb': 0,
+                'cleanable_count': 0,
+                'standby_mb': 0,
+                'standby_gb': 0,
+                'standby_percent': 0,
+                'dns_mb': 0.05,
+                'dns_gb': 0.00005
+            }
+        
+        # Scanner les fichiers à nettoyer si nécessaire
+        if scan_cleanable:
+            try:
+                scan_result = cleaner.scan_all_cleanable_files()
+                self._cached_storage_data['cleanable_mb'] = scan_result.get('total_size_mb', 0)
+                self._cached_storage_data['cleanable_gb'] = scan_result.get('total_size_gb', 0)
+                self._cached_storage_data['cleanable_count'] = scan_result.get('file_count', 0)
+            except Exception as e:
+                print(f"[ERROR] Failed to scan cleanable files: {e}")
+        
+        # Scanner la RAM si nécessaire
+        if scan_ram:
+            try:
+                memory = psutil.virtual_memory()
+                
+                if hasattr(memory, 'cached'):
+                    standby_mb = memory.cached / (1024 * 1024)
+                else:
+                    used_mb = memory.used / (1024 * 1024)
+                    available_mb = memory.available / (1024 * 1024)
+                    total_mb_ram = memory.total / (1024 * 1024)
+                    
+                    calculated_standby = total_mb_ram - used_mb - available_mb
+                    
+                    if 0 < calculated_standby < (total_mb_ram * 0.5):
+                        standby_mb = calculated_standby
+                    else:
+                        standby_mb = total_mb_ram * 0.10
+                
+                standby_percent = (standby_mb / total_mb_ram * 100) if total_mb_ram > 0 else 0
+                
+                self._cached_storage_data['standby_mb'] = standby_mb
+                self._cached_storage_data['standby_gb'] = standby_mb / 1024
+                self._cached_storage_data['standby_percent'] = standby_percent
+            except Exception as e:
+                print(f"[ERROR] Failed to calculate RAM standby: {e}")
+        
+        # Scanner le DNS si nécessaire
+        if scan_dns:
+            try:
+                dns_mb = cleaner.get_dns_cache_size()
+                self._cached_storage_data['dns_mb'] = dns_mb
+                self._cached_storage_data['dns_gb'] = dns_mb / 1024
+            except Exception as e:
+                print(f"[ERROR] Failed to get DNS cache size: {e}")
+        
+        return self._cached_storage_data
+    
+    def _build_storage_item_with_tooltip(self, icon, title, current, percentage, color, show_button=False, button_text="", button_action=None, button_ref_key=None, tooltip="", item_key=None):
+        """Construit un item de stockage avec barre de progression, bouton optionnel et tooltip"""
+        # Créer le bouton si demandé
+        button_widget = None
+        if show_button:
+            button_widget = ft.Container(
+                content=ft.Text(
+                    button_text,
+                    size=12,
+                    weight=ft.FontWeight.W_600,
+                    color=ft.Colors.WHITE,
+                ),
+                padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                border_radius=BorderRadius.SM,
+                bgcolor=color,
+                on_click=button_action,
+                ink=True,
+                animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+            )
+            
+            # Stocker la référence du bouton si une clé est fournie
+            if button_ref_key:
+                if not hasattr(self, 'storage_item_buttons'):
+                    self.storage_item_buttons = {}
+                self.storage_item_buttons[button_ref_key] = button_widget
+        
+        # Créer les widgets texte et progress bar
+        title_text = ft.Text(
+            title,
+            color=Colors.FG_PRIMARY,
+            weight=ft.FontWeight.W_600,
+            size=15,
+        )
+        
+        current_text = ft.Text(
+            f"À libérer: {current}",
+            color=Colors.FG_SECONDARY,
+            size=12,
+        )
+        
+        progress_bar = ft.ProgressBar(
+            value=percentage,
+            height=8,
+            color=color,
+            bgcolor=ft.Colors.with_opacity(0.2, color),
+            border_radius=BorderRadius.SM,
+        )
+        
+        # Stocker les références si une clé est fournie
+        if item_key:
+            if not hasattr(self, 'storage_item_refs'):
+                self.storage_item_refs = {}
+            self.storage_item_refs[item_key] = {
+                'title': title_text,
+                'current': current_text,
+                'progress': progress_bar,
+            }
+        
+        return ft.Container(
+            content=ft.Column(
+                [
+                    # En-tête avec icône et titre
+                    ft.Row(
+                        [
+                            # Icône avec effet subtil
+                            ft.Container(
+                                content=ft.Icon(icon, size=24, color=color),
+                                width=48,
+                                height=48,
+                                border_radius=BorderRadius.SM,
+                                bgcolor=ft.Colors.with_opacity(0.15, color),
+                                alignment=ft.alignment.center,
+                                shadow=ft.BoxShadow(
+                                    spread_radius=0,
+                                    blur_radius=8,
+                                    color=ft.Colors.with_opacity(0.2, color),
+                                    offset=ft.Offset(0, 2),
+                                ),
+                            ),
+                            ft.Container(width=Spacing.MD),
+                            # Titre et taille
+                            ft.Column(
+                                [
+                                    ft.Row(
+                                        [
+                                            title_text,
+                                            ft.Container(width=Spacing.XS),
+                                            ft.Icon(
+                                                ft.Icons.INFO_OUTLINE_ROUNDED,
+                                                size=14,
+                                                color=Colors.FG_TERTIARY,
+                                                tooltip=tooltip,
+                                            ) if tooltip else ft.Container(),
+                                        ],
+                                        spacing=0,
+                                    ),
+                                    current_text,
+                                ],
+                                spacing=Spacing.XS,
+                                expand=True,
+                            ),
+                            # Bouton ou badge pourcentage
+                            button_widget if show_button else ft.Container(
+                                content=ft.Text(
+                                    f"{int(percentage * 100)}%",
+                                    color=color,
+                                    weight=ft.FontWeight.W_700,
+                                    size=14,
+                                ),
+                                padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                                border_radius=BorderRadius.SM,
+                                bgcolor=ft.Colors.with_opacity(0.15, color),
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.START,
+                    ),
+                    Spacer(height=Spacing.MD),
+                    # Barre de progression avec effet
+                    ft.Container(
+                        content=progress_bar,
+                        shadow=ft.BoxShadow(
+                            spread_radius=0,
+                            blur_radius=6,
+                            color=ft.Colors.with_opacity(0.3, color),
+                            offset=ft.Offset(0, 2),
+                        ),
+                    ),
+                ],
+                spacing=0,
+            ),
+            padding=Spacing.LG,
+            border_radius=BorderRadius.MD,
+            bgcolor=Colors.BG_SECONDARY,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.3, color)),
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+        )
+    
+    def _build_storage_item(self, icon, title, current, percentage, color, show_button=False, button_text="", button_action=None, button_ref_key=None):
+        """Construit un item de stockage avec barre de progression et bouton optionnel"""
+        # Créer le bouton si demandé
+        button_widget = None
+        if show_button:
+            button_widget = ft.Container(
+                content=ft.Text(
+                    button_text,
+                    size=12,
+                    weight=ft.FontWeight.W_600,
+                    color=ft.Colors.WHITE,
+                ),
+                padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                border_radius=BorderRadius.SM,
+                bgcolor=color,
+                on_click=button_action,
+                ink=True,
+                animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+            )
+            
+            # Stocker la référence du bouton si une clé est fournie
+            if button_ref_key:
+                if not hasattr(self, 'storage_item_buttons'):
+                    self.storage_item_buttons = {}
+                self.storage_item_buttons[button_ref_key] = button_widget
+        
         return ft.Container(
             content=ft.Column(
                 [
@@ -647,8 +960,8 @@ class MainPage:
                                 spacing=Spacing.XS,
                                 expand=True,
                             ),
-                            # Badge pourcentage
-                            ft.Container(
+                            # Bouton ou badge pourcentage
+                            button_widget if show_button else ft.Container(
                                 content=ft.Text(
                                     f"{int(percentage * 100)}%",
                                     color=color,
@@ -689,13 +1002,90 @@ class MainPage:
             animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
         )
     
+    def _clear_ram_action(self):
+        """Vide la RAM standby avec animation de succès/échec"""
+        import threading
+        
+        def clear_ram():
+            from backend import cleaner
+            
+            try:
+                print("[INFO] Clearing RAM standby...")
+                
+                # Obtenir la référence du bouton
+                button = None
+                if hasattr(self, 'storage_item_buttons') and 'ram_button' in self.storage_item_buttons:
+                    button = self.storage_item_buttons['ram_button']
+                
+                # Animation de chargement
+                if button:
+                    button.bgcolor = ft.Colors.ORANGE
+                    self.page.update()
+                
+                # Vider la RAM
+                result = cleaner.clear_standby_memory()
+                success = result.get('ram_standby_cleared', False)
+                
+                # Animation de succès ou échec
+                if button:
+                    if success:
+                        # Animation verte (succès)
+                        button.bgcolor = ft.Colors.GREEN
+                        button.content.value = "✓ Vidée"
+                        self.page.update()
+                        
+                        import time
+                        time.sleep(1.5)
+                        
+                        # Retour à la normale
+                        button.bgcolor = Colors.INFO
+                        button.content.value = "Vider la RAM"
+                        self.page.update()
+                        
+                        # Forcer un rescan de la RAM immédiatement
+                        self.last_ram_scan = 0
+                    else:
+                        # Animation rouge (échec)
+                        button.bgcolor = ft.Colors.RED
+                        button.content.value = "✗ Échec"
+                        self.page.update()
+                        
+                        import time
+                        time.sleep(1.5)
+                        
+                        # Retour à la normale
+                        button.bgcolor = Colors.INFO
+                        button.content.value = "Vider la RAM"
+                        self.page.update()
+                
+                print(f"[INFO] RAM clear result: {success}")
+                
+            except Exception as e:
+                print(f"[ERROR] Failed to clear RAM: {e}")
+                
+                # Animation d'erreur
+                if button:
+                    button.bgcolor = ft.Colors.RED
+                    button.content.value = "✗ Erreur"
+                    self.page.update()
+                    
+                    import time
+                    time.sleep(1.5)
+                    
+                    button.bgcolor = Colors.INFO
+                    button.content.value = "Vider la RAM"
+                    self.page.update()
+        
+        # Lancer dans un thread
+        threading.Thread(target=clear_ram, daemon=True).start()
+    
     def _get_quick_action_tooltip(self, action):
         """Retourne le tooltip pour une action rapide"""
         tooltips = {
-            "restore_point": "Crée un point de restauration système\nPermet de revenir en arrière en cas de problème",
-            "check_telemetry": "Vérifie l'absence de télémétrie\nConfirme qu'aucune donnée n'est envoyée",
-            "empty_recycle": "Vide la corbeille Windows\nLibère l'espace disque définitivement",
-            "flush_dns": "Vide le cache DNS\nRésout les problèmes de connexion",
+            "restore_point": "Crée un point de restauration système avant modifications",
+            "check_telemetry": "Vérifie l'absence de télémétrie et collecte de données",
+            "empty_recycle": "Vide la corbeille Windows définitivement",
+            "flush_dns": "Vide le cache DNS pour résoudre les problèmes réseau",
         }
         return tooltips.get(action, "Action rapide")
     
@@ -1501,9 +1891,11 @@ class MainPage:
         
         # Icône d'information avec tooltip
         from frontend.design_system.tooltip import create_info_icon_with_tooltip
+        desc_tuple = self._get_detailed_description(action_key)
         info_icon = create_info_icon_with_tooltip(
-            self._get_detailed_description(action_key),
-            size=16
+            desc_tuple[0],  # Texte
+            size=16,
+            risk_level=desc_tuple[1]  # Niveau de risque
         )
         
         return ft.Container(
@@ -1691,6 +2083,33 @@ class MainPage:
                     color=Colors.FG_SECONDARY,
                     size=12,
                 ),
+                Spacer(height=Spacing.MD),
+                # Légende des couleurs
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            # Vert - Sûr
+                            ft.Icon(ft.Icons.INFO_OUTLINE_ROUNDED, size=16, color=Colors.SUCCESS),
+                            ft.Container(width=4),
+                            Caption("Action sûre", color=Colors.FG_SECONDARY, size=11),
+                            ft.Container(width=Spacing.LG),
+                            # Orange - Attention
+                            ft.Icon(ft.Icons.INFO_OUTLINE_ROUNDED, size=16, color=Colors.WARNING),
+                            ft.Container(width=4),
+                            Caption("Attention requise", color=Colors.FG_SECONDARY, size=11),
+                            ft.Container(width=Spacing.LG),
+                            # Rouge - Risque
+                            ft.Icon(ft.Icons.INFO_OUTLINE_ROUNDED, size=16, color=Colors.ERROR),
+                            ft.Container(width=4),
+                            Caption("Action à risque", color=Colors.FG_SECONDARY, size=11),
+                        ],
+                        spacing=0,
+                    ),
+                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                    bgcolor=ft.Colors.with_opacity(0.05, Colors.FG_TERTIARY),
+                    border_radius=BorderRadius.SM,
+                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                ),
                 Spacer(height=Spacing.XL),
                 # Options avec espacement optimisé ET SCROLL
                 ft.Container(
@@ -1856,9 +2275,11 @@ class MainPage:
         
         # Icône d'information avec tooltip détaillé personnalisé
         from frontend.design_system.tooltip import create_info_icon_with_tooltip
+        desc_tuple = self._get_detailed_description(key)
         info_icon = create_info_icon_with_tooltip(
-            self._get_detailed_description(key),
-            size=16
+            desc_tuple[0],  # Texte
+            size=16,
+            risk_level=desc_tuple[1]  # Niveau de risque
         )
         
         return ft.Container(
@@ -1901,165 +2322,27 @@ class MainPage:
         )
     
     def _get_detailed_description(self, key):
-        """Retourne une description détaillée pour les tooltips"""
+        """Retourne une description concise pour les tooltips"""
         descriptions = {
-            "temp_files": (
-                "Supprime les fichiers temporaires de Windows et des applications.\n\n"
-                "✓ Sécurisé: Uniquement les dossiers TEMP autorisés\n"
-                "✓ Protection: Fichiers système jamais touchés\n"
-                "✓ Validation: Âge minimum 2 heures\n\n"
-                "Espace libéré: Variable (généralement 500 MB - 5 GB)"
-            ),
-            "ram_standby": (
-                "Libère la mémoire RAM en attente (standby memory).\n\n"
-                "✓ Méthode: API Windows native (EmptyWorkingSet)\n"
-                "✓ Sécurisé: Pas de PowerShell\n"
-                "✓ Impact: Amélioration temporaire des performances\n\n"
-                "Recommandé si: RAM > 80% utilisée"
-            ),
-            "cache_dns": (
-                "Vide le cache DNS pour résoudre les problèmes réseau.\n\n"
-                "✓ Utile pour: Problèmes de connexion\n"
-                "✓ Effet: Résolution DNS rafraîchie\n"
-                "✓ Sécurisé: Commande système standard (ipconfig)\n\n"
-                "Recommandé si: Sites web inaccessibles"
-            ),
-            "clear_standby_memory": (
-                "Libère la mémoire RAM en attente via API Windows.\n\n"
-                "✓ Sécurité: API native (pas PowerShell)\n"
-                "✓ Impact: Libération mémoire temporaire\n"
-                "✓ Privilèges: Nécessite droits admin\n\n"
-                "Note: Effet temporaire, Windows gère automatiquement la RAM"
-            ),
-            "flush_dns": (
-                "Vide le cache DNS système.\n\n"
-                "✓ Résout: Problèmes de résolution de noms\n"
-                "✓ Utile: Après changement de DNS\n"
-                "✓ Commande: ipconfig /flushdns\n\n"
-                "Effet: Immédiat, sans risque"
-            ),
-            "disable_telemetry": (
-                "Désactive les services de télémétrie Windows.\n\n"
-                "⚠️ Services arrêtés:\n"
-                "  - DiagTrack (Diagnostic Tracking)\n"
-                "  - dmwappushservice (WAP Push)\n\n"
-                "✓ Confidentialité: Réduit collecte de données\n"
-                "⚠️ Attention: Peut affecter diagnostics Windows\n\n"
-                "Recommandé: Utilisateurs soucieux de confidentialité"
-            ),
-            "clear_large_logs": (
-                "Supprime les fichiers journaux volumineux.\n\n"
-                "✓ Cibles: Fichiers .log dans TEMP et Logs\n"
-                "✓ Sécurité: Logs système critiques protégés\n"
-                "✓ Espace: Variable (100 MB - 2 GB)\n\n"
-                "Note: Les logs actifs sont préservés"
-            ),
-            "disable_hibernation": (
-                "Désactive l'hibernation et supprime hiberfil.sys.\n\n"
-                "✓ Espace libéré: Plusieurs GB (taille = RAM)\n"
-                "✓ Commande: powercfg /hibernate off\n"
-                "✓ Effet: Immédiat\n\n"
-                "⚠️ Attention: Vous ne pourrez plus utiliser l'hibernation\n"
-                "💡 Recommandé: Si vous n'utilisez jamais l'hibernation"
-            ),
-            "clean_restore_points": (
-                "Nettoie les anciens points de restauration système.\n\n"
-                "✓ Conservation: Garde les 2 plus récents\n"
-                "✓ Espace libéré: Variable (peut être plusieurs GB)\n"
-                "✓ Sécurité: Points récents préservés\n\n"
-                "⚠️ Attention: Impossible de revenir aux anciens points\n"
-                "💡 Utile: Si vous avez beaucoup de points anciens"
-            ),
-            "optimize_startup": (
-                "Analyse et optimise les programmes au démarrage.\n\n"
-                "✓ Action: Liste les programmes de démarrage\n"
-                "✓ Effet: Améliore le temps de boot\n"
-                "✓ Sécurité: Analyse uniquement, pas de suppression\n\n"
-                "💡 Recommandé: Pour accélérer le démarrage de Windows\n"
-                "Note: Vous pourrez choisir quoi désactiver"
-            ),
-            "clear_browser_cache": (
-                "Vide le cache des navigateurs web.\n\n"
-                "✓ Navigateurs: Chrome, Firefox, Edge\n"
-                "✓ Espace libéré: 100 MB - 2 GB\n"
-                "✓ Effet: Cache, cookies, historique\n\n"
-                "⚠️ Attention: Vous serez déconnecté des sites web\n"
-                "💡 Utile: Pour libérer de l'espace ou résoudre des bugs"
-            ),
-            "clean_event_logs": (
-                "Nettoie les journaux d'événements Windows.\n\n"
-                "✓ Logs nettoyés: Application, System, Security\n"
-                "✓ Espace libéré: 50-500 MB\n"
-                "✓ Commande: wevtutil cl\n\n"
-                "⚠️ Attention: Perte de l'historique des événements\n"
-                "💡 Utile: Pour libérer de l'espace disque"
-            ),
-            "disable_superfetch": (
-                "Désactive le service Superfetch/Prefetch.\n\n"
-                "✓ Service: SysMain (Superfetch)\n"
-                "✓ Effet: Réduit utilisation disque\n"
-                "✓ Impact: Améliore performances SSD\n\n"
-                "💡 Recommandé: Si vous avez un SSD\n"
-                "⚠️ Déconseillé: Sur disque dur classique (HDD)"
-            ),
-            "disable_cortana": (
-                "Désactive l'assistant vocal Cortana.\n\n"
-                "✓ Méthode: Modification du registre\n"
-                "✓ Effet: Libère de la RAM\n"
-                "✓ Confidentialité: Réduit collecte de données\n\n"
-                "💡 Recommandé: Si vous n'utilisez pas Cortana\n"
-                "Note: Peut être réactivé ultérieurement"
-            ),
-            "optimize_tcp_ip": (
-                "Optimise les paramètres réseau TCP/IP.\n\n"
-                "✓ Actions: Reset Winsock + TCP/IP\n"
-                "✓ Effet: Améliore vitesse réseau\n"
-                "✓ Résout: Problèmes de connexion\n\n"
-                "⚠️ Attention: Nécessite un redémarrage\n"
-                "💡 Utile: En cas de problèmes réseau persistants"
-            ),
-            "disable_services": (
-                "Désactive les services Windows inutiles.\n\n"
-                "✓ Services: Fax, Tablet Input, WMP Network\n"
-                "✓ Effet: Réduit utilisation CPU/RAM\n"
-                "✓ Sécurité: Uniquement services non essentiels\n\n"
-                "💡 Recommandé: Pour optimiser les performances\n"
-                "Note: Services sélectionnés avec soin"
-            ),
-            "gaming_mode": (
-                "Active les optimisations pour le gaming.\n\n"
-                "✓ Actions: Désactive Game Bar\n"
-                "✓ Effet: Améliore FPS et latence\n"
-                "✓ Impact: Réduit utilisation ressources\n\n"
-                "💡 Recommandé: Pour les joueurs\n"
-                "Note: Optimise les performances en jeu"
-            ),
-            "clean_drivers": (
-                "Nettoie les pilotes obsolètes.\n\n"
-                "✓ Action: Liste et analyse les pilotes\n"
-                "✓ Espace libéré: 100-500 MB\n"
-                "✓ Sécurité: Pilotes actifs préservés\n\n"
-                "💡 Utile: Après plusieurs mises à jour\n"
-                "Note: Évite les conflits de pilotes"
-            ),
-            "clean_winsxs": (
-                "Nettoie le dossier WinSxS (composants Windows).\n\n"
-                "✓ Commande: DISM /StartComponentCleanup\n"
-                "✓ Espace libéré: Plusieurs GB possibles\n"
-                "✓ Sécurité: Opération système officielle\n\n"
-                "⚠️ Attention: Opération longue (5-15 minutes)\n"
-                "💡 Recommandé: Après mises à jour Windows"
-            ),
-            "optimize_pagefile": (
-                "Optimise le fichier de pagination (pagefile.sys).\n\n"
-                "✓ Action: Gestion automatique par Windows\n"
-                "✓ Effet: Améliore performances mémoire\n"
-                "✓ Méthode: Configuration optimale\n\n"
-                "💡 Recommandé: Pour optimiser la RAM\n"
-                "Note: Windows ajuste automatiquement la taille"
-            ),
+            "clear_standby_memory": ("Libère la RAM en attente. Amélioration temporaire.", "info"),
+            "flush_dns": ("Vide le cache DNS. Résout les problèmes de connexion.", "info"),
+            "disable_telemetry": ("Désactive DiagTrack et services de collecte de données.", "warning"),
+            "clear_large_logs": ("Supprime les fichiers .log volumineux (100MB-2GB).", "info"),
+            "disable_hibernation": ("Supprime hiberfil.sys. Libère plusieurs GB. ⚠️ Plus d'hibernation possible.", "danger"),
+            "clean_restore_points": ("Garde les 2 points les plus récents. ⚠️ Impossible de revenir aux anciens.", "danger"),
+            "optimize_startup": ("Analyse les programmes au démarrage. Accélère le boot.", "info"),
+            "clear_browser_cache": ("Vide Chrome, Firefox, Edge. ⚠️ Vous serez déconnecté des sites.", "warning"),
+            "clean_event_logs": ("Nettoie les journaux Windows. ⚠️ Perte de l'historique.", "warning"),
+            "disable_superfetch": ("Désactive Superfetch. Recommandé pour SSD.", "warning"),
+            "disable_cortana": ("Désactive Cortana. Libère de la RAM.", "warning"),
+            "optimize_tcp_ip": ("Reset Winsock et TCP/IP. ⚠️ Nécessite redémarrage.", "warning"),
+            "disable_services": ("Désactive Fax, Tablet Input, etc. Réduit CPU/RAM.", "warning"),
+            "gaming_mode": ("Désactive Game Bar. Améliore FPS et latence.", "info"),
+            "clean_drivers": ("Nettoie les pilotes obsolètes. Libère 100-500MB.", "warning"),
+            "clean_winsxs": ("Nettoie WinSxS via DISM. ⚠️ Opération longue (5-15min).", "danger"),
+            "optimize_pagefile": ("Configure le pagefile automatiquement. Optimise la RAM.", "info"),
         }
-        return descriptions.get(key, "Aucune description détaillée disponible.")
+        return descriptions.get(key, ("Option de nettoyage avancée.", "info"))
     
     def _update_option(self, key, value):
         """Met à jour une option avancée"""
