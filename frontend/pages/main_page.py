@@ -990,6 +990,91 @@ class MainPage:
         # Lancer le timer dans un thread
         threading.Thread(target=update_button_timer, daemon=True).start()
     
+    def _start_quick_action_cooldown_timer(self, action_name: str, button_ref: dict):
+        """
+        Démarre un timer visuel sur un bouton d'action rapide pendant le cooldown
+        ANTI-SPAM: Affichage visuel du temps restant pour actions rapides (UX)
+        """
+        import threading
+        import time
+        
+        def update_button_timer():
+            try:
+                # Vérifier que le bouton existe
+                if not button_ref or not button_ref.get("container"):
+                    print(f"[DEBUG] No button_ref for {action_name}")
+                    return
+                
+                container = button_ref["container"]
+                original_bgcolor = container.bgcolor
+                original_border = container.border
+                original_content = container.content
+                
+                print(f"[DEBUG] Starting cooldown timer for {action_name}")
+                
+                # Créer un overlay avec le timer
+                timer_overlay = ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Text(
+                                "⏳ 5s",
+                                size=24,
+                                weight=ft.FontWeight.BOLD,
+                                color=ft.Colors.ORANGE,
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                            ft.Text(
+                                "Cooldown actif",
+                                size=12,
+                                color=ft.Colors.ORANGE_300,
+                                text_align=ft.TextAlign.CENTER,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=4,
+                    ),
+                    alignment=ft.alignment.center,
+                    expand=True,
+                )
+                
+                # Boucle de mise à jour du timer
+                for remaining in range(self._cooldown_duration, 0, -1):
+                    # Mettre à jour le bouton avec le timer
+                    container.bgcolor = ft.Colors.with_opacity(0.3, ft.Colors.ORANGE)
+                    container.border = ft.border.all(2, ft.Colors.ORANGE)
+                    
+                    # Mettre à jour le texte du timer
+                    timer_overlay.content.controls[0].value = f"⏳ {remaining}s"
+                    container.content = timer_overlay
+                    
+                    try:
+                        self.page.update()
+                    except Exception as e:
+                        print(f"[ERROR] Failed to update page: {e}")
+                        break
+                    
+                    time.sleep(1)
+                
+                # Restaurer le bouton
+                container.bgcolor = original_bgcolor
+                container.border = original_border
+                container.content = original_content
+                
+                try:
+                    self.page.update()
+                    print(f"[DEBUG] Cooldown timer ended for {action_name}")
+                except Exception as e:
+                    print(f"[ERROR] Failed to restore button: {e}")
+                        
+            except Exception as e:
+                print(f"[ERROR] Quick action cooldown timer failed: {e}")
+                import traceback
+                traceback.print_exc()
+        
+        # Lancer le timer dans un thread
+        threading.Thread(target=update_button_timer, daemon=True).start()
+    
     def _clear_ram_action(self):
         """Vide la RAM standby avec animation de succès/échec"""
         import threading
@@ -1319,6 +1404,12 @@ class MainPage:
     
     def _execute_quick_action(self, action, button_ref=None):
         """Exécute une action rapide avec effet visuel"""
+        # ANTI-SPAM: Vérifier le cooldown AVANT tout (PROTECTION)
+        can_execute, remaining = self._can_execute_action(action)
+        if not can_execute:
+            self._show_cooldown_message(remaining)
+            return
+        
         # Vérifier si une action est déjà en cours
         if self.quick_action_in_progress:
             print(f"[WARNING] Action already in progress, ignoring click on {action}")
@@ -1336,6 +1427,9 @@ class MainPage:
             snack.open = True
             self.page.update()
             return
+        
+        # ANTI-SPAM: Enregistrer l'action immédiatement (COOLDOWN)
+        self._register_action(action)
         
         # Verrouiller les actions
         self.quick_action_in_progress = True
@@ -1568,6 +1662,10 @@ class MainPage:
                     # Déverrouiller les actions
                     self.quick_action_in_progress = False
                     print("[INFO] Quick action completed (unlocked)")
+                    
+                    # ANTI-SPAM: Démarrer le timer visuel APRÈS la fin de l'action (UX)
+                    if button_ref:
+                        self._start_quick_action_cooldown_timer('restore_point', button_ref)
                 else:
                     # Restaurer le bouton
                     if button_ref and button_ref.get("container"):
@@ -1624,15 +1722,6 @@ class MainPage:
     
     def _quick_optimize_disk(self, button_ref=None, original_bgcolor=None, original_border=None):
         """Optimise le disque dur selon son type (HDD/SSD/NVME)"""
-        # ANTI-SPAM: Vérifier le cooldown (PROTECTION)
-        can_execute, remaining = self._can_execute_action('optimize_disk')
-        if not can_execute:
-            self._show_cooldown_message(remaining)
-            return
-        
-        # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
-        self._register_action('optimize_disk')
-        
         # Afficher la barre de progression dans le bouton
         if button_ref and button_ref.get("progress_bar"):
             button_ref["progress_bar"].visible = True
@@ -1719,6 +1808,10 @@ class MainPage:
                     )
                 
                 self.quick_action_in_progress = False
+                
+                # ANTI-SPAM: Démarrer le timer visuel APRÈS la fin de l'action (UX)
+                if button_ref:
+                    self._start_quick_action_cooldown_timer('optimize_disk', button_ref)
             except Exception as e:
                 # Cacher la barre de progression
                 if button_ref and button_ref.get("progress_bar"):
@@ -1743,15 +1836,6 @@ class MainPage:
     
     def _quick_empty_recycle(self, button_ref=None, original_bgcolor=None, original_border=None):
         """Vide la corbeille rapidement"""
-        # ANTI-SPAM: Vérifier le cooldown (PROTECTION)
-        can_execute, remaining = self._can_execute_action('empty_recycle')
-        if not can_execute:
-            self._show_cooldown_message(remaining)
-            return
-        
-        # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
-        self._register_action('empty_recycle')
-        
         # Afficher la barre de progression dans le bouton
         if button_ref and button_ref.get("progress_bar"):
             button_ref["progress_bar"].visible = True
@@ -1809,6 +1893,10 @@ class MainPage:
                     f"{count} élément(s) supprimé(s) définitivement."
                 )
                 self.quick_action_in_progress = False
+                
+                # ANTI-SPAM: Démarrer le timer visuel APRÈS la fin de l'action (UX)
+                if button_ref:
+                    self._start_quick_action_cooldown_timer('empty_recycle', button_ref)
             except Exception as e:
                 # Cacher la barre de progression
                 if button_ref and button_ref.get("progress_bar"):
@@ -1827,15 +1915,6 @@ class MainPage:
     
     def _quick_flush_dns(self, button_ref=None, original_bgcolor=None, original_border=None):
         """Flush DNS rapidement"""
-        # ANTI-SPAM: Vérifier le cooldown (PROTECTION)
-        can_execute, remaining = self._can_execute_action('flush_dns')
-        if not can_execute:
-            self._show_cooldown_message(remaining)
-            return
-        
-        # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
-        self._register_action('flush_dns')
-        
         # Afficher la barre de progression dans le bouton
         if button_ref and button_ref.get("progress_bar"):
             button_ref["progress_bar"].visible = True
@@ -1892,6 +1971,10 @@ class MainPage:
                         "Le cache DNS a été vidé avec succès.\nLes problèmes de connexion devraient être résolus."
                     )
                     self.quick_action_in_progress = False
+                    
+                    # ANTI-SPAM: Démarrer le timer visuel APRÈS la fin de l'action (UX)
+                    if button_ref:
+                        self._start_quick_action_cooldown_timer('flush_dns', button_ref)
                 else:
                     if button_ref and button_ref.get("container"):
                         button_ref["container"].bgcolor = original_bgcolor
