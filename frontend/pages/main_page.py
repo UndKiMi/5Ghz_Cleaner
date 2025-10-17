@@ -15,13 +15,12 @@ class MainPage:
     def __init__(self, page: ft.Page, app):
         self.page = page
         self.app = app
-        self.current_tab = "quick"
+        self.current_tab = "quick"  # "quick" or "advanced"
         self.dry_run_completed = False
         self.cleaning_in_progress = False
         self.quick_action_in_progress = False  # Verrouillage pour les actions rapides
         self.status_text = None
         self.dry_run_button = None
-        self.current_tab = "quick"  # "quick" or "advanced"
         
     def build(self):
         """Construit la page principale"""
@@ -95,14 +94,18 @@ class MainPage:
         self.tab_advanced = self._build_tab_button("Options avancées", "advanced", ft.Icons.SETTINGS_OUTLINED)
         self.tab_config = self._build_tab_button("Configuration", "config", ft.Icons.COMPUTER_OUTLINED)
         
-        return ft.Row(
-            [
-                self.tab_quick,
-                ft.Container(width=Spacing.MD),
-                self.tab_advanced,
-                ft.Container(width=Spacing.MD),
-                self.tab_config,
-            ],
+        return ft.Container(
+            content=ft.Row(
+                [
+                    self.tab_quick,
+                    ft.Container(width=2, height=32, bgcolor=Colors.BORDER_DEFAULT),
+                    self.tab_advanced,
+                    ft.Container(width=2, height=32, bgcolor=Colors.BORDER_DEFAULT),
+                    self.tab_config,
+                ],
+                spacing=Spacing.MD,
+            ),
+            padding=ft.padding.only(bottom=Spacing.SM),
         )
     
     def _build_tab_button(self, text, tab_id, icon):
@@ -155,27 +158,15 @@ class MainPage:
                     ft.Container(
                         content=ft.Column(
                             [
-                                ft.Row(
-                                    [
-                                        BodyText(
-                                            "Actions rapides", 
-                                            weight=ft.FontWeight.W_600, 
-                                            size=22,
-                                            color=Colors.FG_PRIMARY,
-                                        ),
-                                        ft.Container(width=Spacing.XS),
-                                        ft.Icon(
-                                            ft.Icons.INFO_OUTLINE_ROUNDED,
-                                            size=18,
-                                            color=Colors.FG_TERTIARY,
-                                            tooltip="Actions instantanées: Point de restauration, Vérification télémétrie, Vider corbeille, Flush DNS.",
-                                        ),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
+                                BodyText(
+                                    "Actions rapides", 
+                                    weight=ft.FontWeight.W_600, 
+                                    size=22,
+                                    color=Colors.FG_PRIMARY,
                                 ),
                                 Spacer(height=Spacing.XS),
                                 Caption(
-                                    "Optimisez votre système en un clic",
+                                    "Optimisez votre système en un clic.",
                                     color=Colors.FG_SECONDARY,
                                     size=13,
                                 ),
@@ -196,15 +187,15 @@ class MainPage:
                                         self._build_quick_action_button(
                                             icon=ft.Icons.RESTORE_ROUNDED,
                                             title="Point de restauration",
-                                            description="Créer une sauvegarde système",
+                                            description="Crée une sauvegarde du système.",
                                             action="restore_point",
                                         ),
                                         ft.Container(width=Spacing.LG),
                                         self._build_quick_action_button(
-                                            icon=ft.Icons.SECURITY_ROUNDED,
-                                            title="Vérifier télémétrie",
-                                            description="Scanner les trackers",
-                                            action="check_telemetry",
+                                            icon=ft.Icons.STORAGE_ROUNDED,
+                                            title="Optimisation Disque dur",
+                                            description="Optimise et fluidifie le disque.",
+                                            action="optimize_disk",
                                         ),
                                     ],
                                     alignment=ft.MainAxisAlignment.CENTER,
@@ -215,15 +206,15 @@ class MainPage:
                                     [
                                         self._build_quick_action_button(
                                             icon=ft.Icons.DELETE_SWEEP_ROUNDED,
-                                            title="Vider corbeille",
-                                            description="Supprimer définitivement",
+                                            title="Vider la corbeille",
+                                            description="Supprime définitivement les éléments.",
                                             action="empty_recycle",
                                         ),
                                         ft.Container(width=Spacing.LG),
                                         self._build_quick_action_button(
                                             icon=ft.Icons.DNS_ROUNDED,
                                             title="Flush DNS",
-                                            description="Réinitialiser le cache",
+                                            description="Réinitialise le cache DNS.",
                                             action="flush_dns",
                                         ),
                                     ],
@@ -528,8 +519,11 @@ class MainPage:
                 current=f"{cleanable_gb:.2f} GB" if cleanable_gb >= 1 else f"{cleanable_mb:.0f} MB",
                 percentage=cleanable_mb / total_mb if total_mb > 0 else 0,
                 color=Colors.WARNING,
-                show_button=False,
-                tooltip="Fichiers temporaires, logs, cache Windows Update et corbeille. Scan toutes les 2s.",
+                show_button=True,
+                button_text="Nettoyage rapide",
+                button_action=lambda e: self._quick_clean_files(),
+                button_ref_key="clean_button",
+                tooltip="Fichiers temporaires, logs, cache Windows et corbeille. Scan des dossiers toutes les 2 s.",
                 item_key="cleanable"
             )
             
@@ -543,7 +537,7 @@ class MainPage:
                 button_text="Vider la RAM",
                 button_action=lambda e: self._clear_ram_action(),
                 button_ref_key="ram_button",
-                tooltip="Mémoire en attente libérable. Clic sur 'Vider la RAM' pour libérer. Scan toutes les 3s.",
+                tooltip="La RAM en standby sur un PC est une mémoire occupée par des données récentes mais non utilisées, conservées pour accélérer la réouverture des applications.",
                 item_key="ram"
             )
             
@@ -554,29 +548,17 @@ class MainPage:
                 percentage=dns_mb / total_mb if total_mb > 0 else 0,
                 color=Colors.SUCCESS,
                 show_button=False,
-                tooltip="Cache DNS système. Vidé avec 'Flush DNS' ou nettoyage complet. Scan toutes les 5s.",
+                tooltip="Le cache DNS est une mémoire locale sur ton PC qui stocke les adresses IP des sites récemment visités pour accélérer leur accès et éviter de redemander l'information à chaque fois à l'ordinateur.",
                 item_key="dns"
             )
             
             return ft.Column(
                 [
-                    ft.Row(
-                        [
-                            BodyText(
-                                "Espace à libérer", 
-                                weight=ft.FontWeight.W_600, 
-                                size=20,
-                                color=Colors.FG_PRIMARY,
-                            ),
-                            ft.Container(width=Spacing.XS),
-                            ft.Icon(
-                                ft.Icons.INFO_OUTLINE_ROUNDED,
-                                size=18,
-                                color=Colors.FG_TERTIARY,
-                                tooltip="Espace disque et mémoire libérables. Mise à jour automatique toutes les 2-5 secondes.",
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.START,
+                    BodyText(
+                        "Espace à libérer", 
+                        weight=ft.FontWeight.W_600, 
+                        size=20,
+                        color=Colors.FG_PRIMARY,
                     ),
                     Spacer(height=Spacing.XS),
                     self.storage_total_text,
@@ -620,7 +602,8 @@ class MainPage:
                 refs = self.storage_item_refs['ram']
                 refs['title'].value = f"RAM Standby ({standby_percent:.1f}%)"
                 refs['current'].value = f"À libérer: {standby_gb:.2f} GB" if standby_gb >= 1 else f"À libérer: {standby_mb:.0f} MB"
-                refs['progress'].value = standby_mb / total_mb if total_mb > 0 else 0
+                # Protection contre division par zéro
+                refs['progress'].value = (standby_mb / total_mb) if total_mb > 0 else 0
             
             # Cache DNS
             if 'dns' in self.storage_item_refs:
@@ -641,8 +624,8 @@ class MainPage:
                     
                     # Déterminer quoi scanner selon les intervalles
                     scan_cleanable = (current_time - self.last_cleanable_scan) >= 2  # 2 secondes
-                    scan_ram = (current_time - self.last_ram_scan) >= 3  # 3 secondes
-                    scan_dns = (current_time - self.last_dns_scan) >= 5  # 5 secondes
+                    scan_ram = (current_time - self.last_ram_scan) >= 2  # 2 secondes
+                    scan_dns = (current_time - self.last_dns_scan) >= 2  # 2 secondes
                     
                     # Scanner uniquement ce qui est nécessaire
                     if scan_cleanable or scan_ram or scan_dns:
@@ -894,120 +877,13 @@ class MainPage:
             animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
         )
     
-    def _build_storage_item(self, icon, title, current, percentage, color, show_button=False, button_text="", button_action=None, button_ref_key=None):
-        """Construit un item de stockage avec barre de progression et bouton optionnel"""
-        # Créer le bouton si demandé
-        button_widget = None
-        if show_button:
-            button_widget = ft.Container(
-                content=ft.Text(
-                    button_text,
-                    size=12,
-                    weight=ft.FontWeight.W_600,
-                    color=ft.Colors.WHITE,
-                ),
-                padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
-                border_radius=BorderRadius.SM,
-                bgcolor=color,
-                on_click=button_action,
-                ink=True,
-                animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
-            )
-            
-            # Stocker la référence du bouton si une clé est fournie
-            if button_ref_key:
-                if not hasattr(self, 'storage_item_buttons'):
-                    self.storage_item_buttons = {}
-                self.storage_item_buttons[button_ref_key] = button_widget
-        
-        return ft.Container(
-            content=ft.Column(
-                [
-                    # En-tête avec icône et titre
-                    ft.Row(
-                        [
-                            # Icône avec effet subtil
-                            ft.Container(
-                                content=ft.Icon(icon, size=24, color=color),
-                                width=48,
-                                height=48,
-                                border_radius=BorderRadius.SM,
-                                bgcolor=ft.Colors.with_opacity(0.15, color),
-                                alignment=ft.alignment.center,
-                                shadow=ft.BoxShadow(
-                                    spread_radius=0,
-                                    blur_radius=8,
-                                    color=ft.Colors.with_opacity(0.2, color),
-                                    offset=ft.Offset(0, 2),
-                                ),
-                            ),
-                            ft.Container(width=Spacing.MD),
-                            # Titre et taille
-                            ft.Column(
-                                [
-                                    ft.Text(
-                                        title,
-                                        color=Colors.FG_PRIMARY,
-                                        weight=ft.FontWeight.W_600,
-                                        size=15,
-                                    ),
-                                    ft.Text(
-                                        f"À libérer: {current}",
-                                        color=Colors.FG_SECONDARY,
-                                        size=12,
-                                    ),
-                                ],
-                                spacing=Spacing.XS,
-                                expand=True,
-                            ),
-                            # Bouton ou badge pourcentage
-                            button_widget if show_button else ft.Container(
-                                content=ft.Text(
-                                    f"{int(percentage * 100)}%",
-                                    color=color,
-                                    weight=ft.FontWeight.W_700,
-                                    size=14,
-                                ),
-                                padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
-                                border_radius=BorderRadius.SM,
-                                bgcolor=ft.Colors.with_opacity(0.15, color),
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.START,
-                    ),
-                    Spacer(height=Spacing.MD),
-                    # Barre de progression avec effet
-                    ft.Container(
-                        content=ft.ProgressBar(
-                            value=percentage,
-                            height=8,
-                            color=color,
-                            bgcolor=ft.Colors.with_opacity(0.2, color),
-                            border_radius=BorderRadius.SM,
-                        ),
-                        shadow=ft.BoxShadow(
-                            spread_radius=0,
-                            blur_radius=6,
-                            color=ft.Colors.with_opacity(0.3, color),
-                            offset=ft.Offset(0, 2),
-                        ),
-                    ),
-                ],
-                spacing=0,
-            ),
-            padding=Spacing.LG,
-            border_radius=BorderRadius.MD,
-            bgcolor=Colors.BG_SECONDARY,
-            border=ft.border.all(1, ft.Colors.with_opacity(0.3, color)),
-            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
-        )
-    
     def _clear_ram_action(self):
         """Vide la RAM standby avec animation de succès/échec"""
         import threading
         
         def clear_ram():
             from backend import cleaner
+            import psutil
             
             try:
                 print("[INFO] Clearing RAM standby...")
@@ -1017,14 +893,36 @@ class MainPage:
                 if hasattr(self, 'storage_item_buttons') and 'ram_button' in self.storage_item_buttons:
                     button = self.storage_item_buttons['ram_button']
                 
+                # Obtenir la quantité de RAM avant nettoyage
+                memory_before = psutil.virtual_memory()
+                standby_before_mb = 0
+                
+                if hasattr(memory_before, 'cached'):
+                    standby_before_mb = memory_before.cached / (1024 * 1024)
+                else:
+                    used_mb = memory_before.used / (1024 * 1024)
+                    available_mb = memory_before.available / (1024 * 1024)
+                    total_mb_ram = memory_before.total / (1024 * 1024)
+                    calculated_standby = total_mb_ram - used_mb - available_mb
+                    if 0 < calculated_standby < (total_mb_ram * 0.5):
+                        standby_before_mb = calculated_standby
+                    else:
+                        standby_before_mb = total_mb_ram * 0.10
+                
                 # Animation de chargement
                 if button:
                     button.bgcolor = ft.Colors.ORANGE
+                    button.content.value = "⏳ Vidage..."
                     self.page.update()
                 
                 # Vider la RAM
                 result = cleaner.clear_standby_memory()
                 success = result.get('ram_standby_cleared', False)
+                
+                # Obtenir la quantité de RAM après nettoyage
+                import time
+                time.sleep(0.5)  # Petit délai pour que le système se mette à jour
+                memory_after = psutil.virtual_memory()
                 
                 # Animation de succès ou échec
                 if button:
@@ -1034,7 +932,6 @@ class MainPage:
                         button.content.value = "✓ Vidée"
                         self.page.update()
                         
-                        import time
                         time.sleep(1.5)
                         
                         # Retour à la normale
@@ -1042,21 +939,85 @@ class MainPage:
                         button.content.value = "Vider la RAM"
                         self.page.update()
                         
-                        # Forcer un rescan de la RAM immédiatement
+                        # Forcer un rescan de la RAM immédiatement et mettre à jour l'affichage
                         self.last_ram_scan = 0
+                        
+                        # Recalculer immédiatement la RAM standby après vidage
+                        memory_now = psutil.virtual_memory()
+                        standby_after_mb = 0
+                        
+                        if hasattr(memory_now, 'cached'):
+                            standby_after_mb = memory_now.cached / (1024 * 1024)
+                        else:
+                            used_mb = memory_now.used / (1024 * 1024)
+                            available_mb = memory_now.available / (1024 * 1024)
+                            total_mb_ram = memory_now.total / (1024 * 1024)
+                            calculated_standby = total_mb_ram - used_mb - available_mb
+                            if 0 < calculated_standby < (total_mb_ram * 0.5):
+                                standby_after_mb = calculated_standby
+                            else:
+                                standby_after_mb = total_mb_ram * 0.10
+                        
+                        standby_after_gb = standby_after_mb / 1024
+                        total_mb_ram = memory_now.total / (1024 * 1024)
+                        standby_percent_after = (standby_after_mb / total_mb_ram * 100) if total_mb_ram > 0 else 0
+                        
+                        # Mettre à jour immédiatement l'affichage du titre avec le nouveau pourcentage
+                        if hasattr(self, 'storage_item_refs') and 'ram' in self.storage_item_refs:
+                            refs = self.storage_item_refs['ram']
+                            refs['title'].value = f"RAM Standby ({standby_percent_after:.1f}%)"
+                            refs['current'].value = f"À libérer: {standby_after_gb:.2f} GB" if standby_after_gb >= 1 else f"À libérer: {standby_after_mb:.0f} MB"
+                            
+                            # Mettre à jour aussi la barre de progression
+                            # Recalculer le total pour la barre de progression
+                            if hasattr(self, '_cached_storage_data'):
+                                cleanable_mb = self._cached_storage_data.get('cleanable_mb', 0)
+                                dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
+                                total_mb = cleanable_mb + standby_after_mb + dns_mb
+                                refs['progress'].value = (standby_after_mb / total_mb) if total_mb > 0 else 0
+                            
+                            self.page.update()
+                        
+                        # Mettre à jour le cache pour éviter les conflits avec le thread auto-update
+                        if hasattr(self, '_cached_storage_data'):
+                            self._cached_storage_data['standby_mb'] = standby_after_mb
+                            self._cached_storage_data['standby_gb'] = standby_after_gb
+                            self._cached_storage_data['standby_percent'] = standby_percent_after
+                        
+                        # Mettre à jour le Total estimé
+                        if self.storage_total_text and hasattr(self, '_cached_storage_data'):
+                            cleanable_mb = self._cached_storage_data.get('cleanable_mb', 0)
+                            dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
+                            new_total_mb = cleanable_mb + standby_after_mb + dns_mb
+                            self.storage_total_text.value = f"Total estimé: {new_total_mb / 1024:.2f} GB"
+                            self.page.update()
+                        
+                        # Afficher un message de succès avec détails
+                        self._show_success_dialog(
+                            "✓ RAM vidée",
+                            f"La RAM standby a été vidée avec succès.\n\n"
+                            f"RAM standby libérée: ~{standby_before_mb:.0f} MB\n"
+                            f"RAM disponible maintenant: {memory_after.available / (1024**3):.2f} GB\n"
+                            f"Nouveau pourcentage RAM standby: {standby_percent_after:.1f}%"
+                        )
                     else:
                         # Animation rouge (échec)
                         button.bgcolor = ft.Colors.RED
                         button.content.value = "✗ Échec"
                         self.page.update()
                         
-                        import time
                         time.sleep(1.5)
                         
                         # Retour à la normale
                         button.bgcolor = Colors.INFO
                         button.content.value = "Vider la RAM"
                         self.page.update()
+                        
+                        # Afficher un message d'erreur
+                        self._show_error_dialog(
+                            "⚠ Erreur",
+                            "Le vidage de la RAM a échoué. Vérifiez les privilèges administrateur."
+                        )
                 
                 print(f"[INFO] RAM clear result: {success}")
                 
@@ -1075,19 +1036,153 @@ class MainPage:
                     button.bgcolor = Colors.INFO
                     button.content.value = "Vider la RAM"
                     self.page.update()
+                
+                self._show_error_dialog("⚠ Erreur", f"Impossible de vider la RAM:\n{str(e)}")
         
         # Lancer dans un thread
         threading.Thread(target=clear_ram, daemon=True).start()
     
+    def _quick_clean_files(self):
+        """Nettoie rapidement les fichiers temporaires avec animation de succès/échec"""
+        import threading
+        
+        def clean_files():
+            from backend import cleaner
+            
+            try:
+                print("[INFO] Quick cleaning files...")
+                
+                # Obtenir la référence du bouton
+                button = None
+                if hasattr(self, 'storage_item_buttons') and 'clean_button' in self.storage_item_buttons:
+                    button = self.storage_item_buttons['clean_button']
+                
+                # Animation de chargement
+                if button:
+                    button.bgcolor = ft.Colors.ORANGE
+                    button.content.value = "⏳ Nettoyage..."
+                    self.page.update()
+                
+                # Scanner les fichiers à nettoyer
+                scan_result = cleaner.scan_all_cleanable_files()
+                total_size_mb = scan_result.get('total_size_mb', 0)
+                
+                # Nettoyer les fichiers
+                result = cleaner.clean_temp_files()
+                success = result.get('success', False)
+                
+                # Animation de succès ou échec
+                if button:
+                    if success:
+                        # Animation verte (succès)
+                        button.bgcolor = ft.Colors.GREEN
+                        button.content.value = "✓ Nettoyé"
+                        self.page.update()
+                        
+                        import time
+                        time.sleep(1.5)
+                        
+                        # Retour à la normale
+                        button.bgcolor = Colors.WARNING
+                        button.content.value = "Nettoyage rapide"
+                        self.page.update()
+                        
+                        # Forcer un rescan immédiatement
+                        self.last_cleanable_scan = 0
+                        
+                        # Rescanner immédiatement pour mettre à jour l'affichage
+                        time.sleep(0.5)  # Petit délai pour que le système se mette à jour
+                        scan_result_after = cleaner.scan_all_cleanable_files()
+                        cleanable_after_mb = scan_result_after.get('total_size_mb', 0)
+                        cleanable_after_gb = cleanable_after_mb / 1024
+                        
+                        # Mettre à jour l'affichage
+                        if hasattr(self, 'storage_item_refs') and 'cleanable' in self.storage_item_refs:
+                            refs = self.storage_item_refs['cleanable']
+                            refs['title'].value = "Fichiers à nettoyer"
+                            refs['current'].value = f"À libérer: {cleanable_after_gb:.2f} GB" if cleanable_after_gb >= 1 else f"À libérer: {cleanable_after_mb:.0f} MB"
+                            
+                            # Mettre à jour aussi la barre de progression
+                            if hasattr(self, '_cached_storage_data'):
+                                standby_mb = self._cached_storage_data.get('standby_mb', 0)
+                                dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
+                                total_mb = cleanable_after_mb + standby_mb + dns_mb
+                                refs['progress'].value = (cleanable_after_mb / total_mb) if total_mb > 0 else 0
+                            
+                            self.page.update()
+                        
+                        # Mettre à jour le cache
+                        if hasattr(self, '_cached_storage_data'):
+                            self._cached_storage_data['cleanable_mb'] = cleanable_after_mb
+                            self._cached_storage_data['cleanable_gb'] = cleanable_after_gb
+                        
+                        # Mettre à jour le Total estimé
+                        if self.storage_total_text and hasattr(self, '_cached_storage_data'):
+                            standby_mb = self._cached_storage_data.get('standby_mb', 0)
+                            dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
+                            new_total_mb = cleanable_after_mb + standby_mb + dns_mb
+                            self.storage_total_text.value = f"Total estimé: {new_total_mb / 1024:.2f} GB"
+                            self.page.update()
+                        
+                        # Afficher un message de succès
+                        self._show_success_dialog(
+                            "✓ Nettoyage terminé",
+                            f"Fichiers nettoyés avec succès.\n\n"
+                            f"Espace libéré: {total_size_mb:.2f} MB\n"
+                            f"Espace restant à nettoyer: {cleanable_after_mb:.0f} MB"
+                        )
+                    else:
+                        # Animation rouge (échec)
+                        button.bgcolor = ft.Colors.RED
+                        button.content.value = "✗ Échec"
+                        self.page.update()
+                        
+                        import time
+                        time.sleep(1.5)
+                        
+                        # Retour à la normale
+                        button.bgcolor = Colors.WARNING
+                        button.content.value = "Nettoyage rapide"
+                        self.page.update()
+                        
+                        # Afficher un message d'erreur
+                        self._show_error_dialog(
+                            "⚠ Erreur",
+                            "Le nettoyage a échoué. Vérifiez les privilèges."
+                        )
+                
+                print(f"[INFO] Quick clean result: {success}")
+                
+            except Exception as e:
+                print(f"[ERROR] Failed to clean files: {e}")
+                
+                # Animation d'erreur
+                if button:
+                    button.bgcolor = ft.Colors.RED
+                    button.content.value = "✗ Erreur"
+                    self.page.update()
+                    
+                    import time
+                    time.sleep(1.5)
+                    
+                    button.bgcolor = Colors.WARNING
+                    button.content.value = "Nettoyage rapide"
+                    self.page.update()
+                
+                self._show_error_dialog("⚠ Erreur", f"Impossible de nettoyer:\n{str(e)}")
+        
+        # Lancer dans un thread
+        threading.Thread(target=clean_files, daemon=True).start()
+    
     def _get_quick_action_tooltip(self, action):
         """Retourne le tooltip pour une action rapide"""
         tooltips = {
-            "restore_point": "Crée un point de restauration système avant modifications",
-            "check_telemetry": "Vérifie l'absence de télémétrie et collecte de données",
-            "empty_recycle": "Vide la corbeille Windows définitivement",
-            "flush_dns": "Vide le cache DNS pour résoudre les problèmes réseau",
+            "restore_point": "Crée un point de restauration système avant toute modification importante. Permet de revenir en arrière en cas de problème.",
+            "optimize_disk": "Optimise votre disque dur selon son type (HDD, SSD ou NVME). Améliore les performances et la fluidité du système.",
+            "empty_recycle": "Vide définitivement la corbeille Windows. Les fichiers supprimés ne pourront plus être récupérés.",
+            "flush_dns": "Réinitialise le cache DNS pour résoudre les problèmes de connexion Internet et accélérer la navigation.",
         }
-        return tooltips.get(action, "Action rapide")
+        return tooltips.get(action, "Action rapide.")
     
     def _execute_quick_action(self, action, button_ref=None):
         """Exécute une action rapide avec effet visuel"""
@@ -1127,8 +1222,8 @@ class MainPage:
         
         if action == "restore_point":
             self._quick_restore_point(button_ref, original_bgcolor, original_border)
-        elif action == "check_telemetry":
-            self._quick_check_telemetry(button_ref, original_bgcolor, original_border)
+        elif action == "optimize_disk":
+            self._quick_optimize_disk(button_ref, original_bgcolor, original_border)
         elif action == "empty_recycle":
             self._quick_empty_recycle(button_ref, original_bgcolor, original_border)
         elif action == "flush_dns":
@@ -1394,8 +1489,8 @@ class MainPage:
         import threading
         threading.Thread(target=create_point, daemon=True).start()
     
-    def _quick_check_telemetry(self, button_ref=None, original_bgcolor=None, original_border=None):
-        """Vérifie la télémétrie rapidement"""
+    def _quick_optimize_disk(self, button_ref=None, original_bgcolor=None, original_border=None):
+        """Optimise le disque dur selon son type (HDD/SSD/NVME)"""
         # Afficher la barre de progression dans le bouton
         if button_ref and button_ref.get("progress_bar"):
             button_ref["progress_bar"].visible = True
@@ -1411,26 +1506,28 @@ class MainPage:
             except Exception as e:
                 print(f"[ERROR] Failed to update button progress: {e}")
         
-        def check():
-            from backend.telemetry_checker import telemetry_checker
+        def optimize():
+            from backend.disk_optimizer import disk_optimizer
             
             try:
-                print("[INFO] Checking telemetry...")
-                print("[PROGRESS] 0% - Démarrage de la vérification...")
+                print("[INFO] Optimizing disk...")
+                print("[PROGRESS] 0% - Détection du type de disque...")
                 update_progress(0)
                 
-                print("[PROGRESS] 30% - Vérification des connexions réseau...")
-                update_progress(30)
+                # Détecter le type de disque
+                disk_type = disk_optimizer.detect_disk_type()
+                print(f"[INFO] Disk type detected: {disk_type}")
                 
-                print("[PROGRESS] 60% - Vérification des requêtes externes...")
-                update_progress(60)
+                print("[PROGRESS] 20% - Type de disque détecté...")
+                update_progress(20)
                 
-                print("[PROGRESS] 90% - Vérification de la collecte de données...")
-                update_progress(90)
+                print(f"[PROGRESS] 40% - Optimisation {disk_type} en cours...")
+                update_progress(40)
                 
-                report = telemetry_checker.generate_compliance_report()
+                # Optimiser selon le type
+                results = disk_optimizer.optimize_disk()
                 
-                print("[PROGRESS] 100% - Vérification terminée")
+                print("[PROGRESS] 100% - Optimisation terminée")
                 update_progress(100)
                 
                 # Petit délai pour voir la barre à 100%
@@ -1442,38 +1539,41 @@ class MainPage:
                     button_ref["progress_bar"].visible = False
                     self.page.update()
                 
-                # Toujours considérer comme conforme car l'app ne fait pas de télémétrie
-                # Le rapport peut détecter des domaines accessibles mais l'app ne les contacte pas
-                if button_ref and button_ref.get("container"):
-                    button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.GREEN)
-                    button_ref["container"].border = ft.border.all(2, ft.Colors.GREEN)
-                    self.page.update()
-                    import time
-                    time.sleep(0.5)
-                    button_ref["container"].bgcolor = original_bgcolor
-                    button_ref["container"].border = original_border
-                    self.page.update()
-                
-                # Message adapté
-                if report["compliant"]:
+                # Animation de succès ou échec
+                if results.get("success"):
+                    if button_ref and button_ref.get("container"):
+                        button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.GREEN)
+                        button_ref["container"].border = ft.border.all(2, ft.Colors.GREEN)
+                        self.page.update()
+                        import time
+                        time.sleep(0.5)
+                        button_ref["container"].bgcolor = original_bgcolor
+                        button_ref["container"].border = original_border
+                        self.page.update()
+                    
+                    # Construire le message de succès
+                    optimizations_text = "\n".join([f"✓ {opt}" for opt in results.get("optimizations", [])])
+                    
                     self._show_success_dialog(
-                        "✓ Aucune télémétrie détectée",
-                        "L'application est conforme:\n\n"
-                        "✓ Aucune connexion réseau active\n"
-                        "✓ Aucune requête sortante\n"
-                        "✓ Aucune collecte de données\n\n"
-                        "Votre vie privée est protégée."
+                        f"✓ Disque {disk_type} optimisé",
+                        f"Optimisations effectuées:\n\n{optimizations_text}\n\n"
+                        f"Votre disque est maintenant optimisé pour de meilleures performances."
                     )
                 else:
-                    # Même si non conforme, c'est souvent un faux positif
-                    self._show_success_dialog(
-                        "ℹ Vérification terminée",
-                        "L'application ne fait aucune télémétrie.\n\n"
-                        "Note: Le vérificateur peut détecter des domaines\n"
-                        "accessibles sur Internet, mais l'application ne les\n"
-                        "contacte jamais.\n\n"
-                        "✓ Aucune connexion sortante\n"
-                        "✓ Votre vie privée est protégée"
+                    if button_ref and button_ref.get("container"):
+                        button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.RED)
+                        button_ref["container"].border = ft.border.all(2, ft.Colors.RED)
+                        self.page.update()
+                        import time
+                        time.sleep(0.5)
+                        button_ref["container"].bgcolor = original_bgcolor
+                        button_ref["container"].border = original_border
+                        self.page.update()
+                    
+                    errors_text = "\n".join([f"✗ {err}" for err in results.get("errors", [])])
+                    self._show_error_dialog(
+                        "⚠ Optimisation partielle",
+                        f"Certaines optimisations ont échoué:\n\n{errors_text}"
                     )
                 
                 self.quick_action_in_progress = False
@@ -1484,14 +1584,20 @@ class MainPage:
                     self.page.update()
                 
                 if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = ft.Colors.with_opacity(0.2, ft.Colors.RED)
+                    button_ref["container"].border = ft.border.all(2, ft.Colors.RED)
+                    self.page.update()
+                    import time
+                    time.sleep(0.5)
                     button_ref["container"].bgcolor = original_bgcolor
                     button_ref["container"].border = original_border
                     self.page.update()
-                self._show_error_dialog("⚠ Erreur", f"Impossible de vérifier la télémétrie:\n{str(e)}")
+                
+                self._show_error_dialog("⚠ Erreur", f"Impossible d'optimiser le disque:\n{str(e)}")
                 self.quick_action_in_progress = False
         
         import threading
-        threading.Thread(target=check, daemon=True).start()
+        threading.Thread(target=optimize, daemon=True).start()
     
     def _quick_empty_recycle(self, button_ref=None, original_bgcolor=None, original_border=None):
         """Vide la corbeille rapidement"""
@@ -1648,77 +1754,6 @@ class MainPage:
         
         import threading
         threading.Thread(target=flush, daemon=True).start()
-    
-    def _show_loading_dialog(self, title, message, show_progress_bar=False):
-        """Affiche un dialogue de chargement"""
-        # Créer le contenu de base
-        message_text = ft.Text(message, size=14)
-        content_items = [message_text]
-        
-        # Ajouter une barre de progression si demandé
-        progress_bar = None
-        progress_text = None
-        
-        if show_progress_bar:
-            progress_bar = ft.ProgressBar(
-                value=0,
-                width=400,
-                height=8,
-                color=Colors.ACCENT_PRIMARY,
-                bgcolor=Colors.BORDER_DEFAULT,
-            )
-            progress_text = ft.Text(
-                "0% - Démarrage...", 
-                size=13, 
-                color=Colors.FG_SECONDARY,
-                weight=ft.FontWeight.BOLD
-            )
-            
-            content_items.extend([
-                ft.Container(height=16),
-                progress_bar,
-                ft.Container(height=8),
-                progress_text,
-            ])
-        
-        dialog = ft.AlertDialog(
-            title=ft.Row(
-                [
-                    ft.ProgressRing(width=20, height=20, stroke_width=2),
-                    ft.Container(width=8),
-                    ft.Text(title, weight=ft.FontWeight.BOLD, size=16),
-                ],
-            ),
-            content=ft.Column(
-                content_items,
-                tight=True,
-                spacing=0,
-            ),
-            modal=True,
-        )
-        
-        # Attacher les références pour pouvoir les mettre à jour
-        if show_progress_bar:
-            dialog.progress_bar = progress_bar
-            dialog.progress_text = progress_text
-            dialog.message_text = message_text
-        
-        self.page.dialog = dialog
-        dialog.open = True
-        self.page.update()
-        
-        print(f"[DEBUG] Loading dialog created with progress_bar={show_progress_bar}")
-        if show_progress_bar:
-            print(f"[DEBUG] Progress bar object: {progress_bar}")
-            print(f"[DEBUG] Progress text object: {progress_text}")
-        
-        return dialog
-    
-    def _close_loading_dialog(self, dialog):
-        """Ferme le dialogue de chargement"""
-        if dialog:
-            dialog.open = False
-            self.page.update()
     
     def _show_success_dialog(self, title, message):
         """Affiche un dialogue de succès"""
@@ -2030,7 +2065,8 @@ class MainPage:
                             ft.Container(width=4),
                             ft.TextButton(
                                 text="UndKiMi",
-                                on_click=lambda e: __import__('webbrowser').open("https://github.com/UndKiMi"),
+                                # SÉCURITÉ: Import sécurisé de webbrowser au lieu de __import__ dynamique (PATCH)
+                                on_click=self._open_github_link,
                                 style=ft.ButtonStyle(
                                     color=Colors.ACCENT_PRIMARY,
                                     padding=0,
@@ -3890,6 +3926,18 @@ class MainPage:
         self.status_text.value = message
         self.progress_bar.value = value
         self.page.update()
+    
+    def _open_github_link(self, e):
+        """
+        Ouvre le lien GitHub de manière sécurisée
+        SÉCURITÉ: Import statique au lieu de __import__ dynamique (PATCH)
+        """
+        try:
+            import webbrowser
+            # SÉCURITÉ: URL en dur, pas d'entrée utilisateur
+            webbrowser.open("https://github.com/UndKiMi")
+        except Exception as ex:
+            print(f"[ERROR] Failed to open GitHub link: {ex}")
     
     def _show_summary(self, result):
         """Affiche le résumé du nettoyage"""

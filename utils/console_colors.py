@@ -5,9 +5,24 @@ Provides colored output for better console readability
 import sys
 import os
 
-# Enable ANSI colors on Windows
+# SÉCURITÉ: Enable ANSI colors on Windows de manière sécurisée (PATCH CRITIQUE)
+# Remplacement de os.system('') par une méthode Windows API sécurisée
 if sys.platform == 'win32':
-    os.system('')  # Enable ANSI escape sequences
+    try:
+        # SÉCURITÉ: Utiliser l'API Windows native au lieu de os.system()
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        # Activer le mode ANSI/VT100 sur la console Windows
+        # STD_OUTPUT_HANDLE = -11
+        handle = kernel32.GetStdHandle(-11)
+        mode = ctypes.c_ulong()
+        kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+        # ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+        mode.value |= 0x0004
+        kernel32.SetConsoleMode(handle, mode)
+    except Exception:
+        # Si l'activation échoue, continuer sans couleurs
+        pass
 
 class Colors:
     """ANSI color codes for console output"""

@@ -87,11 +87,20 @@ def print_banner():
     print(banner)
 
 def run_command(cmd, check=True):
-    """Run a shell command and return the result"""
+    """
+    Run a shell command and return the result
+    SÉCURITÉ: Utilise shell=False pour éviter les injections de commandes (PATCH CRITIQUE)
+    """
     try:
+        # SÉCURITÉ: Convertir la commande en liste si c'est une chaîne
+        if isinstance(cmd, str):
+            # Séparer la commande en arguments (simple split pour compatibilité)
+            cmd = cmd.split()
+        
+        # SÉCURITÉ: Exécuter avec shell=False pour éviter injection de commandes
         result = subprocess.run(
             cmd,
-            shell=True,
+            shell=False,  # SÉCURITÉ: shell=False pour éviter injection (PATCH CRITIQUE)
             check=check,
             capture_output=True,
             text=True

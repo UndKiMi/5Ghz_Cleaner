@@ -97,9 +97,22 @@ def check_windows_11():
 
 
 def request_admin_if_needed():
-    """Demande les privilèges admin si nécessaire"""
+    """
+    Demande les privilèges admin si nécessaire
+    SÉCURITÉ: Validation des retours ctypes (PATCH)
+    """
     try:
-        is_admin_check = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        # SÉCURITÉ: Vérifier que ctypes est disponible
+        if not hasattr(ctypes, 'windll'):
+            print("[WARNING] ctypes.windll not available")
+            return
+        
+        # SÉCURITÉ: Valider le retour de IsUserAnAdmin
+        try:
+            is_admin_check = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        except Exception as e:
+            print(f"[WARNING] Failed to check admin status: {e}")
+            return
         
         if not is_admin_check:
             print("[INFO] Application lancée sans privilèges administrateur")
@@ -115,15 +128,23 @@ def request_admin_if_needed():
                 script = sys.executable
                 params = f'"{os.path.abspath(sys.argv[0])}"'
             
-            # Demander l'élévation UAC
-            result = ctypes.windll.shell32.ShellExecuteW(
-                None,
-                "runas",  # Demande d'élévation
-                script,
-                params,
-                None,
-                1  # SW_SHOWNORMAL
-            )
+            # SÉCURITÉ: Demander l'élévation UAC avec validation (PATCH)
+            try:
+                result = ctypes.windll.shell32.ShellExecuteW(
+                    None,
+                    "runas",  # Demande d'élévation
+                    script,
+                    params,
+                    None,
+                    1  # SW_SHOWNORMAL
+                )
+                # SÉCURITÉ: Vérifier le retour (>32 = succès)
+                if result <= 32:
+                    print(f"[WARNING] ShellExecuteW failed with code: {result}")
+                    return
+            except Exception as e:
+                print(f"[ERROR] Failed to elevate privileges: {e}")
+                return
             
             if result > 32:
                 print("[INFO] Nouvelle instance avec privilèges admin lancée")
