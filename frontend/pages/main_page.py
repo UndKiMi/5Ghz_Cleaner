@@ -102,6 +102,33 @@ class MainPage:
         self.tab_advanced = self._build_tab_button("Options avancées", "advanced", ft.Icons.SETTINGS_OUTLINED)
         self.tab_config = self._build_tab_button("Configuration", "config", ft.Icons.COMPUTER_OUTLINED)
         
+        # Créer le bouton de prévisualisation pour la barre d'onglets (AGRANDI)
+        def on_preview_click(e):
+            print("[DEBUG] Preview button clicked from tabs!")
+            self._start_dry_run(e)
+        
+        self.preview_button_tabs = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Icon(ft.Icons.PREVIEW_ROUNDED, size=18, color=ft.Colors.WHITE),
+                    ft.Container(width=8),
+                    ft.Text(
+                        "Prévisualiser",
+                        size=14,
+                        weight=ft.FontWeight.W_600,
+                        color=ft.Colors.WHITE,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            padding=ft.padding.symmetric(horizontal=24, vertical=10),
+            border_radius=BorderRadius.MD,
+            bgcolor=Colors.ACCENT_PRIMARY,
+            on_click=on_preview_click,
+            ink=True,
+            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+        )
+        
         return ft.Container(
             content=ft.Row(
                 [
@@ -110,6 +137,10 @@ class MainPage:
                     self.tab_advanced,
                     ft.Container(width=2, height=32, bgcolor=Colors.BORDER_DEFAULT),
                     self.tab_config,
+                    ft.Container(width=Spacing.LG),  # Espacement
+                    ft.Container(width=2, height=32, bgcolor=Colors.BORDER_DEFAULT),  # Séparation propre
+                    ft.Container(width=Spacing.SM),  # Petit espacement
+                    self.preview_button_tabs,  # Bouton de prévisualisation
                 ],
                 spacing=Spacing.MD,
             ),
@@ -162,6 +193,28 @@ class MainPage:
         return ft.Container(
             content=ft.Column(
                 [
+                    # Message de prévisualisation
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Icon(
+                                    ft.Icons.INFO_OUTLINE_ROUNDED,
+                                    size=16,
+                                    color=Colors.ACCENT_PRIMARY,
+                                ),
+                                ft.Container(width=Spacing.XS),
+                                Caption(
+                                    "Prévisualisez le nettoyage pour voir ce qui sera supprimé avant de continuer",
+                                    text_align=ft.TextAlign.CENTER,
+                                    color=Colors.FG_SECONDARY,
+                                    size=12,
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        ),
+                        padding=ft.padding.symmetric(vertical=Spacing.SM),
+                    ),
+                    
                     # En-tête centré
                     ft.Container(
                         content=ft.Column(
@@ -182,7 +235,7 @@ class MainPage:
                             spacing=0,
                             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         ),
-                        padding=ft.padding.only(bottom=Spacing.XL),
+                        padding=ft.padding.only(bottom=Spacing.MD),
                     ),
                     
                     # Grille d'actions rapides CENTRÉE - 2x2
@@ -570,13 +623,13 @@ class MainPage:
                     ),
                     Spacer(height=Spacing.XS),
                     self.storage_total_text,
-                    Spacer(height=Spacing.XL),
+                    Spacer(height=Spacing.MD),  # Réduit de XL à MD
                     ft.Column(
                         [
                             self.storage_cleanable_item,
-                            Spacer(height=Spacing.MD),
+                            Spacer(height=Spacing.SM),  # Réduit de MD à SM
                             self.storage_ram_item,
-                            Spacer(height=Spacing.MD),
+                            Spacer(height=Spacing.SM),  # Réduit de MD à SM
                             self.storage_dns_item,
                         ],
                         spacing=0,
@@ -2222,30 +2275,14 @@ class MainPage:
     
     def _build_action_button(self):
         """Construit le bouton d'action principal (Prévisualisation)"""
+        # Message déplacé en haut, on garde juste un container vide pour le statut
         self.status_text = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Icon(
-                        ft.Icons.INFO_OUTLINE_ROUNDED,
-                        size=16,
-                        color=Colors.ACCENT_PRIMARY,
-                    ),
-                    ft.Container(width=Spacing.XS),
-                    Caption(
-                        "Prévisualisez le nettoyage pour voir ce qui sera supprimé avant de continuer",
-                        text_align=ft.TextAlign.CENTER,
-                        color=Colors.FG_SECONDARY,
-                        size=12,
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-            ),
-            padding=ft.padding.symmetric(vertical=Spacing.SM),
+            visible=False,  # Masqué car le message est maintenant en haut
         )
         
         self.progress_bar = ft.ProgressBar(
             width=500,
-            height=3,
+            height=2,  # Réduit de 3 à 2
             color=Colors.ACCENT_PRIMARY,
             bgcolor=Colors.BORDER_DEFAULT,
             visible=False,
@@ -2280,14 +2317,13 @@ class MainPage:
             animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
         )
         
-        # Container pour le bouton d'action (sera masqué dans l'onglet Configuration)
+        # Container pour le bouton d'action (maintenant masqué car le bouton est en haut)
         self.action_button_container = ft.Column(
             [
                 self.status_text,
                 Spacer(height=Spacing.SM),
                 self.progress_bar,
-                Spacer(height=Spacing.SM),
-                self.dry_run_button,
+                # Le bouton dry_run_button est maintenant en haut, on ne l'affiche plus ici
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
