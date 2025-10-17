@@ -73,6 +73,45 @@ ENABLE_LOG_ENCRYPTION=true
 
 ---
 
+## 📝 Logging & Diagnostic
+
+### Système de logging avancé
+
+Le projet utilise un système de logging professionnel avec:
+- ✅ **Rotation automatique** (10 MB max, 5 fichiers)
+- ✅ **Console colorée** (avec colorama)
+- ✅ **Stacktraces détaillés** avec contexte complet
+- ✅ **Mode debug** verbeux
+- ✅ **Console sobre** en production (pas de pollution)
+
+### Activer le mode debug
+
+```bash
+# Dans .env
+DEBUG=true
+
+# Ou en ligne de commande
+set DEBUG=true
+python main.py
+```
+
+### Emplacement des logs
+
+```
+C:\Users\[USERNAME]\Documents\5GH'zCleaner-logs\5ghz_cleaner.log
+```
+
+### En cas d'erreur
+
+1. Activer le mode debug (`DEBUG=true`)
+2. Reproduire l'erreur
+3. Consulter les logs dans `Documents/5GH'zCleaner-logs/`
+4. Fournir le message d'erreur complet dans une [issue GitHub](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
+
+**Guide complet**: Voir [LOGGING_GUIDE.md](LOGGING_GUIDE.md)
+
+---
+
 ## 🔒 Sécurité & Qualité
 
 - ✅ **Code nettoyé**: Aucune dépendance inutile, aucun artefact
@@ -81,8 +120,6 @@ ENABLE_LOG_ENCRYPTION=true
 - ✅ **Logging structuré**: Système de logs sécurisé et anonymisé
 - ✅ **Configuration centralisée**: Variables d'environnement documentées
 - ✅ **Zéro erreur**: 100% compatible, testé et validé
-
-**Recommandation**: Utiliser le logger structuré (`backend/production_logger.py`) pour un contrôle optimal des logs en production.
 
 ---
 
