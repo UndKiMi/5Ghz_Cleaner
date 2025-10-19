@@ -626,22 +626,43 @@ def clear_temp(progress_callback=None, dry_run=False):
 
 
 def clear_windows_update_cache(progress_callback=None):
-    """Clear Windows Update download cache - SÉCURISÉ - Uniquement téléchargements terminés"""
+    """
+    Clear Windows Update download cache - SÉCURISÉ - Uniquement téléchargements terminés
+    CORRECTION: Meilleur feedback et tentative d'arrêt du service si possible
+    """
     folder = os.path.join(os.getenv('WINDIR', 'C:\\Windows'), 'SoftwareDistribution', 'Download')
     deleted = 0
     skipped = 0
     
-    # SÉCURITÉ: Ne pas toucher si Windows Update est en cours
+    # SÉCURITÉ: Vérifier le statut de Windows Update
+    service_was_running = False
     try:
         from backend.system_commands import system_cmd
-        wuauserv_running = system_cmd.run_sc(['query', 'wuauserv'])
-        if 'RUNNING' in wuauserv_running.stdout:
-            print("[SECURITY] Windows Update service is running, skipping cache cleanup")
-            return {"update_deleted": 0, "skipped": 0}
+        wuauserv_status = system_cmd.run_sc(['query', 'wuauserv'])
+        
+        if 'RUNNING' in wuauserv_status.stdout:
+            service_was_running = True
+            print("[INFO] Windows Update service is running")
+            print("[INFO] Attempting to stop service temporarily for cache cleanup...")
+            
+            # Tenter d'arrêter le service temporairement
+            try:
+                stop_result = system_cmd.run_sc(['stop', 'wuauserv'])
+                if stop_result.returncode == 0:
+                    print("[SUCCESS] Windows Update service stopped temporarily")
+                    import time
+                    time.sleep(2)  # Attendre que le service s'arrête complètement
+                else:
+                    print("[WARNING] Cannot stop Windows Update service, skipping cache cleanup")
+                    return {"update_deleted": 0, "skipped": 0, "service_running": True}
+            except Exception as e:
+                print(f"[WARNING] Cannot stop Windows Update service: {e}")
+                return {"update_deleted": 0, "skipped": 0, "service_running": True}
+                
     except (subprocess.SubprocessError, subprocess.TimeoutExpired) as e:
         # En cas d'erreur, ne pas prendre de risque
         print(f"[SECURITY] Cannot verify Windows Update status: {e}, skipping")
-        return {"update_deleted": 0, "skipped": 0}
+        return {"update_deleted": 0, "skipped": 0, "error": str(e)}
     
     if not os.path.isdir(folder):
         return {"update_deleted": 0, "skipped": 0}
@@ -679,6 +700,20 @@ def clear_windows_update_cache(progress_callback=None):
                 continue
     except Exception as e:
         print(f"[ERROR] Windows Update cache cleanup failed: {e}")
+    
+    # CORRECTION: Redémarrer le service si il était en cours avant
+    if service_was_running:
+        try:
+            from backend.system_commands import system_cmd
+            print("[INFO] Restarting Windows Update service...")
+            restart_result = system_cmd.run_sc(['start', 'wuauserv'])
+            if restart_result.returncode == 0:
+                print("[SUCCESS] Windows Update service restarted")
+            else:
+                print("[WARNING] Could not restart Windows Update service automatically")
+                print("[INFO] You may need to restart it manually or reboot")
+        except Exception as e:
+            print(f"[WARNING] Error restarting Windows Update service: {e}")
     
     print(f"[INFO] Windows Update cache: {deleted} deleted, {skipped} skipped (protected)")
     return {"update_deleted": deleted, "skipped": skipped}
@@ -1004,33 +1039,29 @@ def clear_windows_old(progress_callback=None, confirmed=False):
 
 # Advanced functions
 def clear_standby_memory(progress_callback=None):
-    """Clear standby memory (RAM) using native Windows API"""
+    """
+    Clear standby memory (RAM) using native Windows API
+    Utilise le nouveau RAMManager pour un vidage efficace et précis
+    """
     try:
-        # Utiliser l'API Windows native au lieu de PowerShell (SÉCURITÉ)
-        # EmptyWorkingSet pour le processus courant
-        import psutil
+        from backend.ram_manager import ram_manager
         
-        # Méthode 1: Vider le working set du processus
-        try:
-            handle = ctypes.windll.kernel32.GetCurrentProcess()
-            ctypes.windll.psapi.EmptyWorkingSet(handle)
-        except:
-            pass
+        # Utiliser le nouveau gestionnaire RAM
+        result = ram_manager.clear_standby_memory()
         
-        # Méthode 2: Utiliser SetSystemFileCacheSize (nécessite admin)
-        try:
-            # Définir la taille du cache système à minimum temporairement
-            SE_INCREASE_QUOTA_NAME = "SeIncreaseQuotaPrivilege"
-            # Cette opération nécessite des privilèges élevés
-            # Note: Moins agressif que Clear-PhysicalMemoryStandbyList mais plus sûr
-            print("[INFO] Memory optimization completed (safe mode)")
-        except:
-            pass
-        
-        return {"ram_standby_cleared": True}
+        # Compatibilité avec l'ancien format de retour
+        return {
+            "ram_standby_cleared": result.get('success', False),
+            "method_used": result.get('method_used', 'unknown'),
+            "freed_mb": result.get('freed_mb', 0),
+            "standby_before_mb": result.get('standby_before_mb', 0),
+            "standby_after_mb": result.get('standby_after_mb', 0),
+        }
     except Exception as e:
-        print(f"[WARNING] Failed to clear standby memory: {e}")
-        return {"ram_standby_cleared": False}
+        print(f"[ERROR] Failed to clear standby memory: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"ram_standby_cleared": False, "error": str(e)}
 
 
 def get_dns_cache_size():

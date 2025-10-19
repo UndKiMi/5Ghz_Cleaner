@@ -393,22 +393,37 @@ def clean_old_drivers():
 def clean_winsxs():
     """
     Nettoie le dossier WinSxS (composants Windows)
+    CORRECTION: Ajout timeout de 20 minutes et meilleur feedback
     """
     try:
-        # Utiliser DISM pour nettoyer WinSxS
+        print("[INFO] Démarrage du nettoyage WinSxS (peut prendre 5-15 minutes)...")
+        
+        # Utiliser DISM pour nettoyer WinSxS avec timeout de 20 minutes
         result = subprocess.run(
             ["DISM", "/Online", "/Cleanup-Image", "/StartComponentCleanup", "/ResetBase"],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            timeout=1200  # 20 minutes max
         )
         
         if result.returncode == 0:
-            print("[SUCCESS] WinSxS nettoyé")
+            print("[SUCCESS] WinSxS nettoyé avec succès")
             return {"success": True, "message": "WinSxS nettoyé"}
+        elif result.returncode == 3010:
+            # Code 3010 = succès mais redémarrage nécessaire
+            print("[SUCCESS] WinSxS nettoyé (redémarrage recommandé)")
+            return {"success": True, "message": "WinSxS nettoyé - Redémarrage recommandé"}
         else:
-            return {"success": False, "message": "Erreur nettoyage WinSxS"}
+            print(f"[WARNING] DISM returned code {result.returncode}")
+            # Afficher stderr si disponible
+            if result.stderr:
+                print(f"[DEBUG] DISM stderr: {result.stderr[:200]}")
+            return {"success": False, "message": f"Erreur DISM (code {result.returncode})"}
     
+    except subprocess.TimeoutExpired:
+        print("[WARNING] WinSxS cleanup timeout après 20 minutes")
+        return {"success": False, "message": "Timeout - Opération trop longue"}
     except Exception as e:
         print(f"[ERROR] Clean WinSxS failed: {e}")
         return {"success": False, "message": str(e)}
@@ -417,22 +432,39 @@ def clean_winsxs():
 def optimize_pagefile():
     """
     Optimise le fichier de pagination
+    CORRECTION: Utilise PowerShell au lieu de wmic (déprécié dans Windows 11)
     """
     try:
-        # Définir la taille du pagefile (taille système)
+        # Commande PowerShell pour activer la gestion automatique du pagefile
+        ps_command = (
+            "$cs = Get-WmiObject -Class Win32_ComputerSystem -EnableAllPrivileges; "
+            "$cs.AutomaticManagedPagefile = $true; "
+            "$cs.Put()"
+        )
+        
         result = subprocess.run(
-            ["wmic", "computersystem", "where", "name='%computername%'", "set", "AutomaticManagedPagefile=True"],
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_command],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
+            timeout=30
         )
         
         if result.returncode == 0:
-            print("[SUCCESS] Pagefile optimisé")
+            print("[SUCCESS] Pagefile optimisé (gestion automatique activée)")
             return {"success": True, "message": "Pagefile optimisé"}
         else:
+            # Afficher l'erreur pour diagnostic
+            if result.stderr:
+                print(f"[DEBUG] PowerShell stderr: {result.stderr[:200]}")
             return {"success": False, "message": "Erreur optimisation pagefile"}
     
+    except subprocess.TimeoutExpired:
+        print("[WARNING] Pagefile optimization timeout")
+        return {"success": False, "message": "Timeout"}
+    except FileNotFoundError:
+        print("[ERROR] PowerShell not found")
+        return {"success": False, "message": "PowerShell non disponible"}
     except Exception as e:
         print(f"[ERROR] Optimize pagefile failed: {e}")
         return {"success": False, "message": str(e)}

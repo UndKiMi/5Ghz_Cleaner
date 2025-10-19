@@ -29,6 +29,16 @@ class MainPage:
         self._cooldown_duration = 5  # Cooldown de 5 secondes
         self._cooldown_timers = {}  # Timers actifs pour chaque bouton
         self._cooldown_lock = threading.Lock()  # Lock pour thread-safety
+        self._button_original_texts = {}  # Textes originaux des boutons (pour restauration après cooldown)
+        self._button_original_colors = {}  # Couleurs originales des boutons (pour restauration après cooldown)
+        
+        # NOUVEAU: Système de références persistantes pour mise à jour dynamique (REFONTE UI)
+        self.storage_item_refs = {
+            'cleanable': {'title': None, 'current': None, 'progress': None, 'container': None},
+            'ram': {'title': None, 'current': None, 'progress': None, 'container': None},
+            'dns': {'title': None, 'current': None, 'progress': None, 'container': None},
+        }
+        self.storage_total_text_ref = None
         
     def build(self):
         """Construit la page principale"""
@@ -406,35 +416,26 @@ class MainPage:
             cleanable_size_mb = 0
             cleanable_count = 0
         
-        # === CALCUL DE LA RAM STANDBY ===
+        # === CALCUL DE LA RAM STANDBY (NOUVEAU - PRÉCIS) ===
         try:
-            memory = psutil.virtual_memory()
+            from backend.ram_manager import ram_manager
             
-            # Méthode 1: Si cached existe (Linux/Mac)
-            if hasattr(memory, 'cached'):
-                standby_mb = memory.cached / (1024 * 1024)
-            else:
-                # Méthode 2: Calcul Windows optimisé
-                used_mb = memory.used / (1024 * 1024)
-                available_mb = memory.available / (1024 * 1024)
-                total_mb_ram = memory.total / (1024 * 1024)
-                
-                # RAM Standby = Total - Used - Available
-                calculated_standby = total_mb_ram - used_mb - available_mb
-                
-                # Validation: doit être positif et raisonnable (< 50% de la RAM)
-                if 0 < calculated_standby < (total_mb_ram * 0.5):
-                    standby_mb = calculated_standby
-                else:
-                    # Estimation sûre: 10% de la RAM totale
-                    standby_mb = total_mb_ram * 0.10
-                    
-            # Calculer le pourcentage de RAM standby
-            standby_percent = (standby_mb / total_mb_ram * 100) if total_mb_ram > 0 else 0
+            # Utiliser le nouveau gestionnaire RAM pour un calcul précis
+            ram_info = ram_manager.get_detailed_memory_info()
+            standby_mb = ram_info['standby_mb']
+            standby_percent = ram_info['percent_standby']
+            total_mb_ram = ram_info['total_mb']
+            
+            print(f"[DEBUG] RAM Standby calculée: {standby_mb:.2f} MB ({standby_percent:.1f}%)")
         except Exception as e:
             print(f"[ERROR] Failed to calculate RAM standby: {e}")
-            standby_mb = 0
-            standby_percent = 0
+            import traceback
+            traceback.print_exc()
+            # Fallback vers psutil
+            memory = psutil.virtual_memory()
+            total_mb_ram = memory.total / (1024 * 1024)
+            standby_mb = total_mb_ram * 0.10  # Estimation conservatrice
+            standby_percent = 10.0
         
         # === CALCUL DU CACHE DNS ===
         try:
@@ -763,32 +764,23 @@ class MainPage:
             except Exception as e:
                 print(f"[ERROR] Failed to scan cleanable files: {e}")
         
-        # Scanner la RAM si nécessaire
+        # Scanner la RAM si nécessaire (NOUVEAU - PRÉCIS)
         if scan_ram:
             try:
-                memory = psutil.virtual_memory()
+                from backend.ram_manager import ram_manager
                 
-                if hasattr(memory, 'cached'):
-                    standby_mb = memory.cached / (1024 * 1024)
-                else:
-                    used_mb = memory.used / (1024 * 1024)
-                    available_mb = memory.available / (1024 * 1024)
-                    total_mb_ram = memory.total / (1024 * 1024)
-                    
-                    calculated_standby = total_mb_ram - used_mb - available_mb
-                    
-                    if 0 < calculated_standby < (total_mb_ram * 0.5):
-                        standby_mb = calculated_standby
-                    else:
-                        standby_mb = total_mb_ram * 0.10
-                
-                standby_percent = (standby_mb / total_mb_ram * 100) if total_mb_ram > 0 else 0
+                # Utiliser le nouveau gestionnaire RAM pour un calcul précis
+                ram_info = ram_manager.get_detailed_memory_info()
+                standby_mb = ram_info['standby_mb']
+                standby_percent = ram_info['percent_standby']
                 
                 self._cached_storage_data['standby_mb'] = standby_mb
                 self._cached_storage_data['standby_gb'] = standby_mb / 1024
                 self._cached_storage_data['standby_percent'] = standby_percent
             except Exception as e:
                 print(f"[ERROR] Failed to calculate RAM standby: {e}")
+                import traceback
+                traceback.print_exc()
         
         # Scanner le DNS si nécessaire
         if scan_dns:
@@ -826,6 +818,15 @@ class MainPage:
                 if not hasattr(self, 'storage_item_buttons'):
                     self.storage_item_buttons = {}
                 self.storage_item_buttons[button_ref_key] = button_widget
+                
+                # CORRECTION: Stocker le texte et la couleur ORIGINAUX du bouton
+                if not hasattr(self, '_button_original_texts'):
+                    self._button_original_texts = {}
+                self._button_original_texts[button_ref_key] = button_text
+                
+                if not hasattr(self, '_button_original_colors'):
+                    self._button_original_colors = {}
+                self._button_original_colors[button_ref_key] = color
         
         # Créer les widgets texte et progress bar
         title_text = ft.Text(
@@ -938,6 +939,48 @@ class MainPage:
             animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
         )
     
+    def _update_storage_item_dynamic(self, item_key, new_title=None, new_current=None, new_percentage=None):
+        """
+        Met à jour un item de stockage SANS le reconstruire (REFONTE UI)
+        Thread-safe avec protection contre les race conditions
+        
+        Args:
+            item_key: Clé de l'item ('cleanable', 'ram', 'dns')
+            new_title: Nouveau titre (optionnel)
+            new_current: Nouvelle valeur actuelle (optionnel)
+            new_percentage: Nouveau pourcentage pour la barre (optionnel)
+        """
+        if item_key not in self.storage_item_refs:
+            print(f"[WARNING] Storage item '{item_key}' not found in refs")
+            return
+        
+        refs = self.storage_item_refs[item_key]
+        
+        try:
+            # Mise à jour du titre si fourni
+            if new_title and refs.get('title'):
+                refs['title'].value = new_title
+            
+            # Mise à jour de la valeur actuelle
+            if new_current and refs.get('current'):
+                refs['current'].value = f"À libérer: {new_current}"
+            
+            # Mise à jour de la barre de progression avec animation
+            if new_percentage is not None and refs.get('progress'):
+                refs['progress'].value = new_percentage
+                # Animation de feedback visuel
+                refs['progress'].animate_opacity = ft.Animation(600, ft.AnimationCurve.BOUNCE_OUT)
+            
+            # Forcer la mise à jour de l'interface
+            self.page.update()
+            
+            print(f"[DEBUG] Storage item '{item_key}' updated: {new_current}, {new_percentage:.2%}" if new_percentage else f"[DEBUG] Storage item '{item_key}' updated: {new_current}")
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to update storage item '{item_key}': {e}")
+            import traceback
+            traceback.print_exc()
+    
     def _can_execute_action(self, action_name: str) -> tuple[bool, float]:
         """
         Vérifie si une action peut être exécutée (cooldown)
@@ -994,6 +1037,7 @@ class MainPage:
         """
         Démarre un timer visuel sur le bouton pendant le cooldown
         ANTI-SPAM: Affichage visuel du temps restant (UX)
+        CORRECTION: Restaure le texte ORIGINAL du bouton (pas le texte de succès)
         """
         import threading
         import time
@@ -1005,8 +1049,10 @@ class MainPage:
                     return
                 
                 button = self.storage_item_buttons[button_ref_key]
-                original_text = button.content.value if hasattr(button.content, 'value') else "Action"
-                original_bgcolor = button.bgcolor
+                
+                # Récupérer le texte et la couleur ORIGINAUX (stockés avant l'action)
+                original_text = self._button_original_texts.get(button_ref_key, "Action")
+                original_bgcolor = self._button_original_colors.get(button_ref_key, ft.Colors.BLUE)
                 
                 # Boucle de mise à jour du timer
                 for remaining in range(self._cooldown_duration, 0, -1):
@@ -1026,10 +1072,10 @@ class MainPage:
                     
                     time.sleep(1)
                 
-                # Restaurer le bouton
+                # Restaurer le bouton avec le texte ORIGINAL
                 if hasattr(self, 'storage_item_buttons') and button_ref_key in self.storage_item_buttons:
                     button.bgcolor = original_bgcolor
-                    button.content.value = original_text
+                    button.content.value = original_text  # Texte original restauré
                     button.disabled = False
                     
                     try:
@@ -1138,11 +1184,19 @@ class MainPage:
             self._show_cooldown_message(remaining)
             return
         
+        # CORRECTION: Sauvegarder le texte et la couleur ORIGINAUX du bouton avant l'action
+        if hasattr(self, 'storage_item_buttons') and 'ram_button' in self.storage_item_buttons:
+            button = self.storage_item_buttons['ram_button']
+            if hasattr(button.content, 'value'):
+                self._button_original_texts['ram_button'] = button.content.value
+            # Sauvegarder aussi la couleur originale (Colors.INFO pour RAM)
+            self._button_original_colors['ram_button'] = Colors.INFO
+        
         # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
         self._register_action('clear_ram')
         
-        # ANTI-SPAM: Démarrer le timer visuel sur le bouton (UX)
-        self._start_cooldown_timer('clear_ram', 'ram_button')
+        # NOTE: Le cooldown visuel démarrera APRÈS l'animation de succès/échec
+        # pour éviter les chevauchements d'affichage
         
         def clear_ram():
             from backend import cleaner
@@ -1197,47 +1251,46 @@ class MainPage:
                         
                         time.sleep(1.5)
                         
-                        # ANTI-SPAM: Ne pas restaurer le bouton ici, le timer cooldown s'en charge
-                        # Le timer visuel prendra le relais automatiquement après cette animation
+                        # ANTI-SPAM: Démarrer le cooldown visuel MAINTENANT (après l'animation)
+                        self._start_cooldown_timer('clear_ram', 'ram_button')
                         
                         # Forcer un rescan de la RAM immédiatement et mettre à jour l'affichage
                         self.last_ram_scan = 0
                         
-                        # Recalculer immédiatement la RAM standby après vidage
-                        memory_now = psutil.virtual_memory()
-                        standby_after_mb = 0
+                        # Recalculer immédiatement la RAM standby après vidage (NOUVEAU - PRÉCIS)
+                        from backend.ram_manager import ram_manager
                         
-                        if hasattr(memory_now, 'cached'):
-                            standby_after_mb = memory_now.cached / (1024 * 1024)
-                        else:
-                            used_mb = memory_now.used / (1024 * 1024)
-                            available_mb = memory_now.available / (1024 * 1024)
-                            total_mb_ram = memory_now.total / (1024 * 1024)
-                            calculated_standby = total_mb_ram - used_mb - available_mb
-                            if 0 < calculated_standby < (total_mb_ram * 0.5):
-                                standby_after_mb = calculated_standby
-                            else:
-                                standby_after_mb = total_mb_ram * 0.10
+                        # Invalider le cache pour forcer un nouveau calcul
+                        ram_manager.invalidate_cache()
                         
+                        # Obtenir les nouvelles valeurs précises
+                        ram_info_after = ram_manager.get_detailed_memory_info()
+                        standby_after_mb = ram_info_after['standby_mb']
                         standby_after_gb = standby_after_mb / 1024
-                        total_mb_ram = memory_now.total / (1024 * 1024)
-                        standby_percent_after = (standby_after_mb / total_mb_ram * 100) if total_mb_ram > 0 else 0
+                        standby_percent_after = ram_info_after['percent_standby']
+                        total_mb_ram = ram_info_after['total_mb']
                         
-                        # Mettre à jour immédiatement l'affichage du titre avec le nouveau pourcentage
-                        if hasattr(self, 'storage_item_refs') and 'ram' in self.storage_item_refs:
-                            refs = self.storage_item_refs['ram']
-                            refs['title'].value = f"RAM Standby ({standby_percent_after:.1f}%)"
-                            refs['current'].value = f"À libérer: {standby_after_gb:.2f} GB" if standby_after_gb >= 1 else f"À libérer: {standby_after_mb:.0f} MB"
-                            
-                            # Mettre à jour aussi la barre de progression
-                            # Recalculer le total pour la barre de progression
-                            if hasattr(self, '_cached_storage_data'):
-                                cleanable_mb = self._cached_storage_data.get('cleanable_mb', 0)
-                                dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
-                                total_mb = cleanable_mb + standby_after_mb + dns_mb
-                                refs['progress'].value = (standby_after_mb / total_mb) if total_mb > 0 else 0
-                            
-                            self.page.update()
+                        # Calculer la quantité réellement libérée
+                        freed_mb = result.get('freed_mb', 0)
+                        print(f"[INFO] RAM Standby après vidage: {standby_after_mb:.2f} MB ({standby_percent_after:.1f}%)")
+                        print(f"[INFO] RAM réellement libérée: {freed_mb:.2f} MB")
+                        
+                        # Calculer le nouveau pourcentage pour la barre
+                        if hasattr(self, '_cached_storage_data'):
+                            cleanable_mb = self._cached_storage_data.get('cleanable_mb', 0)
+                            dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
+                            total_mb = cleanable_mb + standby_after_mb + dns_mb
+                            new_percentage = (standby_after_mb / total_mb) if total_mb > 0 else 0
+                        else:
+                            new_percentage = 0
+                        
+                        # NOUVEAU: Utiliser la méthode de mise à jour dynamique (REFONTE UI)
+                        self._update_storage_item_dynamic(
+                            'ram',
+                            new_title=f"RAM Standby ({standby_percent_after:.1f}%)",
+                            new_current=f"{standby_after_gb:.2f} GB" if standby_after_gb >= 1 else f"{standby_after_mb:.0f} MB",
+                            new_percentage=new_percentage
+                        )
                         
                         # Mettre à jour le cache pour éviter les conflits avec le thread auto-update
                         if hasattr(self, '_cached_storage_data'):
@@ -1254,11 +1307,13 @@ class MainPage:
                             self.page.update()
                         
                         # Afficher un message de succès avec détails
+                        method_used = result.get('method_used', 'unknown')
                         self._show_success_dialog(
                             "✓ RAM vidée",
                             f"La RAM standby a été vidée avec succès.\n\n"
-                            f"RAM standby libérée: ~{standby_before_mb:.0f} MB\n"
-                            f"RAM disponible maintenant: {memory_after.available / (1024**3):.2f} GB\n"
+                            f"Méthode utilisée: {method_used}\n"
+                            f"RAM standby libérée: {freed_mb:.0f} MB\n"
+                            f"RAM disponible maintenant: {ram_info_after['available_mb'] / 1024:.2f} GB\n"
                             f"Nouveau pourcentage RAM standby: {standby_percent_after:.1f}%"
                         )
                     else:
@@ -1269,10 +1324,8 @@ class MainPage:
                         
                         time.sleep(1.5)
                         
-                        # Retour à la normale
-                        button.bgcolor = Colors.INFO
-                        button.content.value = "Vider la RAM"
-                        self.page.update()
+                        # ANTI-SPAM: Démarrer le cooldown visuel même en cas d'échec
+                        self._start_cooldown_timer('clear_ram', 'ram_button')
                         
                         # Afficher un message d'erreur
                         self._show_error_dialog(
@@ -1294,9 +1347,8 @@ class MainPage:
                     import time
                     time.sleep(1.5)
                     
-                    button.bgcolor = Colors.INFO
-                    button.content.value = "Vider la RAM"
-                    self.page.update()
+                    # ANTI-SPAM: Démarrer le cooldown visuel même en cas d'exception
+                    self._start_cooldown_timer('clear_ram', 'ram_button')
                 
                 self._show_error_dialog("⚠ Erreur", f"Impossible de vider la RAM:\n{str(e)}")
         
@@ -1313,11 +1365,19 @@ class MainPage:
             self._show_cooldown_message(remaining)
             return
         
+        # CORRECTION: Sauvegarder le texte et la couleur ORIGINAUX du bouton avant l'action
+        if hasattr(self, 'storage_item_buttons') and 'clean_button' in self.storage_item_buttons:
+            button = self.storage_item_buttons['clean_button']
+            if hasattr(button.content, 'value'):
+                self._button_original_texts['clean_button'] = button.content.value
+            # Sauvegarder aussi la couleur originale (Colors.WARNING pour Nettoyage)
+            self._button_original_colors['clean_button'] = Colors.WARNING
+        
         # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
         self._register_action('quick_clean')
         
-        # ANTI-SPAM: Démarrer le timer visuel sur le bouton (UX)
-        self._start_cooldown_timer('quick_clean', 'clean_button')
+        # NOTE: Le cooldown visuel démarrera APRÈS l'animation de succès/échec
+        # pour éviter les chevauchements d'affichage
         
         def clean_files():
             from backend import cleaner
@@ -1355,32 +1415,33 @@ class MainPage:
                         import time
                         time.sleep(1.5)
                         
-                        # ANTI-SPAM: Ne pas restaurer le bouton ici, le timer cooldown s'en charge
-                        # Le timer visuel prendra le relais automatiquement après cette animation
+                        # ANTI-SPAM: Démarrer le cooldown visuel MAINTENANT (après l'animation)
+                        self._start_cooldown_timer('quick_clean', 'clean_button')
                         
                         # Forcer un rescan immédiatement
                         self.last_cleanable_scan = 0
                         
-                        # Rescanner immédiatement pour mettre à jour l'affichage
+                        # Rescanner immédiatement pour mettre à jour l'affichage (REFONTE UI)
                         time.sleep(0.5)  # Petit délai pour que le système se mette à jour
                         scan_result_after = cleaner.scan_all_cleanable_files()
                         cleanable_after_mb = scan_result_after.get('total_size_mb', 0)
                         cleanable_after_gb = cleanable_after_mb / 1024
                         
-                        # Mettre à jour l'affichage
-                        if hasattr(self, 'storage_item_refs') and 'cleanable' in self.storage_item_refs:
-                            refs = self.storage_item_refs['cleanable']
-                            refs['title'].value = "Fichiers à nettoyer"
-                            refs['current'].value = f"À libérer: {cleanable_after_gb:.2f} GB" if cleanable_after_gb >= 1 else f"À libérer: {cleanable_after_mb:.0f} MB"
-                            
-                            # Mettre à jour aussi la barre de progression
-                            if hasattr(self, '_cached_storage_data'):
-                                standby_mb = self._cached_storage_data.get('standby_mb', 0)
-                                dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
-                                total_mb = cleanable_after_mb + standby_mb + dns_mb
-                                refs['progress'].value = (cleanable_after_mb / total_mb) if total_mb > 0 else 0
-                            
-                            self.page.update()
+                        # Calculer le nouveau pourcentage pour la barre
+                        if hasattr(self, '_cached_storage_data'):
+                            standby_mb = self._cached_storage_data.get('standby_mb', 0)
+                            dns_mb = self._cached_storage_data.get('dns_mb', 0.05)
+                            total_mb = cleanable_after_mb + standby_mb + dns_mb
+                            new_percentage = (cleanable_after_mb / total_mb) if total_mb > 0 else 0
+                        else:
+                            new_percentage = 0
+                        
+                        # NOUVEAU: Utiliser la méthode de mise à jour dynamique
+                        self._update_storage_item_dynamic(
+                            'cleanable',
+                            new_current=f"{cleanable_after_gb:.2f} GB" if cleanable_after_gb >= 1 else f"{cleanable_after_mb:.0f} MB",
+                            new_percentage=new_percentage
+                        )
                         
                         # Mettre à jour le cache
                         if hasattr(self, '_cached_storage_data'):
@@ -1411,10 +1472,8 @@ class MainPage:
                         import time
                         time.sleep(1.5)
                         
-                        # Retour à la normale
-                        button.bgcolor = Colors.WARNING
-                        button.content.value = "Nettoyage rapide"
-                        self.page.update()
+                        # ANTI-SPAM: Démarrer le cooldown visuel même en cas d'échec
+                        self._start_cooldown_timer('quick_clean', 'clean_button')
                         
                         # Afficher un message d'erreur
                         self._show_error_dialog(
@@ -1436,9 +1495,8 @@ class MainPage:
                     import time
                     time.sleep(1.5)
                     
-                    button.bgcolor = Colors.WARNING
-                    button.content.value = "Nettoyage rapide"
-                    self.page.update()
+                    # ANTI-SPAM: Démarrer le cooldown visuel même en cas d'exception
+                    self._start_cooldown_timer('quick_clean', 'clean_button')
                 
                 self._show_error_dialog("⚠ Erreur", f"Impossible de nettoyer:\n{str(e)}")
         
@@ -2701,9 +2759,9 @@ class MainPage:
                 self._build_hardware_card_v2("Disque", disk) for disk in hw_data.get("disks", [])
             ]
             
-            # Démarrer le monitoring en temps réel (0.25 seconde pour des mises à jour instantanées)
+            # Démarrer le monitoring en temps réel (1 seconde pour des mises à jour régulières)
             if not hardware_monitor.monitoring:
-                hardware_monitor.start_monitoring(interval=0.25, callback=self._update_hardware_display)
+                hardware_monitor.start_monitoring(interval=1.0, callback=self._update_hardware_display)
         except Exception as e:
             print(f"[ERROR] Failed to build configuration section: {e}")
             import traceback

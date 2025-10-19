@@ -35,6 +35,7 @@ class HardwareMonitor:
         self._lock = threading.Lock()
         self._temp_warning_shown = False  # Pour éviter les messages répétitifs
         self._gpu_warning_shown = False
+        self._disk_info_cache = {}  # Cache pour les infos statiques des disques (modèle, type)
     
     def get_cpu_info(self) -> Dict:
         """Récupère les informations CPU"""
@@ -211,61 +212,71 @@ class HardwareMonitor:
         try:
             partitions = psutil.disk_partitions()
             
-            # Récupérer les informations des disques physiques via WMI
+            # Récupérer les informations des disques physiques via WMI (avec cache)
             disk_info_map = {}  # Mapping partition -> (model, type)
-            try:
-                import win32com.client
-                wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\cimv2")
-                
-                # Récupérer les disques physiques
-                physical_disks = wmi.ExecQuery("SELECT * FROM Win32_DiskDrive")
-                for disk in physical_disks:
-                    model = disk.Model if disk.Model else "Unknown"
-                    device_id = disk.DeviceID
+            
+            # Utiliser le cache si disponible, sinon interroger WMI
+            if not self._disk_info_cache:
+                try:
+                    import win32com.client
+                    wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\cimv2")
                     
-                    # Déterminer le type de disque
-                    media_type = disk.MediaType if hasattr(disk, 'MediaType') else ""
-                    interface_type = disk.InterfaceType if hasattr(disk, 'InterfaceType') else ""
-                    
-                    # Détection du type améliorée
-                    model_upper = model.upper()
-                    media_upper = media_type.upper() if media_type else ""
-                    interface_upper = interface_type.upper() if interface_type else ""
-                    
-                    if "NVME" in model_upper or "NVME" in interface_upper or "NVM EXPRESS" in model_upper:
-                        disk_type = "SSD NVMe"
-                    elif "SSD" in model_upper or "SOLID STATE" in media_upper or "SAMSUNG" in model_upper or "CRUCIAL" in model_upper or "KINGSTON" in model_upper:
-                        disk_type = "SSD"
-                    elif "FIXED HARD DISK" in media_upper or "HDD" in model_upper or "SEAGATE" in model_upper or "WD" in model_upper or "WESTERN DIGITAL" in model_upper:
-                        disk_type = "HDD"
-                    else:
-                        # Fallback: détecter par le nom du modèle
-                        if any(brand in model_upper for brand in ["SAMSUNG", "CRUCIAL", "KINGSTON", "INTEL", "CORSAIR", "ADATA"]):
+                    # Récupérer les disques physiques
+                    physical_disks = wmi.ExecQuery("SELECT * FROM Win32_DiskDrive")
+                    for disk in physical_disks:
+                        model = disk.Model if disk.Model else "Unknown"
+                        device_id = disk.DeviceID
+                        
+                        # Déterminer le type de disque
+                        media_type = disk.MediaType if hasattr(disk, 'MediaType') else ""
+                        interface_type = disk.InterfaceType if hasattr(disk, 'InterfaceType') else ""
+                        
+                        # Détection du type améliorée
+                        model_upper = model.upper()
+                        media_upper = media_type.upper() if media_type else ""
+                        interface_upper = interface_type.upper() if interface_type else ""
+                        
+                        if "NVME" in model_upper or "NVME" in interface_upper or "NVM EXPRESS" in model_upper:
+                            disk_type = "SSD NVMe"
+                        elif "SSD" in model_upper or "SOLID STATE" in media_upper or "SAMSUNG" in model_upper or "CRUCIAL" in model_upper or "KINGSTON" in model_upper:
                             disk_type = "SSD"
+                        elif "FIXED HARD DISK" in media_upper or "HDD" in model_upper or "SEAGATE" in model_upper or "WD" in model_upper or "WESTERN DIGITAL" in model_upper:
+                            disk_type = "HDD"
                         else:
-                            disk_type = "Unknown"
-                    
-                    # Mapper les partitions à ce disque
-                    try:
-                        partitions_query = wmi.ExecQuery(
-                            f"ASSOCIATORS OF {{Win32_DiskDrive.DeviceID='{device_id}'}} "
-                            "WHERE AssocClass = Win32_DiskDriveToDiskPartition"
-                        )
-                        for partition in partitions_query:
-                            logical_disks = wmi.ExecQuery(
-                                f"ASSOCIATORS OF {{Win32_DiskPartition.DeviceID='{partition.DeviceID}'}} "
-                                "WHERE AssocClass = Win32_LogicalDiskToPartition"
+                            # Fallback: détecter par le nom du modèle
+                            if any(brand in model_upper for brand in ["SAMSUNG", "CRUCIAL", "KINGSTON", "INTEL", "CORSAIR", "ADATA"]):
+                                disk_type = "SSD"
+                            else:
+                                disk_type = "Unknown"
+                        
+                        # Mapper les partitions à ce disque
+                        try:
+                            partitions_query = wmi.ExecQuery(
+                                f"ASSOCIATORS OF {{Win32_DiskDrive.DeviceID='{device_id}'}} "
+                                "WHERE AssocClass = Win32_DiskDriveToDiskPartition"
                             )
-                            for logical_disk in logical_disks:
-                                drive_letter = logical_disk.DeviceID
-                                disk_info_map[drive_letter] = (model, disk_type)
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+                            for partition in partitions_query:
+                                logical_disks = wmi.ExecQuery(
+                                    f"ASSOCIATORS OF {{Win32_DiskPartition.DeviceID='{partition.DeviceID}'}} "
+                                    "WHERE AssocClass = Win32_LogicalDiskToPartition"
+                                )
+                                for logical_disk in logical_disks:
+                                    drive_letter = logical_disk.DeviceID
+                                    disk_info_map[drive_letter] = (model, disk_type)
+                                    # Mettre en cache
+                                    self._disk_info_cache[drive_letter] = (model, disk_type)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+            else:
+                # Utiliser le cache
+                disk_info_map = self._disk_info_cache.copy()
             
             for partition in partitions:
                 try:
+                    # psutil.disk_usage() lit TOUJOURS les données en temps réel depuis le système de fichiers
+                    # Pas de cache - chaque appel retourne les valeurs actuelles
                     usage = psutil.disk_usage(partition.mountpoint)
                     
                     # Température disque (si disponible via SMART)
