@@ -71,7 +71,7 @@ class PreviewPage:
                         ],
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         spacing=0,
-                        scroll=ft.ScrollMode.ADAPTIVE,
+                        scroll=ft.ScrollMode.ALWAYS,
                     ),
                     expand=True,
                 ),
