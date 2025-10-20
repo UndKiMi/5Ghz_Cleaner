@@ -2630,7 +2630,7 @@ class MainPage:
                             ),
                         ],
                         spacing=0,
-                        scroll=ft.ScrollMode.AUTO,
+                        scroll=ft.ScrollMode.ALWAYS,
                     ),
                     height=600,  # Hauteur fixe pour activer le scroll
                 ),
@@ -2968,8 +2968,9 @@ class MainPage:
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.START,
                 spacing=0,
-                scroll=ft.ScrollMode.AUTO,
+                scroll=ft.ScrollMode.ALWAYS,
             ),
+            height=720,
         )
     
     def _build_hardware_card(self, component_type, data):
