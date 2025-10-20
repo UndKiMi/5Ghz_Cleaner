@@ -1,9 +1,9 @@
 """
-Page de Prévisualisation - Design Moderne et User-Friendly
-Interface élégante avec animations et interactions fluides
+Page de Prévisualisation - Interface Épurée et Cohérente
+Design unifié avec thème global, sélection avancée et ergonomie optimisée
 
 Author: UndKiMi
-Version: 3.0.0 - MODERN UI
+Version: 4.0.0 - UNIFIED THEME
 """
 import flet as ft
 from datetime import datetime
@@ -13,7 +13,7 @@ from frontend.design_system.buttons import PrimaryButton, SecondaryButton
 
 
 class PreviewPage:
-    """Page de prévisualisation avec design cohérent"""
+    """Page de prévisualisation avec design unifié"""
     
     def __init__(self, page: ft.Page, app_instance, preview_data):
         self.page = page
@@ -25,225 +25,259 @@ class PreviewPage:
         # Par défaut tout sélectionné
         for op in preview_data.get('operations', []):
             self.selected_operations[op['name']] = True
+        
+        # Définir les opérations sécurisées (safe)
+        self.safe_operations = {
+            "Fichiers temporaires",
+            "Cache Windows Update",
+            "Prefetch",
+            "Historique récent",
+            "Cache miniatures",
+            "Vider cache navigateurs",
+        }
     
     def build(self):
-        """Construit la page avec un design moderne et élégant"""
+        """Construit la page avec design unifié"""
         return ft.Container(
             content=ft.Column(
                 [
-                    # Header moderne avec gradient
-                    self._build_modern_header(),
+                    # Header avec titre et date
+                    self._build_header(),
                     
                     ft.Container(height=Spacing.LG),
                     
-                    # Cartes statistiques avec animations
-                    self._build_stats_cards(),
+                    # Barre de stats (tabs visuels) + Bouton nettoyage
+                    self._build_stats_bar_with_action(),
                     
                     ft.Container(height=Spacing.XL),
                     
-                    # Divider élégant
-                    ft.Container(
-                        height=1,
-                        bgcolor=ft.Colors.with_opacity(0.1, Colors.FG_PRIMARY),
-                        margin=ft.margin.symmetric(horizontal=40),
-                    ),
-                    
-                    ft.Container(height=Spacing.XL),
-                    
-                    # Section titre opérations
-                    self._build_operations_header(),
-                    
-                    ft.Container(height=Spacing.MD),
-                    
-                    # Boutons de sélection rapide modernisés
-                    self._build_selection_buttons(),
+                    # Boutons de sélection rapide
+                    self._build_selection_toolbar(),
                     
                     ft.Container(height=Spacing.LG),
                     
-                    # Liste des opérations avec design amélioré
-                    self._build_operations_grid(),
+                    # Liste des opérations
+                    self._build_operations_list(),
                     
                     ft.Container(height=Spacing.XL),
-                    
-                    # Boutons d'action avec design moderne
-                    self._build_action_buttons(),
-                    
-                    ft.Container(height=Spacing.LG),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=0,
                 scroll=ft.ScrollMode.ADAPTIVE,
             ),
             expand=True,
-            padding=ft.padding.symmetric(vertical=Spacing.MD),
+            padding=ft.padding.symmetric(vertical=Spacing.MD, horizontal=Spacing.LG),
         )
     
-    def _build_modern_header(self):
-        """Header moderne avec gradient et icône"""
-        return ft.Container(
-            content=ft.Column(
-                [
-                    # Icône principale avec cercle
-                    ft.Container(
-                        content=ft.Icon(
-                            ft.Icons.PREVIEW_ROUNDED,
-                            size=48,
-                            color=Colors.ACCENT_PRIMARY,
-                        ),
-                        width=96,
-                        height=96,
-                        border_radius=48,
-                        bgcolor=ft.Colors.with_opacity(0.15, Colors.ACCENT_PRIMARY),
-                        alignment=ft.alignment.center,
-                    ),
-                    ft.Container(height=Spacing.MD),
-                    
-                    # Titre principal
-                    ft.Text(
-                        "Rapport de Prévisualisation",
-                        size=28,
-                        weight=ft.FontWeight.BOLD,
-                        color=Colors.FG_PRIMARY,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                    ft.Container(height=Spacing.XS),
-                    
-                    # Sous-titre avec icône
-                    ft.Row(
-                        [
-                            ft.Icon(ft.Icons.ACCESS_TIME_ROUNDED, size=14, color=Colors.FG_SECONDARY),
-                            ft.Container(width=6),
-                            ft.Text(
-                                f"Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}",
-                                size=13,
-                                color=Colors.FG_SECONDARY,
+    def _build_header(self):
+        """Header simple avec titre et date"""
+        return ft.Column(
+            [
+                # Titre avec logo
+                ft.Row(
+                    [
+                        ft.Container(
+                            content=ft.Icon(
+                                ft.Icons.PREVIEW_ROUNDED,
+                                size=28,
+                                color=Colors.ACCENT_PRIMARY,
                             ),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                    ),
-                    ft.Container(height=Spacing.SM),
-                    
-                    # Message info élégant
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Icon(
-                                    ft.Icons.INFO_OUTLINE_ROUNDED,
-                                    size=16,
-                                    color=Colors.ACCENT_PRIMARY,
-                                ),
-                                ft.Container(width=8),
-                                ft.Text(
-                                    "Sélectionnez les opérations à effectuer",
-                                    size=13,
-                                    color=Colors.FG_SECONDARY,
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
+                            width=48,
+                            height=48,
+                            border_radius=24,
+                            bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
+                            alignment=ft.alignment.center,
                         ),
-                        padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
-                        border_radius=BorderRadius.MD,
-                        bgcolor=ft.Colors.with_opacity(0.05, Colors.ACCENT_PRIMARY),
-                        border=ft.border.all(1, ft.Colors.with_opacity(0.2, Colors.ACCENT_PRIMARY)),
-                    ),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=0,
-            ),
-            padding=ft.padding.only(top=Spacing.MD, bottom=Spacing.LG),
+                        ft.Container(width=Spacing.MD),
+                        ft.Text(
+                            "Rapport de Prévisualisation",
+                            size=22,
+                            weight=ft.FontWeight.BOLD,
+                            color=Colors.FG_PRIMARY,
+                        ),
+                    ],
+                ),
+                ft.Container(height=Spacing.XS),
+                # Date
+                ft.Row(
+                    [
+                        ft.Icon(ft.Icons.ACCESS_TIME_ROUNDED, size=13, color=Colors.FG_SECONDARY),
+                        ft.Container(width=6),
+                        ft.Text(
+                            f"Généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}",
+                            size=12,
+                            color=Colors.FG_SECONDARY,
+                        ),
+                    ],
+                ),
+            ],
+            spacing=0,
         )
     
-    def _build_stats_cards(self):
-        """Cartes statistiques modernes avec animations"""
+    def _build_stats_bar_with_action(self):
+        """Barre de stats (tabs style interface) + Bouton nettoyage à droite"""
         total_files = self.preview_data.get('total_files', 0)
         total_size_mb = self.preview_data.get('total_size_mb', 0)
         total_size_gb = total_size_mb / 1024
         operations_count = len(self.preview_data.get('operations', []))
-        
-        # Calculer le nombre d'opérations sélectionnées
         selected_count = sum(1 for v in self.selected_operations.values() if v)
         
-        stats = [
-            {
-                "icon": ft.Icons.DESCRIPTION_ROUNDED,
-                "label": "Fichiers détectés",
-                "value": f"{total_files:,}",
-                "color": Colors.INFO,
-                "bg_color": ft.Colors.with_opacity(0.15, Colors.INFO),
-            },
-            {
-                "icon": ft.Icons.STORAGE_ROUNDED,
-                "label": "Espace à libérer",
-                "value": f"{total_size_gb:.2f} GB" if total_size_gb >= 1 else f"{total_size_mb:.0f} MB",
-                "color": Colors.SUCCESS,
-                "bg_color": ft.Colors.with_opacity(0.15, Colors.SUCCESS),
-            },
-            {
-                "icon": ft.Icons.CHECKLIST_ROUNDED,
-                "label": "Opérations",
-                "value": f"{selected_count}/{operations_count}",
-                "color": Colors.ACCENT_PRIMARY,
-                "bg_color": ft.Colors.with_opacity(0.15, Colors.ACCENT_PRIMARY),
-            },
-        ]
-        
-        cards = []
-        for stat in stats:
-            card = ft.Container(
-                content=ft.Column(
-                    [
-                        # Icône avec cercle
-                        ft.Container(
-                            content=ft.Icon(stat["icon"], size=28, color=stat["color"]),
-                            width=64,
-                            height=64,
-                            border_radius=32,
-                            bgcolor=stat["bg_color"],
-                            alignment=ft.alignment.center,
+        return ft.Container(
+            content=ft.Row(
+                [
+                    # Tabs style interface principale
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                self._build_stat_tab(
+                                    ft.Icons.DESCRIPTION_ROUNDED,
+                                    "Fichiers détectés",
+                                    f"{total_files:,}",
+                                    True  # Premier tab actif
+                                ),
+                                self._build_stat_tab(
+                                    ft.Icons.STORAGE_ROUNDED,
+                                    "Espace à libérer",
+                                    f"{total_size_gb:.2f} GB" if total_size_gb >= 1 else f"{total_size_mb:.0f} MB",
+                                    False
+                                ),
+                                self._build_stat_tab(
+                                    ft.Icons.CHECKLIST_ROUNDED,
+                                    "Opérations",
+                                    f"{selected_count}/{operations_count}",
+                                    False
+                                ),
+                            ],
+                            spacing=0,
                         ),
-                        ft.Container(height=Spacing.MD),
-                        
-                        # Label
-                        ft.Text(
-                            stat["label"],
-                            size=13,
-                            color=Colors.FG_SECONDARY,
-                            weight=ft.FontWeight.W_500,
-                            text_align=ft.TextAlign.CENTER,
+                        bgcolor=Colors.BG_SECONDARY,
+                        border_radius=BorderRadius.MD,
+                        padding=ft.padding.all(4),
+                    ),
+                    
+                    # Spacer
+                    ft.Container(expand=True),
+                    
+                    # Bouton Prévisualiser (style de l'image)
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Icon(ft.Icons.PLAY_ARROW_ROUNDED, size=18, color=ft.Colors.WHITE),
+                                ft.Container(width=8),
+                                ft.Text(
+                                    "Lancer le nettoyage",
+                                    size=14,
+                                    weight=ft.FontWeight.W_500,
+                                    color=ft.Colors.WHITE,
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
                         ),
-                        ft.Container(height=Spacing.XS),
-                        
-                        # Valeur
-                        ft.Text(
-                            stat["value"],
-                            size=24,
-                            weight=ft.FontWeight.BOLD,
-                            color=stat["color"],
-                            text_align=ft.TextAlign.CENTER,
-                        ),
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=0,
-                ),
-                width=180,
-                padding=Spacing.LG,
-                border_radius=BorderRadius.LG,
-                bgcolor=Colors.BG_SECONDARY,
-                border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                shadow=ft.BoxShadow(
-                    spread_radius=0,
-                    blur_radius=10,
-                    color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
-                    offset=ft.Offset(0, 4),
-                ),
-                animate=ft.Animation(300, ft.AnimationCurve.EASE_OUT),
-            )
-            cards.append(card)
-        
+                        padding=ft.padding.symmetric(horizontal=Spacing.LG, vertical=Spacing.SM),
+                        border_radius=BorderRadius.MD,
+                        bgcolor=Colors.ACCENT_PRIMARY if selected_count > 0 else Colors.BG_SECONDARY,
+                        on_click=self._start_cleaning if selected_count > 0 else None,
+                        ink=True,
+                        animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+                        disabled=selected_count == 0,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.START,
+            ),
+            padding=ft.padding.symmetric(vertical=Spacing.SM),
+        )
+    
+    def _build_stat_tab(self, icon, label, value, is_active=False):
+        """Tab style interface principale"""
+        return ft.Container(
+            content=ft.Row(
+                [
+                    ft.Icon(icon, size=16, color=Colors.ACCENT_PRIMARY if is_active else Colors.FG_SECONDARY),
+                    ft.Container(width=Spacing.XS),
+                    ft.Column(
+                        [
+                            ft.Text(
+                                label,
+                                size=11,
+                                color=Colors.FG_PRIMARY if is_active else Colors.FG_SECONDARY,
+                                weight=ft.FontWeight.W_500 if is_active else ft.FontWeight.NORMAL,
+                            ),
+                            ft.Text(
+                                value,
+                                size=13,
+                                weight=ft.FontWeight.BOLD if is_active else ft.FontWeight.W_500,
+                                color=Colors.ACCENT_PRIMARY if is_active else Colors.FG_SECONDARY,
+                            ),
+                        ],
+                        spacing=2,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+            border_radius=BorderRadius.SM,
+            bgcolor=Colors.BG_PRIMARY if is_active else ft.Colors.TRANSPARENT,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY)) if is_active else None,
+        )
+    
+    def _build_selection_toolbar(self):
+        """Barre d'outils de sélection rapide"""
         return ft.Row(
-            cards,
+            [
+                # Tout cocher
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.CHECK_BOX, size=16, color=Colors.ACCENT_PRIMARY),
+                            ft.Container(width=6),
+                            ft.Text("Tout cocher", size=13, color=Colors.ACCENT_PRIMARY),
+                        ],
+                    ),
+                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                    border_radius=BorderRadius.SM,
+                    bgcolor=ft.Colors.with_opacity(0.05, Colors.ACCENT_PRIMARY),
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.2, Colors.ACCENT_PRIMARY)),
+                    on_click=self._select_all,
+                    ink=True,
+                ),
+                ft.Container(width=Spacing.SM),
+                
+                # Tout décocher
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.CHECK_BOX_OUTLINE_BLANK, size=16, color=Colors.FG_SECONDARY),
+                            ft.Container(width=6),
+                            ft.Text("Tout décocher", size=13, color=Colors.FG_SECONDARY),
+                        ],
+                    ),
+                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                    border_radius=BorderRadius.SM,
+                    bgcolor=Colors.BG_SECONDARY,
+                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                    on_click=self._deselect_all,
+                    ink=True,
+                ),
+                ft.Container(width=Spacing.SM),
+                
+                # Cocher uniquement safe
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.VERIFIED_USER_ROUNDED, size=16, color=Colors.SUCCESS),
+                            ft.Container(width=6),
+                            ft.Text("Sélectionner uniquement les options sécurisées", size=13, color=Colors.SUCCESS),
+                        ],
+                    ),
+                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                    border_radius=BorderRadius.SM,
+                    bgcolor=ft.Colors.with_opacity(0.05, Colors.SUCCESS),
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.2, Colors.SUCCESS)),
+                    on_click=self._select_safe_only,
+                    ink=True,
+                ),
+            ],
             alignment=ft.MainAxisAlignment.CENTER,
-            spacing=Spacing.XL,
         )
     
     def _build_operations_header(self):
@@ -264,170 +298,23 @@ class PreviewPage:
             ),
         )
     
-    def _build_summary_row(self):
-        """Résumé en ligne (style Configuration)"""
-        total_files = self.preview_data.get('total_files', 0)
-        total_size_mb = self.preview_data.get('total_size_mb', 0)
-        total_size_gb = total_size_mb / 1024
-        operations_count = len(self.preview_data.get('operations', []))
-        
-        return ft.Row(
-            [
-                # Fichiers
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Row(
-                                [
-                                    ft.Icon(ft.Icons.DESCRIPTION_OUTLINED, size=18, color=Colors.INFO),
-                                    ft.Container(width=Spacing.XS),
-                                    BodyText("Fichiers", weight=ft.FontWeight.W_600, size=14),
-                                ],
-                            ),
-                            ft.Container(height=Spacing.XS),
-                            BodyText(f"{total_files:,}", size=20, weight=ft.FontWeight.W_600, color=Colors.INFO),
-                        ],
-                        spacing=0,
-                    ),
-                    padding=Spacing.MD,
-                    bgcolor=Colors.BG_SECONDARY,
-                    border_radius=BorderRadius.MD,
-                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                    width=160,
-                ),
-                
-                ft.Container(width=Spacing.LG),
-                
-                # Espace
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Row(
-                                [
-                                    ft.Icon(ft.Icons.STORAGE_OUTLINED, size=18, color=Colors.SUCCESS),
-                                    ft.Container(width=Spacing.XS),
-                                    BodyText("Espace", weight=ft.FontWeight.W_600, size=14),
-                                ],
-                            ),
-                            ft.Container(height=Spacing.XS),
-                            BodyText(
-                                f"{total_size_gb:.2f} GB" if total_size_gb >= 1 else f"{total_size_mb:.0f} MB",
-                                size=20,
-                                weight=ft.FontWeight.W_600,
-                                color=Colors.SUCCESS
-                            ),
-                        ],
-                        spacing=0,
-                    ),
-                    padding=Spacing.MD,
-                    bgcolor=Colors.BG_SECONDARY,
-                    border_radius=BorderRadius.MD,
-                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                    width=160,
-                ),
-                
-                ft.Container(width=Spacing.LG),
-                
-                # Opérations
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Row(
-                                [
-                                    ft.Icon(ft.Icons.CHECKLIST_ROUNDED, size=18, color=Colors.ACCENT_PRIMARY),
-                                    ft.Container(width=Spacing.XS),
-                                    BodyText("Opérations", weight=ft.FontWeight.W_600, size=14),
-                                ],
-                            ),
-                            ft.Container(height=Spacing.XS),
-                            BodyText(str(operations_count), size=20, weight=ft.FontWeight.W_600, color=Colors.ACCENT_PRIMARY),
-                        ],
-                        spacing=0,
-                    ),
-                    padding=Spacing.MD,
-                    bgcolor=Colors.BG_SECONDARY,
-                    border_radius=BorderRadius.MD,
-                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                    width=160,
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )
-    
-    def _build_selection_buttons(self):
-        """Boutons de sélection rapide modernisés"""
-        return ft.Row(
-            [
-                # Bouton Tout sélectionner
-                ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.CHECK_CIRCLE_ROUNDED, size=18, color=Colors.SUCCESS),
-                            ft.Container(width=8),
-                            ft.Text("Tout sélectionner", size=13, weight=ft.FontWeight.W_500, color=Colors.SUCCESS),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                    ),
-                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
-                    border_radius=BorderRadius.MD,
-                    bgcolor=ft.Colors.with_opacity(0.1, Colors.SUCCESS),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.3, Colors.SUCCESS)),
-                    on_click=self._select_all,
-                    ink=True,
-                    animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
-                ),
-                ft.Container(width=Spacing.MD),
-                
-                # Bouton Tout désélectionner
-                ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.CANCEL_ROUNDED, size=18, color=Colors.ERROR),
-                            ft.Container(width=8),
-                            ft.Text("Tout désélectionner", size=13, weight=ft.FontWeight.W_500, color=Colors.ERROR),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                    ),
-                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
-                    border_radius=BorderRadius.MD,
-                    bgcolor=ft.Colors.with_opacity(0.1, Colors.ERROR),
-                    border=ft.border.all(1, ft.Colors.with_opacity(0.3, Colors.ERROR)),
-                    on_click=self._deselect_all,
-                    ink=True,
-                    animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )
-    
-    def _build_operations_grid(self):
-        """Grille d'opérations (style actions rapides 2x2)"""
+    def _build_operations_list(self):
+        """Liste simple des opérations avec checkboxes"""
         operations = self.preview_data.get('operations', [])
         
-        # Créer des lignes de 2 cartes
-        rows = []
-        for i in range(0, len(operations), 2):
-            row_ops = operations[i:i+2]
-            row = ft.Row(
-                [
-                    self._build_operation_card(row_ops[0]),
-                    ft.Container(width=Spacing.LG) if len(row_ops) > 1 else ft.Container(),
-                    self._build_operation_card(row_ops[1]) if len(row_ops) > 1 else ft.Container(),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-            )
-            rows.append(row)
-            if i + 2 < len(operations):
-                rows.append(ft.Container(height=Spacing.LG))
+        items = []
+        for operation in operations:
+            items.append(self._build_operation_item(operation))
+            items.append(ft.Container(height=Spacing.SM))
         
         return ft.Column(
-            rows,
+            items,
             spacing=0,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
     
-    def _build_operation_card(self, operation):
-        """Carte d'opération moderne avec hover effect"""
+    def _build_operation_item(self, operation):
+        """Item simple d'opération avec checkbox"""
         name = operation['name']
         files_count = operation.get('files_count', 0)
         size_mb = operation.get('size_mb', 0)
@@ -438,10 +325,9 @@ class PreviewPage:
         # État de sélection
         is_selected = self.selected_operations.get(name, True)
         
-        # Checkbox personnalisée
+        # Checkbox
         def on_change(e):
             self.selected_operations[name] = e.control.value
-            # Mettre à jour le compteur dans les stats
             self.page.update()
         
         checkbox = ft.Checkbox(
@@ -452,127 +338,92 @@ class PreviewPage:
         )
         self.operation_checkboxes[name] = checkbox
         
-        # Icône et couleur selon l'opération
+        # Icône selon l'opération
         icon = self._get_operation_icon(name)
-        icon_color = self._get_operation_color(name)
         
-        # Badge warning si présent
-        warning_badge = None
-        if warning:
-            warning_badge = ft.Container(
-                content=ft.Row(
-                    [
-                        ft.Icon(ft.Icons.WARNING_ROUNDED, size=14, color=Colors.ERROR),
-                        ft.Container(width=4),
-                        ft.Text("Attention", size=11, color=Colors.ERROR, weight=ft.FontWeight.W_500),
-                    ],
-                ),
-                padding=ft.padding.symmetric(horizontal=8, vertical=4),
-                border_radius=BorderRadius.SM,
-                bgcolor=ft.Colors.with_opacity(0.1, Colors.ERROR),
-                tooltip=warning,
-            )
+        # Vérifier si l'opération est safe
+        is_safe = name in self.safe_operations
         
-        # Conteneur de la carte avec effet hover
-        card = ft.Container(
+        # Ligne simple
+        return ft.Container(
             content=ft.Row(
                 [
                     # Checkbox
                     checkbox,
                     ft.Container(width=Spacing.SM),
                     
-                    # Icône avec cercle coloré
-                    ft.Container(
-                        content=ft.Icon(icon, size=28, color=icon_color),
-                        width=60,
-                        height=60,
-                        border_radius=30,
-                        bgcolor=ft.Colors.with_opacity(0.15, icon_color),
-                        alignment=ft.alignment.center,
-                    ),
-                    ft.Container(width=Spacing.MD),
+                    # Icône (couleur du thème uniquement)
+                    ft.Icon(icon, size=20, color=Colors.ACCENT_PRIMARY),
+                    ft.Container(width=Spacing.SM),
                     
-                    # Contenu texte
-                    ft.Column(
-                        [
-                            # Nom de l'opération
-                            ft.Text(
-                                name,
-                                color=Colors.FG_PRIMARY,
-                                weight=ft.FontWeight.W_600,
-                                size=14,
-                            ),
-                            ft.Container(height=6),
-                            
-                            # Statistiques
-                            ft.Row(
-                                [
-                                    ft.Icon(ft.Icons.DESCRIPTION_OUTLINED, size=12, color=Colors.FG_SECONDARY),
-                                    ft.Container(width=4),
-                                    ft.Text(
-                                        f"{files_count:,} fichiers",
-                                        color=Colors.FG_SECONDARY,
-                                        size=12,
-                                    ),
-                                    ft.Container(width=Spacing.SM),
-                                    ft.Icon(ft.Icons.STORAGE_OUTLINED, size=12, color=Colors.FG_SECONDARY),
-                                    ft.Container(width=4),
-                                    ft.Text(
-                                        f"{size_gb:.2f} GB" if size_gb >= 1 else f"{size_mb:.0f} MB",
-                                        color=Colors.FG_SECONDARY,
-                                        size=12,
-                                    ),
-                                ],
-                            ),
-                            
-                            # Badge warning si présent
-                            ft.Container(height=6) if warning_badge else ft.Container(),
-                            warning_badge if warning_badge else ft.Container(),
-                        ],
-                        spacing=0,
+                    # Nom de l'opération
+                    ft.Text(
+                        name,
+                        color=Colors.FG_PRIMARY,
+                        weight=ft.FontWeight.W_500,
+                        size=14,
                         expand=True,
-                        alignment=ft.MainAxisAlignment.CENTER,
                     ),
+                    
+                    # Badge Safe
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Icon(ft.Icons.VERIFIED_USER, size=12, color=Colors.SUCCESS),
+                                ft.Container(width=4),
+                                ft.Text("Sécurisé", size=11, color=Colors.SUCCESS, weight=ft.FontWeight.W_500),
+                            ],
+                        ),
+                        padding=ft.padding.symmetric(horizontal=6, vertical=2),
+                        border_radius=BorderRadius.SM,
+                        bgcolor=ft.Colors.with_opacity(0.1, Colors.SUCCESS),
+                    ) if is_safe else ft.Container(),
+                    
+                    ft.Container(width=Spacing.SM) if is_safe else ft.Container(),
+                    
+                    # Statistiques
+                    ft.Row(
+                        [
+                            ft.Icon(ft.Icons.DESCRIPTION_OUTLINED, size=14, color=Colors.FG_SECONDARY),
+                            ft.Container(width=4),
+                            ft.Text(
+                                f"{files_count:,}",
+                                color=Colors.FG_SECONDARY,
+                                size=13,
+                            ),
+                            ft.Container(width=Spacing.SM),
+                            ft.Icon(ft.Icons.STORAGE_OUTLINED, size=14, color=Colors.FG_SECONDARY),
+                            ft.Container(width=4),
+                            ft.Text(
+                                f"{size_gb:.2f} GB" if size_gb >= 1 else f"{size_mb:.0f} MB",
+                                color=Colors.FG_SECONDARY,
+                                size=13,
+                            ),
+                        ],
+                    ),
+                    
+                    # Warning si présent
+                    ft.Container(width=Spacing.SM) if warning else ft.Container(),
+                    ft.Icon(ft.Icons.WARNING_ROUNDED, size=16, color=Colors.ERROR, tooltip=warning) if warning else ft.Container(),
                 ],
                 alignment=ft.MainAxisAlignment.START,
             ),
-            width=340,
-            padding=Spacing.MD,
-            border_radius=BorderRadius.LG,
-            bgcolor=Colors.BG_SECONDARY,
-            border=ft.border.all(
-                1.5 if is_selected else 1,
-                icon_color if is_selected else Colors.BORDER_DEFAULT
-            ),
-            shadow=ft.BoxShadow(
-                spread_radius=0,
-                blur_radius=8 if is_selected else 4,
-                color=ft.Colors.with_opacity(0.15 if is_selected else 0.08, icon_color if is_selected else ft.Colors.BLACK),
-                offset=ft.Offset(0, 2),
-            ),
-            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
+            width=700,
+            padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+            border_radius=BorderRadius.MD,
+            bgcolor=ft.Colors.with_opacity(0.03, Colors.ACCENT_PRIMARY) if is_selected else Colors.BG_SECONDARY,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.3, Colors.ACCENT_PRIMARY) if is_selected else Colors.BORDER_DEFAULT),
+            animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT),
         )
-        
-        return card
     
-    def _get_operation_color(self, name):
-        """Retourne la couleur selon l'opération"""
-        colors = {
-            "Fichiers temporaires": "#FF6B6B",
-            "Cache Windows Update": "#4ECDC4",
-            "Prefetch": "#45B7D1",
-            "Historique récent": "#FFA07A",
-            "Cache miniatures": "#98D8C8",
-            "Dumps de crash": "#F7B731",
-            "Windows.old": "#FF7979",
-            "Corbeille": "#FF6348",
-            "Nettoyer logs volumineux": "#A29BFE",
-            "Vider cache navigateurs": "#74B9FF",
-            "Nettoyer journaux événements": "#FD79A8",
-            "Libérer RAM Standby": "#FDCB6E",
-            "Flush DNS": "#6C5CE7",
-        }
-        return colors.get(name, Colors.ACCENT_PRIMARY)
+    def _select_safe_only(self, e):
+        """Sélectionne uniquement les opérations sécurisées"""
+        for name in self.selected_operations:
+            # Cocher uniquement si l'opération est dans la liste safe
+            self.selected_operations[name] = name in self.safe_operations
+            if name in self.operation_checkboxes:
+                self.operation_checkboxes[name].value = name in self.safe_operations
+        self.page.update()
     
     def _get_operation_icon(self, name):
         """Retourne l'icône selon l'opération"""
@@ -593,98 +444,6 @@ class PreviewPage:
         }
         return icons.get(name, ft.Icons.CLEANING_SERVICES_ROUNDED)
     
-    def _build_action_buttons(self):
-        """Boutons d'action modernes avec animations"""
-        selected_count = sum(1 for v in self.selected_operations.values() if v)
-        
-        return ft.Column(
-            [
-                # Message de confirmation
-                ft.Container(
-                    content=ft.Row(
-                        [
-                            ft.Icon(
-                                ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED,
-                                size=16,
-                                color=Colors.SUCCESS if selected_count > 0 else Colors.FG_SECONDARY,
-                            ),
-                            ft.Container(width=8),
-                            ft.Text(
-                                f"{selected_count} opération(s) sélectionnée(s)" if selected_count > 0 else "Aucune opération sélectionnée",
-                                size=13,
-                                color=Colors.SUCCESS if selected_count > 0 else Colors.FG_SECONDARY,
-                                weight=ft.FontWeight.W_500,
-                            ),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                    ),
-                    padding=ft.padding.symmetric(vertical=Spacing.SM),
-                ),
-                
-                ft.Container(height=Spacing.MD),
-                
-                # Boutons
-                ft.Row(
-                    [
-                        # Bouton Annuler
-                        ft.Container(
-                            content=ft.Row(
-                                [
-                                    ft.Icon(ft.Icons.ARROW_BACK_ROUNDED, size=18, color=Colors.FG_SECONDARY),
-                                    ft.Container(width=8),
-                                    ft.Text("Retour", size=14, weight=ft.FontWeight.W_600, color=Colors.FG_SECONDARY),
-                                ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                            ),
-                            width=140,
-                            height=48,
-                            border_radius=BorderRadius.MD,
-                            bgcolor=Colors.BG_SECONDARY,
-                            border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                            on_click=lambda e: self.app.show_main_page(),
-                            ink=True,
-                            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
-                        ),
-                        
-                        ft.Container(width=Spacing.LG),
-                        
-                        # Bouton Lancer le nettoyage
-                        ft.Container(
-                            content=ft.Row(
-                                [
-                                    ft.Icon(ft.Icons.PLAY_ARROW_ROUNDED, size=20, color=ft.Colors.WHITE),
-                                    ft.Container(width=8),
-                                    ft.Text(
-                                        "Lancer le nettoyage",
-                                        size=15,
-                                        weight=ft.FontWeight.BOLD,
-                                        color=ft.Colors.WHITE,
-                                    ),
-                                ],
-                                alignment=ft.MainAxisAlignment.CENTER,
-                            ),
-                            width=240,
-                            height=52,
-                            border_radius=BorderRadius.MD,
-                            bgcolor=Colors.SUCCESS if selected_count > 0 else Colors.BG_SECONDARY,
-                            on_click=self._start_cleaning if selected_count > 0 else None,
-                            ink=True,
-                            shadow=ft.BoxShadow(
-                                spread_radius=0,
-                                blur_radius=12,
-                                color=ft.Colors.with_opacity(0.3, Colors.SUCCESS) if selected_count > 0 else ft.Colors.TRANSPARENT,
-                                offset=ft.Offset(0, 4),
-                            ) if selected_count > 0 else None,
-                            animate=ft.Animation(200, ft.AnimationCurve.EASE_OUT),
-                            disabled=selected_count == 0,
-                        ),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=0,
-        )
     
     def _select_all(self, e):
         """Sélectionne tout"""
