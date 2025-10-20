@@ -2787,190 +2787,197 @@ class MainPage:
                 padding=Spacing.XL,
             )
         
-        return ft.Container(
-            content=ft.Column(
-                [
-                    # En-tête de section
-                    ft.Row(
+        return ft.Column(
+            [
+                # En-tête de section (FIXE - Non scrollable)
+                ft.Row(
+                    [
+                        ft.Icon(
+                            ft.Icons.COMPUTER_OUTLINED,
+                            size=22,
+                            color=Colors.ACCENT_PRIMARY,
+                        ),
+                        ft.Container(width=Spacing.XS),
+                        BodyText("Configuration matérielle", weight=Typography.WEIGHT_BOLD, size=18),
+                    ],
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                Spacer(height=Spacing.XS),
+                Caption(
+                    "Surveillance en temps réel des composants système • Aucune donnée n'est envoyée",
+                    color=Colors.FG_SECONDARY,
+                    size=12,
+                ),
+                Spacer(height=Spacing.LG),
+                
+                # Informations système (FIXE - Non scrollable)
+                ft.Container(
+                    content=ft.Row(
                         [
-                            ft.Icon(
-                                ft.Icons.COMPUTER_OUTLINED,
-                                size=22,
-                                color=Colors.ACCENT_PRIMARY,
+                            # Carte OS
+                            ft.Container(
+                                content=ft.Column(
+                                    [
+                                        ft.Row(
+                                            [
+                                                ft.Icon(ft.Icons.LAPTOP_WINDOWS, size=20, color=Colors.ACCENT_PRIMARY),
+                                                ft.Container(width=Spacing.XS),
+                                                BodyText("Système", size=13, weight=Typography.WEIGHT_BOLD),
+                                            ],
+                                        ),
+                                        Spacer(height=Spacing.XS),
+                                        Caption(os_info, size=11, color=Colors.FG_SECONDARY),
+                                    ],
+                                    spacing=0,
+                                ),
+                                bgcolor=Colors.BG_SECONDARY,
+                                padding=Spacing.MD,
+                                border_radius=BorderRadius.MD,
+                                border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                                expand=True,
                             ),
-                            ft.Container(width=Spacing.XS),
-                            BodyText("Configuration matérielle", weight=Typography.WEIGHT_BOLD, size=18),
+                            ft.Container(width=Spacing.MD),
+                            # Carte Uptime
+                            ft.Container(
+                                content=ft.Column(
+                                    [
+                                        ft.Row(
+                                            [
+                                                ft.Icon(ft.Icons.SCHEDULE, size=20, color=Colors.SUCCESS),
+                                                ft.Container(width=Spacing.XS),
+                                                BodyText("Uptime", size=13, weight=Typography.WEIGHT_BOLD),
+                                            ],
+                                        ),
+                                        Spacer(height=Spacing.XS),
+                                        self.uptime_text,
+                                    ],
+                                    spacing=0,
+                                ),
+                                bgcolor=Colors.BG_SECONDARY,
+                                padding=Spacing.MD,
+                                border_radius=BorderRadius.MD,
+                                border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                                expand=True,
+                            ),
+                            ft.Container(width=Spacing.MD),
+                            # Carte Processus
+                            ft.Container(
+                                content=ft.Column(
+                                    [
+                                        ft.Row(
+                                            [
+                                                ft.Icon(ft.Icons.APPS, size=20, color=Colors.WARNING),
+                                                ft.Container(width=Spacing.XS),
+                                                BodyText("Processus", size=13, weight=Typography.WEIGHT_BOLD),
+                                            ],
+                                        ),
+                                        Spacer(height=Spacing.XS),
+                                        self.process_count_text,
+                                    ],
+                                    spacing=0,
+                                ),
+                                bgcolor=Colors.BG_SECONDARY,
+                                padding=Spacing.MD,
+                                border_radius=BorderRadius.MD,
+                                border=ft.border.all(1, Colors.BORDER_DEFAULT),
+                                expand=True,
+                            ),
                         ],
-                        alignment=ft.MainAxisAlignment.START,
                     ),
-                    Spacer(height=Spacing.XS),
-                    Caption(
-                        "Surveillance en temps réel des composants système • Aucune donnée n'est envoyée",
-                        color=Colors.FG_SECONDARY,
-                        size=12,
+                ),
+                Spacer(height=Spacing.LG),
+                
+                # Avertissement confidentialité (FIXE - Non scrollable)
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.PRIVACY_TIP_OUTLINED, size=16, color=Colors.ACCENT_PRIMARY),
+                            ft.Container(width=Spacing.XS),
+                            Caption(
+                                "🔒 Confidentialité garantie : Toutes les données restent locales sur votre machine",
+                                color=Colors.ACCENT_PRIMARY,
+                                size=11,
+                                weight=Typography.WEIGHT_MEDIUM,
+                            ),
+                        ],
                     ),
-                    Spacer(height=Spacing.LG),
-                    
-                    # Informations système (NOUVEAU)
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                # Carte OS
-                                ft.Container(
-                                    content=ft.Column(
-                                        [
-                                            ft.Row(
-                                                [
-                                                    ft.Icon(ft.Icons.LAPTOP_WINDOWS, size=20, color=Colors.ACCENT_PRIMARY),
-                                                    ft.Container(width=Spacing.XS),
-                                                    BodyText("Système", size=13, weight=Typography.WEIGHT_BOLD),
-                                                ],
-                                            ),
-                                            Spacer(height=Spacing.XS),
-                                            Caption(os_info, size=11, color=Colors.FG_SECONDARY),
-                                        ],
-                                        spacing=0,
-                                    ),
-                                    bgcolor=Colors.BG_SECONDARY,
-                                    padding=Spacing.MD,
-                                    border_radius=BorderRadius.MD,
-                                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                                    expand=True,
+                    bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
+                    padding=Spacing.MD,
+                    border_radius=BorderRadius.SM,
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.3, Colors.ACCENT_PRIMARY)),
+                ),
+                Spacer(height=Spacing.XL),
+                
+                # Zone scrollable (COMPOSANTS MATÉRIELS)
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            # CPU
+                            self.hw_cpu_container,
+                            Spacer(height=Spacing.MD),
+                            
+                            # Mémoire
+                            self.hw_memory_container,
+                            Spacer(height=Spacing.MD),
+                            
+                            # GPU(s)
+                            ft.Column(
+                                self.hw_gpu_containers,
+                                spacing=Spacing.MD,
+                            ),
+                            Spacer(height=Spacing.MD),
+                            
+                            # Disques
+                            ft.Column(
+                                self.hw_disk_containers,
+                                spacing=Spacing.MD,
+                            ),
+                            
+                            Spacer(height=Spacing.XL),
+                            
+                            # Légende des couleurs
+                            ft.Container(
+                                content=ft.Row(
+                                    [
+                                        ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=Colors.FG_TERTIARY),
+                                        ft.Container(width=Spacing.XS),
+                                        Caption("Légende températures:", color=Colors.FG_TERTIARY, size=11),
+                                        ft.Container(width=Spacing.SM),
+                                        ft.Container(
+                                            width=12, height=12, bgcolor=ft.Colors.GREEN,
+                                            border_radius=BorderRadius.SM,
+                                        ),
+                                        ft.Container(width=4),
+                                        Caption("Normal", color=Colors.FG_TERTIARY, size=10),
+                                        ft.Container(width=Spacing.SM),
+                                        ft.Container(
+                                            width=12, height=12, bgcolor=ft.Colors.YELLOW,
+                                            border_radius=BorderRadius.SM,
+                                        ),
+                                        ft.Container(width=4),
+                                        Caption("Élevée", color=Colors.FG_TERTIARY, size=10),
+                                        ft.Container(width=Spacing.SM),
+                                        ft.Container(
+                                            width=12, height=12, bgcolor=ft.Colors.RED,
+                                            border_radius=BorderRadius.SM,
+                                        ),
+                                        ft.Container(width=4),
+                                        Caption("Critique", color=Colors.FG_TERTIARY, size=10),
+                                    ],
+                                    alignment=ft.MainAxisAlignment.CENTER,
                                 ),
-                                ft.Container(width=Spacing.MD),
-                                # Carte Uptime
-                                ft.Container(
-                                    content=ft.Column(
-                                        [
-                                            ft.Row(
-                                                [
-                                                    ft.Icon(ft.Icons.SCHEDULE, size=20, color=Colors.SUCCESS),
-                                                    ft.Container(width=Spacing.XS),
-                                                    BodyText("Uptime", size=13, weight=Typography.WEIGHT_BOLD),
-                                                ],
-                                            ),
-                                            Spacer(height=Spacing.XS),
-                                            self.uptime_text,
-                                        ],
-                                        spacing=0,
-                                    ),
-                                    bgcolor=Colors.BG_SECONDARY,
-                                    padding=Spacing.MD,
-                                    border_radius=BorderRadius.MD,
-                                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                                    expand=True,
-                                ),
-                                ft.Container(width=Spacing.MD),
-                                # Carte Processus
-                                ft.Container(
-                                    content=ft.Column(
-                                        [
-                                            ft.Row(
-                                                [
-                                                    ft.Icon(ft.Icons.APPS, size=20, color=Colors.WARNING),
-                                                    ft.Container(width=Spacing.XS),
-                                                    BodyText("Processus", size=13, weight=Typography.WEIGHT_BOLD),
-                                                ],
-                                            ),
-                                            Spacer(height=Spacing.XS),
-                                            self.process_count_text,
-                                        ],
-                                        spacing=0,
-                                    ),
-                                    bgcolor=Colors.BG_SECONDARY,
-                                    padding=Spacing.MD,
-                                    border_radius=BorderRadius.MD,
-                                    border=ft.border.all(1, Colors.BORDER_DEFAULT),
-                                    expand=True,
-                                ),
-                            ],
-                        ),
+                                padding=Spacing.SM,
+                            ),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.START,
+                        spacing=0,
+                        scroll=ft.ScrollMode.ALWAYS,
                     ),
-                    Spacer(height=Spacing.LG),
-                    
-                    # Avertissement confidentialité
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Icon(ft.Icons.PRIVACY_TIP_OUTLINED, size=16, color=Colors.ACCENT_PRIMARY),
-                                ft.Container(width=Spacing.XS),
-                                Caption(
-                                    "🔒 Confidentialité garantie : Toutes les données restent locales sur votre machine",
-                                    color=Colors.ACCENT_PRIMARY,
-                                    size=11,
-                                    weight=Typography.WEIGHT_MEDIUM,
-                                ),
-                            ],
-                        ),
-                        bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
-                        padding=Spacing.MD,
-                        border_radius=BorderRadius.SM,
-                        border=ft.border.all(1, ft.Colors.with_opacity(0.3, Colors.ACCENT_PRIMARY)),
-                    ),
-                    Spacer(height=Spacing.XL),
-                    
-                    # CPU
-                    self.hw_cpu_container,
-                    Spacer(height=Spacing.MD),
-                    
-                    # Mémoire
-                    self.hw_memory_container,
-                    Spacer(height=Spacing.MD),
-                    
-                    # GPU(s)
-                    ft.Column(
-                        self.hw_gpu_containers,
-                        spacing=Spacing.MD,
-                    ),
-                    Spacer(height=Spacing.MD),
-                    
-                    # Disques
-                    ft.Column(
-                        self.hw_disk_containers,
-                        spacing=Spacing.MD,
-                    ),
-                    
-                    Spacer(height=Spacing.XL),
-                    
-                    # Légende des couleurs
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=Colors.FG_TERTIARY),
-                                ft.Container(width=Spacing.XS),
-                                Caption("Légende températures:", color=Colors.FG_TERTIARY, size=11),
-                                ft.Container(width=Spacing.SM),
-                                ft.Container(
-                                    width=12, height=12, bgcolor=ft.Colors.GREEN,
-                                    border_radius=BorderRadius.SM,
-                                ),
-                                ft.Container(width=4),
-                                Caption("Normal", color=Colors.FG_TERTIARY, size=10),
-                                ft.Container(width=Spacing.SM),
-                                ft.Container(
-                                    width=12, height=12, bgcolor=ft.Colors.YELLOW,
-                                    border_radius=BorderRadius.SM,
-                                ),
-                                ft.Container(width=4),
-                                Caption("Élevée", color=Colors.FG_TERTIARY, size=10),
-                                ft.Container(width=Spacing.SM),
-                                ft.Container(
-                                    width=12, height=12, bgcolor=ft.Colors.RED,
-                                    border_radius=BorderRadius.SM,
-                                ),
-                                ft.Container(width=4),
-                                Caption("Critique", color=Colors.FG_TERTIARY, size=10),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                        ),
-                        padding=Spacing.SM,
-                    ),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.START,
-                spacing=0,
-                scroll=ft.ScrollMode.ALWAYS,
-            ),
-            height=720,
+                    height=550,
+                ),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.START,
+            spacing=0,
         )
     
     def _build_hardware_card(self, component_type, data):
