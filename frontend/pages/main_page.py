@@ -2968,6 +2968,7 @@ class MainPage:
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.START,
                 spacing=0,
+                scroll=ft.ScrollMode.AUTO,
             ),
         )
     
