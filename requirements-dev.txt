@@ -2,8 +2,8 @@
 # These are NOT required for running the application
 
 # Security auditing
-bandit==1.7.9
-safety==3.2.7
+bandit==1.8.6
+safety==3.6.2
 
 # Code quality
 pylint==3.2.7
@@ -13,7 +13,7 @@ isort==5.13.2
 # Testing
 pytest==7.4.3
 pytest-cov==4.1.0
-pytest-mock==3.12.0
+pytest-mock==3.15.1
 
 # Documentation
 sphinx==7.2.6

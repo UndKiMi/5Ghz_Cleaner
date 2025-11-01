@@ -2,7 +2,7 @@
 # Windows 11 only
 
 # UI Framework
-flet==0.25.2
+flet==0.28.3
 
 # Windows API (Windows only)
 pywin32==306
