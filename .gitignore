@@ -8,17 +8,23 @@ build/
 dist/
 *.egg-info/
 .eggs/
+.venv/
+venv/
+ENV/
 
 # Tests
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
+*.cover
 
 # IDE
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
 
 # Logs
 *.log
@@ -32,12 +38,23 @@ logs/
 .DS_Store
 Thumbs.db
 desktop.ini
+*.lnk
 
 # Temporary
 *.tmp
 *.bak
 ~*
+.restructure_plan.md
+.cleanup_report.md
+*_COMPLETE.md
 
 # Build
 *.spec
-!*.spec.template  # Keep spec templates
+!*.spec.template
+
+# Security (never commit)
+.env
+.env.local
+*.key
+*.pem
+credentials.json

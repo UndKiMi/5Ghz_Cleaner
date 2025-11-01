@@ -1,19 +1,21 @@
-# Core Dependencies - Required to run the application
-# Windows 11 only
+# 5GH'z Cleaner Dependencies
+# Windows 11 x64 only
 
-# UI Framework
+## Production
 flet==0.25.2
-
-# Windows API (Windows only)
 pywin32==306
-
-# System utilities
 psutil==5.9.8
-
-# .NET interop for LibreHardwareMonitor (Windows only)
 pythonnet==3.0.5
+cryptography==41.0.7
 
-# Optional: Log encryption (install separately if needed)
-# cryptography==41.0.7
-
-# For development/testing dependencies, see requirements-dev.txt
+## Development (install with: pip install -r requirements.txt[dev])
+# [dev]
+# bandit==1.7.9
+# safety==3.2.7
+# pylint==3.2.7
+# black==23.12.1
+# isort==5.13.2
+# flake8==7.0.0
+# pytest==7.4.3
+# pytest-cov==4.1.0
+# pytest-mock==3.12.0
