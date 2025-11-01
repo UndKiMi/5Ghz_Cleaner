@@ -3574,8 +3574,8 @@ class MainPage:
                     # Attendre 2 secondes puis démarrer le cooldown
                     time.sleep(2)
                 
-                # Démarrer le cooldown visible de 3 minutes
-                self._start_cooldown_timer(button_container, icon_widget, text_widget, action_name)
+                # Démarrer le cooldown visible de 10 minutes
+                self._start_disk_cooldown_timer(button_container, icon_widget, text_widget, action_name)
             
             except Exception as e:
                 # Erreur - Afficher icône d'erreur
@@ -3600,19 +3600,19 @@ class MainPage:
                 
                 # Attendre 2 secondes puis démarrer le cooldown
                 time.sleep(2)
-                self._start_cooldown_timer(button_container, icon_widget, text_widget, action_name)
+                self._start_disk_cooldown_timer(button_container, icon_widget, text_widget, action_name)
         
         # Lancer l'optimisation dans un thread
         threading.Thread(target=run_optimization, daemon=True).start()
     
-    def _start_cooldown_timer(self, button_container, icon_widget, text_widget, action_name):
+    def _start_disk_cooldown_timer(self, button_container, icon_widget, text_widget, action_name):
         """
-        Démarre un timer de cooldown visible de 3 minutes sur le bouton
+        Démarre un timer de cooldown visible de 10 minutes sur le bouton d'optimisation disque
         """
         import time
         
         button_content = button_container.content
-        cooldown_duration = 180  # 3 minutes
+        cooldown_duration = 600  # 10 minutes (cohérent avec le cooldown global)
         
         for remaining in range(cooldown_duration, 0, -1):
             try:

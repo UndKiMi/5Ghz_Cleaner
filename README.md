@@ -8,10 +8,11 @@
 ![Version](https://img.shields.io/badge/Version-1.7.0-green.svg)
 ![Security](https://img.shields.io/badge/Security-Hardened-brightgreen.svg)
 
-[![CodeQL](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/codeql-analysis.yml)
-[![Snyk Security](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/snyk-security.yml)
+[![Security Audit](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security-audit.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security-audit.yml)
+[![Code Quality](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/code-quality.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/code-quality.yml)
 [![Trivy](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml)
 [![OpenSSF Scorecard](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml)
+[![Secret Scanning](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml)
 
 **Outil professionnel de nettoyage et d'optimisation pour Windows 11**
 
@@ -246,34 +247,32 @@ python -c "from src.core.dry_run import dry_run_manager; print('✓ OK')"
 
 ## 🛡️ Audits de Sécurité
 
-Ce projet intègre une suite complète d'outils d'audit de sécurité automatisés via GitHub Actions :
+Ce projet intègre une suite complète d'outils d'audit automatisés via GitHub Actions :
 
-### Analyse Statique (SAST)
-- **CodeQL** - Analyse de code avancée (Microsoft)
+### 🔒 Security Audit (Workflow Consolidé)
+- **CodeQL** - Analyse statique avancée (Microsoft)
 - **Bandit** - Linter de sécurité Python
-- **Snyk Code** - Détection de vulnérabilités dans le code
+- **Safety** - Vérification vulnérabilités CVE
+- **Trivy** - Scanner multi-format
+- **Gitleaks** - Détection secrets exposés
 
-### Analyse des Dépendances
-- **Dependabot** - Mises à jour automatiques des dépendances
-- **Snyk** - Scan des vulnérabilités CVE connues
-- **Trivy** - Scanner de vulnérabilités multi-format
-- **Safety** - Vérification des packages Python
+### 📊 Code Quality
+- **Pylint** - Analyse qualité code
+- **Black** - Formatage automatique
+- **isort** - Organisation imports
+- **Flake8** - Vérification style
+- **Pytest** - Tests unitaires
 
-### Détection de Secrets
-- **Gitleaks** - Détection de secrets exposés
-- **TruffleHog** - Scanner de credentials
-- **detect-secrets** - Prévention de commits sensibles
+### 🎯 Autres Audits
+- **Dependabot** - Mises à jour automatiques
+- **OpenSSF Scorecard** - Score sécurité global
+- **Secret Scanning** - TruffleHog + Gitleaks
 
-### Évaluation Globale
-- **OpenSSF Scorecard** - Score de sécurité du projet
-- **Tests personnalisés** - Vérification intégrité DLLs, modules de sécurité
+### ⏰ Fréquence
+- **Push/PR** : Security Audit, Code Quality
+- **Hebdomadaire** : Scorecard (lundi 2h), Dependabot (lundi 9h)
 
-### Fréquence des Scans
-- **Push/PR** : CodeQL, Snyk, Trivy, Secret Scanning
-- **Quotidien** : Snyk (4h), Trivy (5h), CodeQL (2h)
-- **Hebdomadaire** : Scorecard (lundi 3h), Dependabot (lundi 9h)
-
-Tous les résultats sont disponibles dans l'onglet **Security** du dépôt GitHub.
+Tous les résultats sont disponibles dans l'onglet **Actions** du dépôt GitHub.
 
 ---
 
