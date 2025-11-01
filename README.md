@@ -15,7 +15,7 @@
 [![Secret Scanning](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/0000/badge)](https://www.bestpractices.dev/projects/0000)
 
-**Outil professionnel de nettoyage et d'optimisation pour Windows 11**
+**Outil de nettoyage et d'optimisation pour Windows 11**
 
 [Installation](#-installation) • [Fonctionnalités](#-fonctionnalités) • [Utilisation](#-utilisation) • [Licence](#-licence)
 
