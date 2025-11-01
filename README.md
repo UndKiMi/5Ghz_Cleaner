@@ -8,6 +8,11 @@
 ![Version](https://img.shields.io/badge/Version-1.7.0-green.svg)
 ![Security](https://img.shields.io/badge/Security-Hardened-brightgreen.svg)
 
+[![CodeQL](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/codeql-analysis.yml)
+[![Snyk Security](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/snyk-security.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/snyk-security.yml)
+[![Trivy](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml)
+[![OpenSSF Scorecard](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml)
+
 **Outil professionnel de nettoyage et d'optimisation pour Windows 11**
 
 [Installation](#-installation) • [Fonctionnalités](#-fonctionnalités) • [Utilisation](#-utilisation) • [Licence](#-licence)
@@ -236,6 +241,39 @@ python -c "from src.core import cleaner; print('✓ OK')"
 # Tester dry-run
 python -c "from src.core.dry_run import dry_run_manager; print('✓ OK')"
 ```
+
+---
+
+## 🛡️ Audits de Sécurité
+
+Ce projet intègre une suite complète d'outils d'audit de sécurité automatisés via GitHub Actions :
+
+### Analyse Statique (SAST)
+- **CodeQL** - Analyse de code avancée (Microsoft)
+- **Bandit** - Linter de sécurité Python
+- **Snyk Code** - Détection de vulnérabilités dans le code
+
+### Analyse des Dépendances
+- **Dependabot** - Mises à jour automatiques des dépendances
+- **Snyk** - Scan des vulnérabilités CVE connues
+- **Trivy** - Scanner de vulnérabilités multi-format
+- **Safety** - Vérification des packages Python
+
+### Détection de Secrets
+- **Gitleaks** - Détection de secrets exposés
+- **TruffleHog** - Scanner de credentials
+- **detect-secrets** - Prévention de commits sensibles
+
+### Évaluation Globale
+- **OpenSSF Scorecard** - Score de sécurité du projet
+- **Tests personnalisés** - Vérification intégrité DLLs, modules de sécurité
+
+### Fréquence des Scans
+- **Push/PR** : CodeQL, Snyk, Trivy, Secret Scanning
+- **Quotidien** : Snyk (4h), Trivy (5h), CodeQL (2h)
+- **Hebdomadaire** : Scorecard (lundi 3h), Dependabot (lundi 9h)
+
+Tous les résultats sont disponibles dans l'onglet **Security** du dépôt GitHub.
 
 ---
 

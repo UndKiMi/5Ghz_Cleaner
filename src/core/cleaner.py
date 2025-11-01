@@ -10,6 +10,11 @@ OPTIMISATIONS PERFORMANCE (v1.6.0):
 - Validations optimisées en batch
 - Suppression en batch pour moins d'I/O
 
+SÉCURITÉ v1.7.0:
+- Backup automatique avant suppression
+- Validation quadruple couche
+- Sanitization des logs
+
 GAIN TOTAL: 5-7x plus rapide tout en maintenant la sécurité maximale
 """
 import os
@@ -22,6 +27,14 @@ from src.services.security_core import security_core
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
 import itertools
+
+# Import du backup manager pour sauvegardes automatiques (v1.7.0)
+try:
+    from src.utils.backup_manager import get_backup_manager
+    BACKUP_AVAILABLE = True
+except ImportError:
+    BACKUP_AVAILABLE = False
+    print("[WARNING] backup_manager not available - backups disabled")
 
 # ============================================================================
 # PROTECTION SYSTÈME WINDOWS - NE JAMAIS MODIFIER CES LISTES

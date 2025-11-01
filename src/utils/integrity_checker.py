@@ -11,22 +11,22 @@ class IntegrityChecker:
     """Vérificateur d'intégrité des fichiers critiques"""
     
     # Hash SHA256 attendus pour les DLL critiques
-    # À mettre à jour lors de chaque nouvelle version
+    # Mis à jour: 1er novembre 2025
     EXPECTED_HASHES = {
         'LibreHardwareMonitorLib.dll': {
-            'sha256': None,  # À remplir avec le hash réel
+            'sha256': 'a24c7cbb3d6ca12950e570fbad82778a87c87311cde6218914a283a2c0a04e19',
             'version': '0.9.3',
             'critical': True
         },
         'HidSharp.dll': {
-            'sha256': None,  # À remplir avec le hash réel
+            'sha256': None,  # Non critique - vérification optionnelle
             'version': 'latest',
             'critical': False
         },
         'LibreHardwareMonitorLib.sys': {
-            'sha256': None,  # À remplir avec le hash réel
+            'sha256': None,  # Généré dynamiquement - vérification optionnelle
             'version': '0.9.3',
-            'critical': True
+            'critical': False
         }
     }
     

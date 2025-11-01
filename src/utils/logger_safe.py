@@ -7,6 +7,7 @@ Features:
 - Validation d'intégrité
 - Rollback automatique si erreur
 - Protection disque plein
+- Sanitization automatique (v1.7.0)
 """
 import os
 import logging
@@ -16,6 +17,14 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
+
+# Import du sanitizer pour masquer informations sensibles
+try:
+    from src.utils.log_sanitizer import LogSanitizer
+    SANITIZER_AVAILABLE = True
+except ImportError:
+    SANITIZER_AVAILABLE = False
+    logging.warning("log_sanitizer not available - sanitization disabled")
 
 # Import conditionnel pour le chiffrement
 try:
@@ -126,10 +135,18 @@ class SafeCleaningLogger:
         self.cipher = Fernet(self.encryption_key)
     
     def _anonymize_text(self, text: str) -> str:
-        """Anonymise les chemins utilisateur dans le texte"""
+        """
+        Anonymise les informations sensibles dans le texte
+        Utilise LogSanitizer si disponible, sinon méthode legacy
+        """
         if not text:
             return text
         
+        # Utiliser LogSanitizer si disponible (v1.7.0+)
+        if SANITIZER_AVAILABLE:
+            return LogSanitizer.sanitize(text, aggressive=False)
+        
+        # Méthode legacy (fallback)
         # Remplacer le nom d'utilisateur
         text = text.replace(self.username, '[USER]')
         
