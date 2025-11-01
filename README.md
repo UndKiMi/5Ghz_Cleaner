@@ -383,50 +383,6 @@ Cet outil effectue des opérations système sensibles. Bien qu'il soit conçu po
 
 ---
 
-## 📞 Support
-
-### Problèmes et Questions
-
-- 📖 Consultez d'abord ce README
-- 🔍 Vérifiez les [Issues existantes](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
-- 🆕 Ouvrez une [Nouvelle Issue](https://github.com/UndKiMi/5Ghz_Cleaner/issues/new)
-
-### FAQ
-
-**Q: L'application ne démarre pas**  
-R: Vérifiez que vous avez Python 3.11+ et Windows 11. Exécutez `python main.py` en tant qu'administrateur.
-
-**Q: LibreHardwareMonitor ne fonctionne pas**  
-R: L'application télécharge automatiquement la DLL au premier lancement. Vérifiez votre connexion internet.
-
-**Q: Puis-je annuler un nettoyage ?**  
-R: Non, une fois lancé, le nettoyage ne peut pas être annulé. Utilisez toujours le mode prévisualisation d'abord.
-
-**Q: Est-ce sûr ?**  
-R: Oui, l'application crée un point de restauration et valide tous les chemins avant suppression.
-
----
-
-## 📈 Roadmap
-
-### Version 1.7.0 (Prévue)
-
-- [ ] Support multi-langues (EN, FR)
-- [ ] Planification automatique du nettoyage
-- [ ] Statistiques d'utilisation
-- [ ] Export des rapports en PDF
-
-### Version 2.0.0 (Future)
-
-- [ ] Interface web (optionnelle)
-- [ ] Support Windows 10 (rétrocompatibilité)
-- [ ] Plugins personnalisés
-- [ ] Mode silencieux (CLI)
-
----
-
-<div align="center">
-
 **Version 1.6.0** • **Dernière mise à jour : Novembre 2025**
 
 Made with ❤️ for Windows 11 users
