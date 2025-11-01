@@ -255,7 +255,7 @@ class SecurityAuditor:
         }
         
         try:
-            from backend.signature_manager import signature_manager
+            from src.services.signature_manager import signature_manager
             
             # Charger la signature
             signature = signature_manager.load_signature()

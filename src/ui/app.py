@@ -6,7 +6,7 @@ import flet as ft
 import threading
 import time
 import webbrowser
-from backend import cleaner
+from src.core import cleaner
 from .design_system import *
 from .design_system.theme import Colors, Spacing, Typography, BorderRadius
 from .design_system.icons import ShieldIcon, WarningIcon

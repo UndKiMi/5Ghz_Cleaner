@@ -14,7 +14,7 @@ from datetime import datetime
 
 # Importer le module de capteurs matériels
 try:
-    from backend.hardware_sensors import hardware_sensors
+    from src.services.hardware_sensors import hardware_sensors
     SENSORS_AVAILABLE = True
 except Exception as e:
     print(f"[INFO] Hardware sensors not available: {e}")
@@ -375,7 +375,7 @@ class HardwareMonitor:
         
         # Méthode 2: Fallback avec wmic subprocess
         try:
-            from backend.system_commands import system_cmd
+            from src.utils.system_commands import system_cmd
             result = system_cmd.run_wmic(['path', 'win32_VideoController', 'get', 'name'])
             
             if result.returncode == 0:
@@ -471,7 +471,7 @@ class HardwareMonitor:
         
         # Méthode 2: WMI via wmic (NATIF WINDOWS)
         try:
-            from backend.system_commands import system_cmd
+            from src.utils.system_commands import system_cmd
             result = system_cmd.run_wmic(['/namespace:\\\\root\\wmi', 'PATH', 'MSAcpi_ThermalZoneTemperature', 'get', 'CurrentTemperature'])
             
             if result.returncode == 0:

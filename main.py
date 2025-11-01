@@ -33,14 +33,14 @@ import ctypes
 import gc
 import platform
 import flet as ft
-from frontend.app import CleanerApp
-from backend.elevation import is_admin, elevate_if_needed, elevate
+from src.ui.app import CleanerApp
+from src.utils.elevation import is_admin, elevate_if_needed, elevate
 
 # Importer le script de téléchargement
-from download_librehardwaremonitor import download_librehardwaremonitor
+from scripts.download_librehardwaremonitor import download_librehardwaremonitor
 
 # Importer les utilitaires de console colorée
-from utils.console_colors import (
+from src.utils.console_colors import (
     Colors, print_banner, print_header, print_section,
     print_success, print_error, print_warning, print_info, print_separator
 )

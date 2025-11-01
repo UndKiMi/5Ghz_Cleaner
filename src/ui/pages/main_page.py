@@ -5,10 +5,10 @@ Contient toutes les fonctionnalités de nettoyage
 import flet as ft
 from ..design_system import *
 from ..design_system.theme import Colors, Spacing, Typography, BorderRadius
-from backend import cleaner
-from backend.logger import CleaningLogger
-from backend.security import security_manager
-from backend.hardware_monitor import hardware_monitor
+from src.core import cleaner
+from src.utils.logger import CleaningLogger
+from src.services.security import security_manager
+from src.services.hardware_monitor import hardware_monitor
 
 
 class MainPage:
@@ -117,17 +117,21 @@ class MainPage:
             print("[DEBUG] Preview button clicked from tabs!")
             self._start_dry_run(e)
         
+        # Créer les références pour le texte et l'icône du bouton tabs
+        self.preview_button_tabs_icon = ft.Icon(ft.Icons.PREVIEW_ROUNDED, size=18, color=ft.Colors.WHITE)
+        self.preview_button_tabs_text = ft.Text(
+            "Prévisualiser",
+            size=14,
+            weight=ft.FontWeight.W_600,
+            color=ft.Colors.WHITE,
+        )
+        
         self.preview_button_tabs = ft.Container(
             content=ft.Row(
                 [
-                    ft.Icon(ft.Icons.PREVIEW_ROUNDED, size=18, color=ft.Colors.WHITE),
+                    self.preview_button_tabs_icon,
                     ft.Container(width=8),
-                    ft.Text(
-                        "Prévisualiser",
-                        size=14,
-                        weight=ft.FontWeight.W_600,
-                        color=ft.Colors.WHITE,
-                    ),
+                    self.preview_button_tabs_text,
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
@@ -418,7 +422,7 @@ class MainPage:
         
         # === CALCUL DE LA RAM STANDBY (NOUVEAU - PRÉCIS) ===
         try:
-            from backend.ram_manager import ram_manager
+            from src.core.ram_manager import ram_manager
             
             # Utiliser le nouveau gestionnaire RAM pour un calcul précis
             ram_info = ram_manager.get_detailed_memory_info()
@@ -767,7 +771,7 @@ class MainPage:
         # Scanner la RAM si nécessaire (NOUVEAU - PRÉCIS)
         if scan_ram:
             try:
-                from backend.ram_manager import ram_manager
+                from src.core.ram_manager import ram_manager
                 
                 # Utiliser le nouveau gestionnaire RAM pour un calcul précis
                 ram_info = ram_manager.get_detailed_memory_info()
@@ -1258,7 +1262,7 @@ class MainPage:
                         self.last_ram_scan = 0
                         
                         # Recalculer immédiatement la RAM standby après vidage (NOUVEAU - PRÉCIS)
-                        from backend.ram_manager import ram_manager
+                        from src.core.ram_manager import ram_manager
                         
                         # Invalider le cache pour forcer un nouveau calcul
                         ram_manager.invalidate_cache()
@@ -1849,7 +1853,7 @@ class MainPage:
                 print(f"[ERROR] Failed to update button progress: {e}")
         
         def optimize():
-            from backend.disk_optimizer import disk_optimizer
+            from src.core.disk_optimizer import disk_optimizer
             
             try:
                 print("[INFO] Optimizing disk...")
@@ -2351,18 +2355,22 @@ class MainPage:
             print("[DEBUG] Preview button clicked!")
             self._start_dry_run(e)
         
+        # Créer les références pour le texte et l'icône du bouton principal
+        self.dry_run_button_icon = ft.Icon(ft.Icons.PREVIEW_ROUNDED, size=20, color=ft.Colors.WHITE)
+        self.dry_run_button_text = ft.Text(
+            "Prévisualiser le nettoyage",
+            size=14,
+            weight=ft.FontWeight.W_500,
+            color=ft.Colors.WHITE,
+        )
+        
         # Bouton simple et élégant
         self.dry_run_button = ft.Container(
             content=ft.Row(
                 [
-                    ft.Icon(ft.Icons.PREVIEW_ROUNDED, size=20, color=ft.Colors.WHITE),
+                    self.dry_run_button_icon,
                     ft.Container(width=Spacing.SM),
-                    ft.Text(
-                        "Prévisualiser le nettoyage",
-                        size=14,
-                        weight=ft.FontWeight.W_500,
-                        color=ft.Colors.WHITE,
-                    ),
+                    self.dry_run_button_text,
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
@@ -3527,7 +3535,7 @@ class MainPage:
             text_widget.weight = Typography.WEIGHT_MEDIUM if is_active else Typography.WEIGHT_REGULAR
     
     def _start_dry_run(self, e):
-        """Lance la prévisualisation (Dry-Run)"""
+        """Lance la prévisualisation (Dry-Run) - OPTIMISÉ"""
         print("[DEBUG] _start_dry_run called!")
         
         # PROTECTION ANTI-SPAM: Bloquer si une opération est en cours
@@ -3544,10 +3552,34 @@ class MainPage:
         self.cleaning_in_progress = True
         
         try:
-            # Désactiver le bouton dry-run pendant l'analyse
-            self.dry_run_button.data = 'disabled'
-            self.dry_run_button.opacity = 0.5
+            # Désactiver TOUS les boutons de prévisualisation avec feedback visuel fort
+            if self.dry_run_button:
+                self.dry_run_button.data = 'disabled'
+                self.dry_run_button.bgcolor = Colors.FG_SECONDARY  # Gris
+                self.dry_run_button.disabled = True
+                # Changer le texte et l'icône du bouton principal
+                self.dry_run_button_icon.name = ft.Icons.HOURGLASS_EMPTY_ROUNDED
+                self.dry_run_button_text.value = "Analyse en cours"
+            
+            if hasattr(self, 'preview_button_tabs'):
+                self.preview_button_tabs.data = 'disabled'
+                self.preview_button_tabs.bgcolor = Colors.FG_SECONDARY  # Gris
+                self.preview_button_tabs.disabled = True
+                # Changer le texte et l'icône du bouton tabs
+                self.preview_button_tabs_icon.name = ft.Icons.HOURGLASS_EMPTY_ROUNDED
+                self.preview_button_tabs_text.value = "Analyse en cours"
+            
+            # Afficher un message de statut immédiat TRÈS VISIBLE
+            if self.status_text:
+                self.status_text.value = "⏳ Analyse en cours... Veuillez patienter (10-15 secondes)"
+                self.status_text.color = Colors.ACCENT_PRIMARY
+                self.status_text.visible = True
+            
+            # IMPORTANT: Forcer la mise à jour IMMÉDIATE de l'UI
             self.page.update()
+            
+            # Lancer l'animation des points
+            self._start_button_animation()
             
             # Lancer le dry-run dans un thread
             import threading
@@ -3558,24 +3590,27 @@ class MainPage:
             import traceback
             traceback.print_exc()
             self.cleaning_in_progress = False
-            # Réactiver le bouton en cas d'erreur
-            if self.dry_run_button:
-                self.dry_run_button.data = None
-                self.dry_run_button.opacity = 1
-                self.page.update()
+            # Réactiver TOUS les boutons en cas d'erreur
+            self._reset_preview_buttons()
+            self.page.update()
     
     def _run_dry_run(self):
-        """Exécute le dry-run dans un thread séparé"""
+        """Exécute le dry-run dans un thread séparé - OPTIMISÉ"""
+        from src.core.dry_run import dry_run_manager
         import time
-        from backend.dry_run import dry_run_manager
         
         print("[DEBUG] _run_dry_run started in thread")
         
         try:
-            # Mettre à jour le statut
-            self.status_text.value = "Analyse en cours... Veuillez patienter."
-            self.status_text.color = Colors.ACCENT_PRIMARY
-            self.page.update()
+            # Mettre à jour le statut (THREAD-SAFE avec try/except)
+            try:
+                if self.status_text:
+                    self.status_text.value = "🔍 Analyse en cours... Veuillez patienter."
+                    self.status_text.color = Colors.ACCENT_PRIMARY
+                    self.status_text.visible = True
+                self.page.update()
+            except Exception as update_ex:
+                print(f"[WARNING] Could not update status: {update_ex}")
             
             # Exécuter le dry-run
             print("[INFO] Running dry-run preview...")
@@ -3599,28 +3634,35 @@ class MainPage:
             import traceback
             traceback.print_exc()
             
-            # Réactiver le bouton dry-run
-            self.dry_run_button.data = None
-            self.dry_run_button.opacity = 1
-            
-            self.status_text.value = f"❌ Erreur lors de la prévisualisation : {str(ex)}"
-            self.status_text.color = Colors.ERROR
-            self.page.update()
+            # Réactiver les boutons et afficher l'erreur (THREAD-SAFE avec try/except)
+            try:
+                self._reset_preview_buttons()
+                if self.status_text:
+                    self.status_text.value = f"❌ Erreur lors de la prévisualisation : {str(ex)}"
+                    self.status_text.color = Colors.ERROR
+                    self.status_text.visible = True
+                self.page.update()
+            except Exception as update_ex:
+                print(f"[WARNING] Could not update error status: {update_ex}")
         
         finally:
             self.cleaning_in_progress = False
     
     def _show_preview_page(self, preview_data):
-        """Affiche la page de prévisualisation avec transition fluide"""
+        """Affiche la page de prévisualisation avec transition fluide - OPTIMISÉ"""
+        import time
+        
         try:
             # Animation de sortie de la page actuelle
             print("[DEBUG] Starting fade out animation...")
-            if hasattr(self, 'main_container'):
-                self.main_container.opacity = 0
-                self.page.update()
+            try:
+                if hasattr(self, 'main_container'):
+                    self.main_container.opacity = 0
+                    self.page.update()
+            except Exception as fade_ex:
+                print(f"[WARNING] Fade out failed: {fade_ex}")
             
-            import time
-            time.sleep(0.3)  # Attendre la fin de l'animation de sortie
+            time.sleep(0.2)  # Réduit de 0.3 à 0.2s pour plus de réactivité
             
             # Importer et créer la page de prévisualisation
             print("[DEBUG] Creating preview page...")
@@ -3630,24 +3672,26 @@ class MainPage:
             
             # Remplacer le contenu de la page
             print("[DEBUG] Replacing page content...")
-            self.page.controls.clear()
-            
-            # Construire la page (elle commence avec opacity=0)
-            preview_container = preview_page.build()
-            
-            # Ajouter à la page
-            self.page.add(preview_container)
-            self.page.update()
-            
-            # Petit délai pour que le DOM soit prêt
-            time.sleep(0.05)
-            
-            # Animation d'entrée
-            print("[DEBUG] Starting fade in animation...")
-            preview_container.opacity = 1
-            self.page.update()
-            
-            print("[SUCCESS] Page de prévisualisation affichée")
+            try:
+                self.page.controls.clear()
+                
+                # Construire la page (elle commence avec opacity=0)
+                preview_container = preview_page.build()
+                preview_container.opacity = 0
+                
+                # Ajouter à la page
+                self.page.add(preview_container)
+                self.page.update()
+                
+                # Animation d'entrée immédiate (pas de sleep)
+                print("[DEBUG] Starting fade in animation...")
+                preview_container.opacity = 1
+                self.page.update()
+                
+                print("[SUCCESS] Page de prévisualisation affichée")
+            except Exception as page_ex:
+                print(f"[ERROR] Page transition failed: {page_ex}")
+                raise
             
         except Exception as ex:
             print(f"[ERROR] Failed to show preview page: {ex}")
@@ -3655,9 +3699,58 @@ class MainPage:
             traceback.print_exc()
             
             # En cas d'erreur, réactiver les boutons
+            try:
+                self._reset_preview_buttons()
+                self.page.update()
+            except Exception as reset_ex:
+                print(f"[WARNING] Could not reset buttons: {reset_ex}")
+    
+    def _start_button_animation(self):
+        """Démarre l'animation des points sur les boutons"""
+        import threading
+        import time
+        
+        def animate_dots():
+            dots = ["", ".", "..", "..."]
+            index = 0
+            
+            while self.cleaning_in_progress:
+                try:
+                    # Mettre à jour le texte avec les points animés
+                    if self.dry_run_button_text:
+                        self.dry_run_button_text.value = f"Analyse en cours{dots[index]}"
+                    if hasattr(self, 'preview_button_tabs_text'):
+                        self.preview_button_tabs_text.value = f"Analyse{dots[index]}"
+                    
+                    self.page.update()
+                    
+                    # Passer au point suivant
+                    index = (index + 1) % len(dots)
+                    time.sleep(0.5)  # Animation toutes les 500ms
+                except Exception as ex:
+                    print(f"[WARNING] Animation error: {ex}")
+                    break
+        
+        # Lancer l'animation dans un thread séparé
+        threading.Thread(target=animate_dots, daemon=True).start()
+    
+    def _reset_preview_buttons(self):
+        """Réinitialise l'état de tous les boutons de prévisualisation"""
+        if self.dry_run_button:
             self.dry_run_button.data = None
-            self.dry_run_button.opacity = 1
-            self.page.update()
+            self.dry_run_button.bgcolor = Colors.ACCENT_PRIMARY  # Bleu
+            self.dry_run_button.disabled = False
+            # Restaurer le texte et l'icône d'origine
+            self.dry_run_button_icon.name = ft.Icons.PREVIEW_ROUNDED
+            self.dry_run_button_text.value = "Prévisualiser le nettoyage"
+        
+        if hasattr(self, 'preview_button_tabs'):
+            self.preview_button_tabs.data = None
+            self.preview_button_tabs.bgcolor = Colors.ACCENT_PRIMARY  # Bleu
+            self.preview_button_tabs.disabled = False
+            # Restaurer le texte et l'icône d'origine
+            self.preview_button_tabs_icon.name = ft.Icons.PREVIEW_ROUNDED
+            self.preview_button_tabs_text.value = "Prévisualiser"
     
     def _show_security_warning(self):
         """Affiche un avertissement de sécurité en cas de tentative de contournement"""

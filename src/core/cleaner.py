@@ -9,7 +9,7 @@ import ctypes
 import shutil
 import subprocess
 from datetime import datetime, timedelta
-from backend.security_core import security_core
+from src.services.security_core import security_core
 
 # ============================================================================
 # PROTECTION SYSTÈME WINDOWS - NE JAMAIS MODIFIER CES LISTES
@@ -637,7 +637,7 @@ def clear_windows_update_cache(progress_callback=None):
     # SÉCURITÉ: Vérifier le statut de Windows Update
     service_was_running = False
     try:
-        from backend.system_commands import system_cmd
+        from src.utils.system_commands import system_cmd
         wuauserv_status = system_cmd.run_sc(['query', 'wuauserv'])
         
         if 'RUNNING' in wuauserv_status.stdout:
@@ -704,7 +704,7 @@ def clear_windows_update_cache(progress_callback=None):
     # CORRECTION: Redémarrer le service si il était en cours avant
     if service_was_running:
         try:
-            from backend.system_commands import system_cmd
+            from src.utils.system_commands import system_cmd
             print("[INFO] Restarting Windows Update service...")
             restart_result = system_cmd.run_sc(['start', 'wuauserv'])
             if restart_result.returncode == 0:
@@ -1044,7 +1044,7 @@ def clear_standby_memory(progress_callback=None):
     Utilise le nouveau RAMManager pour un vidage efficace et précis
     """
     try:
-        from backend.ram_manager import ram_manager
+        from src.core.ram_manager import ram_manager
         
         # Utiliser le nouveau gestionnaire RAM
         result = ram_manager.clear_standby_memory()

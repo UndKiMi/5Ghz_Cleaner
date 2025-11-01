@@ -82,7 +82,7 @@ class SecurityManager:
         critical_services = ['wuauserv', 'BITS', 'CryptSvc']
         
         try:
-            from backend.system_commands import system_cmd
+            from src.utils.system_commands import system_cmd
             for service in critical_services:
                 result = system_cmd.run_sc(['query', service])
                 if result.returncode != 0:
@@ -120,7 +120,7 @@ class SecurityManager:
                 f"5ghz_cleaner_registry_backup_{safe_key_name}.reg"
             )
             
-            from backend.system_commands import system_cmd
+            from src.utils.system_commands import system_cmd
             system_cmd.run_reg(['export', key_path, backup_path, '/y'])
             
             return backup_path

@@ -42,7 +42,7 @@ class DryRunManager:
                 "clear_large_logs": True
             }
         
-        from utils.console_colors import Colors
+        from src.utils.console_colors import Colors
         print()
         print(f"{Colors.BOLD_CYAN}{'=' * 80}{Colors.RESET}")
         print(f"{Colors.BOLD_WHITE}MODE DRY-RUN - PRÉVISUALISATION DU NETTOYAGE{Colors.RESET}")

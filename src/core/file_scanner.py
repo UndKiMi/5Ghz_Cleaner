@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import Generator, List, Dict, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from backend.security_core import security_core
+from src.services.security_core import security_core
 
 
 class OptimizedScanner:
