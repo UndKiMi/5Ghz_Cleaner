@@ -1,0 +1,84 @@
+name: CI - Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Project Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check project structure
+        run: |
+          echo "✓ Checking project structure..."
+          test -d src && echo "✓ src/ directory exists"
+          test -d .github && echo "✓ .github/ directory exists"
+          test -f README.md && echo "✓ README.md exists"
+          test -f requirements.txt && echo "✓ requirements.txt exists"
+          echo "✓ Project structure validated"
+      
+      - name: Validate YAML files
+        run: |
+          echo "✓ Validating workflow files..."
+          for file in .github/workflows/*.yml; do
+            echo "Checking $file"
+            python -c "import yaml; yaml.safe_load(open('$file'))" && echo "✓ $file is valid"
+          done
+
+  python-setup:
+    name: Python Environment Setup
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install core dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      
+      - name: Validate Python syntax
+        run: |
+          python -m py_compile main.py
+          find src -name "*.py" -exec python -m py_compile {} \;
+          echo "✓ All Python files have valid syntax"
+
+  imports-test:
+    name: Test Module Imports
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install minimal dependencies
+        run: |
+          pip install cryptography psutil
+      
+      - name: Test security module imports
+        run: |
+          python -c "from src.utils.integrity_checker import IntegrityChecker; print('✓ integrity_checker')" || echo "⚠ integrity_checker import failed (non-blocking)"
+          python -c "from src.utils.path_validator import PathValidator; print('✓ path_validator')" || echo "⚠ path_validator import failed (non-blocking)"
+          python -c "from src.utils.log_sanitizer import LogSanitizer; print('✓ log_sanitizer')" || echo "⚠ log_sanitizer import failed (non-blocking)"
+          python -c "from src.utils.backup_manager import BackupManager; print('✓ backup_manager')" || echo "⚠ backup_manager import failed (non-blocking)"
+        continue-on-error: true

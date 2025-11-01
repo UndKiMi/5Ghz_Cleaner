@@ -1,4 +1,4 @@
-name: Security Audit Complete
+name: Security Audit
 
 on:
   push:
@@ -37,6 +37,8 @@ jobs:
       
       - name: Perform Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
 
   bandit:
     name: Bandit Security Scan
