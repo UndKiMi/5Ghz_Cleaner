@@ -26,7 +26,7 @@ class MainPage:
         import time
         import threading
         self._last_action_time = {}  # Timestamp de la dernière action par bouton
-        self._cooldown_duration = 5  # Cooldown de 5 secondes
+        self._cooldown_duration = 180  # Cooldown de 3 minutes (180 secondes)
         self._cooldown_timers = {}  # Timers actifs pour chaque bouton
         self._cooldown_lock = threading.Lock()  # Lock pour thread-safety
         self._button_original_texts = {}  # Textes originaux des boutons (pour restauration après cooldown)
@@ -405,7 +405,7 @@ class MainPage:
         Retourne un dictionnaire avec toutes les valeurs calculées
         NOUVELLE VERSION: Utilise scan_all_cleanable_files pour les fichiers
         """
-        from backend import cleaner
+        from src.core import cleaner
         import psutil
         import time
         
@@ -742,7 +742,7 @@ class MainPage:
     
     def _calculate_storage_data_selective(self, scan_cleanable, scan_ram, scan_dns):
         """Calcule sélectivement les données selon ce qui doit être scanné"""
-        from backend import cleaner
+        from src.core import cleaner
         import psutil
         
         # Utiliser les valeurs en cache si pas besoin de rescanner
@@ -1203,7 +1203,7 @@ class MainPage:
         # pour éviter les chevauchements d'affichage
         
         def clear_ram():
-            from backend import cleaner
+            from src.core import cleaner
             import psutil
             
             try:
@@ -1384,7 +1384,7 @@ class MainPage:
         # pour éviter les chevauchements d'affichage
         
         def clean_files():
-            from backend import cleaner
+            from src.core import cleaner
             
             try:
                 print("[INFO] Quick cleaning files...")
@@ -1967,7 +1967,7 @@ class MainPage:
                 print(f"[ERROR] Failed to update button progress: {e}")
         
         def empty():
-            from backend import cleaner
+            from src.core import cleaner
             
             try:
                 print("[INFO] Emptying recycle bin...")
@@ -2046,7 +2046,7 @@ class MainPage:
                 print(f"[ERROR] Failed to update button progress: {e}")
         
         def flush():
-            from backend import cleaner
+            from src.core import cleaner
             
             try:
                 print("[INFO] Flushing DNS...")
@@ -2283,7 +2283,7 @@ class MainPage:
             icon_widget = ft.Icon(icon, size=48, color=Colors.ACCENT_PRIMARY)
         
         # Icône d'information avec tooltip
-        from frontend.design_system.tooltip import create_info_icon_with_tooltip
+        from src.ui.design_system.tooltip import create_info_icon_with_tooltip
         desc_tuple = self._get_detailed_description(action_key)
         info_icon = create_info_icon_with_tooltip(
             desc_tuple[0],  # Texte
@@ -2655,7 +2655,7 @@ class MainPage:
         )
         
         # Icône d'information avec tooltip détaillé personnalisé
-        from frontend.design_system.tooltip import create_info_icon_with_tooltip
+        from src.ui.design_system.tooltip import create_info_icon_with_tooltip
         desc_tuple = self._get_detailed_description(key)
         info_icon = create_info_icon_with_tooltip(
             desc_tuple[0],  # Texte
@@ -3294,8 +3294,43 @@ class MainPage:
                 ),
             ]
             
+            # Ajouter le bouton d'optimisation pour le disque C:\ (coin droit)
+            if component_type == "Disque" and drive_letter == "C:\\":
+                # Créer les widgets du bouton (icône et texte)
+                optimize_icon = ft.Icon(ft.Icons.AUTO_FIX_HIGH, size=20, color=Colors.ACCENT_PRIMARY)
+                optimize_text = Caption(
+                    "Optimiser",
+                    size=9,
+                    color=Colors.ACCENT_PRIMARY,
+                    text_align=ft.TextAlign.CENTER,
+                    weight=Typography.WEIGHT_MEDIUM,
+                )
+                
+                # Créer le bouton d'optimisation automatique avec feedback visuel
+                optimize_button = ft.Container(
+                    content=ft.Column(
+                        [
+                            optimize_icon,
+                            ft.Container(height=2),
+                            optimize_text,
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=0,
+                    ),
+                    bgcolor=ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY),
+                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                    border_radius=BorderRadius.MD,
+                    border=ft.border.all(2, ft.Colors.with_opacity(0.4, Colors.ACCENT_PRIMARY)),
+                    on_click=lambda e: self._optimize_disk_auto(drive_letter, optimize_button, optimize_icon, optimize_text),
+                    ink=True,
+                    tooltip="Optimise automatiquement le disque selon son type (HDD/SSD/NVMe)",
+                    data={"drive_letter": drive_letter, "is_optimizing": False},
+                )
+                row_controls.append(ft.Container(width=Spacing.MD))
+                row_controls.append(optimize_button)
+            
             # Ajouter la température seulement si elle existe (CPU et GPU uniquement)
-            if temp_indicator is not None:
+            elif temp_indicator is not None:
                 row_controls.append(ft.Container(width=Spacing.MD))
                 row_controls.append(temp_indicator)
             
@@ -3426,6 +3461,204 @@ class MainPage:
                 card_container.data = new_card.data
         except Exception as e:
             print(f"[ERROR] Failed to update hardware card: {e}")
+    
+    def _optimize_disk_auto(self, drive_letter, button_container, icon_widget, text_widget):
+        """
+        Optimise automatiquement le disque selon son type (HDD/SSD/NVMe)
+        SANS POP-UP - Barre de progression intégrée + Cooldown de 3 minutes visible
+        """
+        import time
+        import threading
+        from src.core import disk_auto_optimizer
+        
+        # Vérifier si une optimisation est déjà en cours
+        if button_container.data.get("is_optimizing", False):
+            return
+        
+        action_name = f"optimize_disk_{drive_letter}"
+        
+        # Vérifier le cooldown
+        current_time = time.time()
+        if action_name in self._last_action_time:
+            elapsed = current_time - self._last_action_time[action_name]
+            remaining = self._cooldown_duration - elapsed
+            
+            if remaining > 0:
+                # Cooldown actif - Ne rien faire
+                return
+        
+        # Enregistrer l'action
+        with self._cooldown_lock:
+            self._last_action_time[action_name] = current_time
+        
+        # FEEDBACK VISUEL: Marquer comme en cours d'optimisation
+        button_container.data["is_optimizing"] = True
+        
+        # Créer une barre de progression intégrée
+        progress_bar = ft.ProgressBar(
+            width=60,
+            height=4,
+            color=Colors.ACCENT_PRIMARY,
+            bgcolor=Colors.BORDER_DEFAULT,
+            border_radius=BorderRadius.SM,
+        )
+        
+        # Remplacer l'icône par un ProgressRing petit
+        progress_ring = ft.ProgressRing(width=16, height=16, stroke_width=2, color=Colors.ACCENT_PRIMARY)
+        
+        # Changer le texte
+        text_widget.value = "En cours..."
+        text_widget.size = 8
+        text_widget.color = Colors.ACCENT_PRIMARY
+        
+        # Changer la couleur du bouton (orange pour indiquer activité)
+        button_container.bgcolor = ft.Colors.with_opacity(0.15, ft.Colors.ORANGE)
+        button_container.border = ft.border.all(2, ft.Colors.with_opacity(0.5, ft.Colors.ORANGE))
+        
+        # Modifier le contenu du bouton
+        button_content = button_container.content
+        button_content.controls = [
+            progress_ring,
+            ft.Container(height=2),
+            progress_bar,
+            ft.Container(height=2),
+            text_widget,
+        ]
+        
+        # Mettre à jour l'UI
+        self.page.update()
+        
+        def run_optimization():
+            try:
+                # Optimiser le disque
+                result = disk_auto_optimizer.auto_optimize_disk(drive_letter)
+                
+                # Marquer comme terminé
+                button_container.data["is_optimizing"] = False
+                
+                # Afficher le résultat directement dans le bouton
+                if result["success"]:
+                    # Succès - Afficher icône de succès
+                    success_icon = ft.Icon(ft.Icons.CHECK_CIRCLE, size=16, color=Colors.SUCCESS)
+                    text_widget.value = f"{result['disk_type']}"
+                    text_widget.size = 8
+                    text_widget.color = Colors.SUCCESS
+                    button_container.bgcolor = ft.Colors.with_opacity(0.15, Colors.SUCCESS)
+                    button_container.border = ft.border.all(2, ft.Colors.with_opacity(0.5, Colors.SUCCESS))
+                    
+                    button_content.controls = [
+                        success_icon,
+                        ft.Container(height=2),
+                        text_widget,
+                    ]
+                    self.page.update()
+                    
+                    # Attendre 2 secondes puis démarrer le cooldown
+                    time.sleep(2)
+                else:
+                    # Erreur - Afficher icône d'erreur
+                    error_icon = ft.Icon(ft.Icons.ERROR, size=16, color=Colors.ERROR)
+                    text_widget.value = "Échec"
+                    text_widget.size = 8
+                    text_widget.color = Colors.ERROR
+                    button_container.bgcolor = ft.Colors.with_opacity(0.15, Colors.ERROR)
+                    button_container.border = ft.border.all(2, ft.Colors.with_opacity(0.5, Colors.ERROR))
+                    
+                    button_content.controls = [
+                        error_icon,
+                        ft.Container(height=2),
+                        text_widget,
+                    ]
+                    self.page.update()
+                    
+                    # Attendre 2 secondes puis démarrer le cooldown
+                    time.sleep(2)
+                
+                # Démarrer le cooldown visible de 3 minutes
+                self._start_cooldown_timer(button_container, icon_widget, text_widget, action_name)
+            
+            except Exception as e:
+                # Erreur - Afficher icône d'erreur
+                button_container.data["is_optimizing"] = False
+                error_icon = ft.Icon(ft.Icons.ERROR, size=16, color=Colors.ERROR)
+                text_widget.value = "Erreur"
+                text_widget.size = 8
+                text_widget.color = Colors.ERROR
+                button_container.bgcolor = ft.Colors.with_opacity(0.15, Colors.ERROR)
+                button_container.border = ft.border.all(2, ft.Colors.with_opacity(0.5, Colors.ERROR))
+                
+                button_content.controls = [
+                    error_icon,
+                    ft.Container(height=2),
+                    text_widget,
+                ]
+                self.page.update()
+                
+                print(f"[ERROR] Disk optimization failed: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                # Attendre 2 secondes puis démarrer le cooldown
+                time.sleep(2)
+                self._start_cooldown_timer(button_container, icon_widget, text_widget, action_name)
+        
+        # Lancer l'optimisation dans un thread
+        threading.Thread(target=run_optimization, daemon=True).start()
+    
+    def _start_cooldown_timer(self, button_container, icon_widget, text_widget, action_name):
+        """
+        Démarre un timer de cooldown visible de 3 minutes sur le bouton
+        """
+        import time
+        
+        button_content = button_container.content
+        cooldown_duration = 180  # 3 minutes
+        
+        for remaining in range(cooldown_duration, 0, -1):
+            try:
+                # Calculer minutes et secondes
+                minutes = remaining // 60
+                seconds = remaining % 60
+                
+                # Afficher le cooldown
+                cooldown_icon = ft.Icon(ft.Icons.TIMER, size=16, color=Colors.FG_TERTIARY)
+                text_widget.value = f"{minutes}:{seconds:02d}"
+                text_widget.size = 9
+                text_widget.color = Colors.FG_TERTIARY
+                button_container.bgcolor = ft.Colors.with_opacity(0.1, Colors.FG_TERTIARY)
+                button_container.border = ft.border.all(2, ft.Colors.with_opacity(0.3, Colors.FG_TERTIARY))
+                
+                button_content.controls = [
+                    cooldown_icon,
+                    ft.Container(height=2),
+                    text_widget,
+                ]
+                
+                self.page.update()
+                time.sleep(1)
+            except:
+                break
+        
+        # Restaurer le bouton à l'état normal
+        icon_widget.visible = True
+        text_widget.value = "Optimiser"
+        text_widget.size = 9
+        text_widget.color = Colors.ACCENT_PRIMARY
+        button_container.bgcolor = ft.Colors.with_opacity(0.1, Colors.ACCENT_PRIMARY)
+        button_container.border = ft.border.all(2, ft.Colors.with_opacity(0.4, Colors.ACCENT_PRIMARY))
+        
+        button_content.controls = [
+            icon_widget,
+            ft.Container(height=2),
+            text_widget,
+        ]
+        
+        self.page.update()
+    
+    def _close_dialog(self, dialog):
+        """Ferme un dialog"""
+        dialog.open = False
+        self.page.update()
     
     def _switch_tab(self, tab_id):
         """Change l'onglet actif avec animation"""
@@ -3666,7 +3899,7 @@ class MainPage:
             
             # Importer et créer la page de prévisualisation
             print("[DEBUG] Creating preview page...")
-            from frontend.pages.preview_page import PreviewPage
+            from src.ui.pages.preview_page import PreviewPage
             
             preview_page = PreviewPage(self.page, self.app, preview_data)
             
@@ -4183,7 +4416,7 @@ class MainPage:
                 current_task += 1
             
             # ===== NOUVELLES OPTIONS AVANCÉES =====
-            from backend import advanced_optimizations
+            from src.core import advanced_optimizations
             
             # Désactiver l'hibernation
             if self.app.advanced_options.get("disable_hibernation", False):

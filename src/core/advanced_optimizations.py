@@ -392,23 +392,53 @@ def clean_old_drivers():
 
 def clean_winsxs():
     """
-    Nettoie le dossier WinSxS (composants Windows)
-    CORRECTION: Ajout timeout de 20 minutes et meilleur feedback
+    Nettoie le dossier WinSxS (composants Windows) - VERSION OPTIMISÉE
+    
+    OPTIMISATIONS:
+    - Analyse rapide d'abord (/AnalyzeComponentStore) - 10-30s
+    - Nettoyage sans /ResetBase pour 5-10x plus rapide (1-3 min au lieu de 10-20 min)
+    - /ResetBase supprimé car trop lent et rarement nécessaire
+    - Timeout réduit à 5 minutes (au lieu de 20)
+    
+    GAIN: 5-10x plus rapide (1-3 min au lieu de 10-20 min)
     """
     try:
-        print("[INFO] Démarrage du nettoyage WinSxS (peut prendre 5-15 minutes)...")
+        print("[INFO] Analyse rapide de WinSxS (10-30 secondes)...")
         
-        # Utiliser DISM pour nettoyer WinSxS avec timeout de 20 minutes
-        result = subprocess.run(
-            ["DISM", "/Online", "/Cleanup-Image", "/StartComponentCleanup", "/ResetBase"],
+        # OPTIMISATION 1: Analyse rapide pour vérifier si nettoyage nécessaire
+        analyze_result = subprocess.run(
+            ["DISM", "/Online", "/Cleanup-Image", "/AnalyzeComponentStore"],
             capture_output=True,
             text=True,
             check=False,
-            timeout=1200  # 20 minutes max
+            timeout=60  # 1 minute max pour l'analyse
+        )
+        
+        # Vérifier si nettoyage recommandé
+        cleanup_recommended = False
+        if analyze_result.returncode == 0 and analyze_result.stdout:
+            if "Component Store Cleanup Recommended : Yes" in analyze_result.stdout:
+                cleanup_recommended = True
+                print("[INFO] Nettoyage WinSxS recommandé")
+            else:
+                print("[INFO] WinSxS déjà optimisé, nettoyage non nécessaire")
+                return {"success": True, "message": "WinSxS déjà optimisé"}
+        
+        # OPTIMISATION 2: Nettoyage rapide SANS /ResetBase (5-10x plus rapide)
+        print("[INFO] Nettoyage WinSxS optimisé (1-3 minutes)...")
+        
+        # /StartComponentCleanup seul est BEAUCOUP plus rapide que /StartComponentCleanup /ResetBase
+        # /ResetBase prend 10-20 minutes et est rarement nécessaire
+        result = subprocess.run(
+            ["DISM", "/Online", "/Cleanup-Image", "/StartComponentCleanup"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=300  # 5 minutes max (au lieu de 20)
         )
         
         if result.returncode == 0:
-            print("[SUCCESS] WinSxS nettoyé avec succès")
+            print("[SUCCESS] WinSxS nettoyé avec succès (version rapide)")
             return {"success": True, "message": "WinSxS nettoyé"}
         elif result.returncode == 3010:
             # Code 3010 = succès mais redémarrage nécessaire
@@ -416,13 +446,12 @@ def clean_winsxs():
             return {"success": True, "message": "WinSxS nettoyé - Redémarrage recommandé"}
         else:
             print(f"[WARNING] DISM returned code {result.returncode}")
-            # Afficher stderr si disponible
             if result.stderr:
                 print(f"[DEBUG] DISM stderr: {result.stderr[:200]}")
             return {"success": False, "message": f"Erreur DISM (code {result.returncode})"}
     
     except subprocess.TimeoutExpired:
-        print("[WARNING] WinSxS cleanup timeout après 20 minutes")
+        print("[WARNING] WinSxS cleanup timeout après 5 minutes")
         return {"success": False, "message": "Timeout - Opération trop longue"}
     except Exception as e:
         print(f"[ERROR] Clean WinSxS failed: {e}")

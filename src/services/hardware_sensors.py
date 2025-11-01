@@ -19,9 +19,9 @@ class HardwareSensors:
         try:
             import clr
             
-            # Chemin vers le dossier libs
+            # Chemin vers le dossier libs (à la racine du projet)
             libs_dir = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
                 "libs"
             )
             

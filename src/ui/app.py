@@ -22,7 +22,7 @@ class CleanerApp:
     def __init__(self, page: ft.Page):
         self.page = page
         self._configure_window()
-        self.disclaimer_accepted = False
+        self.disclaimer_accepted = True  # Disclaimer supprimé, démarrage direct
         self.menu_visible = False
         self.progress_bar = None
         self.status_text = None
@@ -32,7 +32,8 @@ class CleanerApp:
             "disable_telemetry": False,
             "clear_large_logs": True
         }
-        self.show_disclaimer()
+        # Démarrage direct de l'interface principale (disclaimer supprimé)
+        self.show_main_ui()
     
     def _configure_window(self):
         """Configure window properties"""
@@ -107,151 +108,11 @@ class CleanerApp:
             ),
         )
     
-    def show_disclaimer(self):
-        """Show disclaimer dialog before main app"""
-        def close_disclaimer(e):
-            if checkbox.value:
-                self._animate_button_press(accept_button)
-                self._transition_to_main_ui(disclaimer_container)
-            else:
-                self.show_warning("Veuillez cocher la case pour continuer.")
-        
-        # Create UI components using design system
-        checkbox, checkbox_row = CustomCheckbox.create(
-            "J'ai lu et compris les conditions d'utilisation.",
-            "J'accepte les risques associés à l'utilisation de ce logiciel."
-        )
-        
-        shield_container = ShieldIcon(size=83, with_glow=True)
-        
-        warning_box = WarningBox(
-            "Ce logiciel effectue des modifications système importantes. "
-            "Assurez-vous d'avoir sauvegardé vos données importantes avant de continuer."
-        )
-        
-        terms = [
-            "Ce logiciel requiert des droits d'administrateur pour fonctionner.",
-            "Les modifications effectuées peuvent affecter les performances du système.",
-            "Aucune responsabilité ne pourra être engagée en cas de perte de données.",
-            "Il est fortement recommandé de créer un point de restauration système avant utilisation.",
-        ]
-        
-        terms_list = Panel(
-            content=ft.Column(
-                [BodyText(f"• {term}", size=13) for term in terms],
-                spacing=Spacing.SM,
-            )
-        )
-        
-        footer = ft.Container(
-            content=ft.Row(
-                [
-                    Caption("Version 1.0 Major Update • Réalisé avec", size=11, color=Colors.FG_TERTIARY),
-                    ft.Container(width=4),
-                    ft.Text("❤️", size=11),
-                    ft.Container(width=4),
-                    Caption("par", size=11, color=Colors.FG_TERTIARY),
-                    ft.Container(width=4),
-                    ft.TextButton(
-                        "K_iMi",
-                        on_click=lambda e: webbrowser.open("https://github.com/UndKiMi"),
-                        style=ft.ButtonStyle(
-                            color=Colors.ACCENT_PRIMARY,
-                            padding=0,
-                            text_style=ft.TextStyle(size=11, weight=ft.FontWeight.NORMAL),
-                        ),
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                spacing=0,
-            ),
-            padding=ft.padding.only(bottom=10),
-        )
-        
-        # Accept button
-        accept_button = PrimaryButton(
-            "J'accepte les conditions",
-            on_click=close_disclaimer,
-            width=250
-        )
-        
-        # Main card
-        main_card = self._build_disclaimer_card(
-            shield_container, checkbox_row, warning_box, terms_list, accept_button
-        )
-        
-        
-        # Full disclaimer container
-        disclaimer_container = ft.Container(
-            content=ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Container(height=50),
-                        main_card,
-                        ft.Container(height=50),
-                        footer,
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    alignment=ft.MainAxisAlignment.CENTER,
-                ),
-                padding=ft.padding.symmetric(horizontal=20),
-            ),
-            bgcolor=Colors.BG_PRIMARY,
-            expand=True,
-            opacity=1,
-            animate_opacity=ft.Animation(300, ft.AnimationCurve.EASE_OUT),
-        )
-        
-        # Add content and start animations
-        self.page.add(disclaimer_container)
-        self._fade_in_container(disclaimer_container)
-        self._start_shield_glow_animation(shield_container)
+    # Page Conditions d'utilisation SUPPRIMÉE - Démarrage direct
     
-    def _build_disclaimer_card(self, shield, checkbox_row, warning_box, terms_list, accept_button):
-        """Build the main disclaimer card"""
-        return Card(
-            content=ft.Column(
-                [
-                    shield,
-                    Spacer(height=Spacing.MD),
-                    Heading("Conditions d'utilisation", level=1, text_align=ft.TextAlign.CENTER),
-                    Spacer(height=Spacing.XS),
-                    BodyText(
-                        "Il est recommandé de lire attentivement les conditions d'utilisation avant de poursuivre.",
-                        size=13,
-                        color=Colors.FG_SECONDARY,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                    Spacer(height=Spacing.LG),
-                    warning_box,
-                    Spacer(height=Spacing.MD),
-                    terms_list,
-                    Spacer(height=Spacing.LG),
-                    checkbox_row,
-                    Spacer(height=Spacing.LG),
-                    accept_button,
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                alignment=ft.MainAxisAlignment.START,
-            ),
-            shadow_level="lg",
-            width=700,
-        )
-    
-    def _animate_button_press(self, button):
-        """Animate button press effect"""
-        button.scale = 0.95
-        button.update()
-        time.sleep(0.1)
-        button.scale = 1
-        button.update()
-    
-    def _transition_to_main_ui(self, container):
-        """Transition from disclaimer to main UI"""
+    def show_main_ui(self):
+        """Démarrage direct de l'interface principale (disclaimer supprimé)"""
         self.disclaimer_accepted = True
-        container.opacity = 0
-        self.page.update()
-        time.sleep(0.3)
         
         try:
             self.page.controls.clear()
@@ -261,14 +122,6 @@ class CleanerApp:
             print(f"[ERROR] Failed to build main UI: {ex}")
             import traceback
             traceback.print_exc()
-    
-    def _fade_in_container(self, container):
-        """Fade in animation for container"""
-        container.opacity = 0
-        self.page.update()
-        time.sleep(0.1)
-        container.opacity = 1
-        self.page.update()
     
     def _start_shield_glow_animation(self, shield_container):
         """Start shield glow pulsation animation"""

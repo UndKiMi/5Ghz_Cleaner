@@ -7,7 +7,7 @@ Version: 5.1.0 - OPTIMIZED
 """
 import flet as ft
 from datetime import datetime
-from frontend.design_system.theme import Colors, Spacing, BorderRadius
+from src.ui.design_system.theme import Colors, Spacing, BorderRadius
 
 
 class PreviewPage:
