@@ -7,7 +7,7 @@ safety==3.2.7
 
 # Code quality
 pylint==3.2.7
-black==23.12.1
+black==25.9.0
 isort==5.13.2
 
 # Testing
