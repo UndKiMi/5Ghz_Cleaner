@@ -26,7 +26,7 @@ class MainPage:
         import time
         import threading
         self._last_action_time = {}  # Timestamp de la dernière action par bouton
-        self._cooldown_duration = 180  # Cooldown de 3 minutes (180 secondes)
+        self._cooldown_duration = 600  # Cooldown de 10 minutes (600 secondes) - Protection anti-spam renforcée
         self._cooldown_timers = {}  # Timers actifs pour chaque bouton
         self._cooldown_lock = threading.Lock()  # Lock pour thread-safety
         self._button_original_texts = {}  # Textes originaux des boutons (pour restauration après cooldown)

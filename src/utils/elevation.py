@@ -1,9 +1,15 @@
 """
 Elevation module for requesting administrator privileges
 Supports conditional elevation based on required operations
+Version 1.7.0 - Validation post-élévation ajoutée
 """
 import sys
 import ctypes
+
+
+class SecurityError(Exception):
+    """Exception levée en cas d'erreur de sécurité"""
+    pass
 
 
 def is_admin():
@@ -51,6 +57,39 @@ def elevate(force=False):
         print(f"[ERROR] Elevation failed: {e}")
         if force:
             sys.exit(0)
+        return False
+
+
+def elevate_with_validation(force=True):
+    """
+    Élève les privilèges avec validation post-élévation
+    
+    Args:
+        force: Si True, force l'élévation
+        
+    Returns:
+        bool: True si élévation réussie et validée
+        
+    Raises:
+        SecurityError: Si l'élévation échoue ou n'est pas validée
+    """
+    print("[SECURITY] Requesting privilege elevation with validation...")
+    
+    # Tenter l'élévation
+    if elevate(force=force):
+        # Vérifier que l'élévation a réussi
+        if not is_admin():
+            error_msg = "Elevation failed: Process does not have admin rights after elevation"
+            print(f"[CRITICAL] {error_msg}")
+            raise SecurityError(error_msg)
+        
+        print("[SUCCESS] Elevation validated successfully")
+        return True
+    else:
+        if force:
+            error_msg = "Elevation was required but failed"
+            print(f"[CRITICAL] {error_msg}")
+            raise SecurityError(error_msg)
         return False
 
 
