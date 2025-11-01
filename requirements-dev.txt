@@ -17,7 +17,7 @@ pytest-mock==3.12.0
 
 # Documentation
 sphinx==7.2.6
-sphinx-rtd-theme==2.0.0
+sphinx-rtd-theme==3.0.2
 
 # Cryptography (optional for log encryption)
 cryptography==41.0.7
