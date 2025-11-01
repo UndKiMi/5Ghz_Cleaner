@@ -3,7 +3,7 @@
 
 ## Production
 flet==0.25.2
-pywin32==306
+pywin32==311
 psutil==5.9.8
 pythonnet==3.0.5
 cryptography==41.0.7
