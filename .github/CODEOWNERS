@@ -1,0 +1,32 @@
+# CODEOWNERS - Propriétaires de Code
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global - Tous les fichiers
+* @UndKiMi
+
+# Fichiers critiques de sécurité
+/src/utils/integrity_checker.py @UndKiMi
+/src/utils/path_validator.py @UndKiMi
+/src/utils/log_sanitizer.py @UndKiMi
+/src/utils/backup_manager.py @UndKiMi
+/src/utils/elevation.py @UndKiMi
+/src/services/security_core.py @UndKiMi
+
+# Workflows GitHub Actions
+/.github/workflows/ @UndKiMi
+/.github/SECURITY.md @UndKiMi
+/.github/CODEOWNERS @UndKiMi
+
+# Configuration de sécurité
+/.pylintrc @UndKiMi
+/.flake8 @UndKiMi
+/.bandit @UndKiMi
+/pyproject.toml @UndKiMi
+
+# Dépendances
+/requirements.txt @UndKiMi
+/.github/dependabot.yml @UndKiMi
+
+# Documentation de sécurité
+/CONTRIBUTING.md @UndKiMi
+/GITHUB_ACTIONS_FIX.md @UndKiMi

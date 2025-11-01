@@ -13,6 +13,7 @@
 [![Trivy](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml)
 [![OpenSSF Scorecard](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml)
 [![Secret Scanning](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/0000/badge)](https://www.bestpractices.dev/projects/0000)
 
 **Outil professionnel de nettoyage et d'optimisation pour Windows 11**
 
@@ -276,22 +277,81 @@ Tous les résultats sont disponibles dans l'onglet **Actions** du dépôt GitHub
 
 ---
 
+## 🔒 Protections de Sécurité
+
+Ce projet implémente des protections de niveau entreprise :
+
+### 🛡️ Protection des Branches
+- ✅ **Branche `main` protégée** - Aucun push direct autorisé
+- ✅ **Pull Request obligatoire** - Toute modification passe par PR
+- ✅ **Reviews requises** - Minimum 1 approbation + CODEOWNERS
+- ✅ **Status checks obligatoires** - Tous les audits doivent passer
+- ✅ **Commits signés requis** - Signature GPG obligatoire
+- ✅ **Historique linéaire** - Pas de merge commits
+- ✅ **Suppression interdite** - Impossible de supprimer main/develop
+- ✅ **Force push interdit** - Aucun `git push --force` autorisé
+
+### 🔐 Audits Automatiques
+- ✅ **CodeQL** - Analyse statique (Microsoft)
+- ✅ **Dependabot** - Mises à jour sécurité automatiques
+- ✅ **Secret Scanning** - Détection secrets exposés (push protection)
+- ✅ **Gitleaks + TruffleHog** - Double scan de secrets
+- ✅ **Trivy** - Scanner vulnérabilités
+- ✅ **Bandit + Safety** - Sécurité Python
+- ✅ **OpenSSF Scorecard** - Score sécurité global
+
+### 📋 Conformité
+- ✅ **OWASP ASVS** - Application Security Verification Standard
+- ✅ **CIS Controls** - Center for Internet Security
+- ✅ **NIST CSF** - Cybersecurity Framework
+- ✅ **OpenSSF Best Practices** - Certification en cours
+
+### 🚨 Signalement de Vulnérabilité
+**NE PAS créer d'issue publique pour les vulnérabilités.**
+
+Utiliser [GitHub Security Advisories](https://github.com/UndKiMi/5Ghz_Cleaner/security/advisories) pour un signalement privé.
+
+Voir [SECURITY.md](.github/SECURITY.md) pour plus de détails.
+
+---
+
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! Pour contribuer :
 
 1. **Fork** le projet
 2. Créer une branche (`git checkout -b feature/amelioration`)
-3. Commit les changements (`git commit -m 'Ajout fonctionnalité'`)
+3. **Signer vos commits** avec GPG (`git commit -S -m 'message'`)
 4. Push vers la branche (`git push origin feature/amelioration`)
 5. Ouvrir une **Pull Request**
 
-### Guidelines
+### ✅ Exigences
 
-- Respecter PEP 8
-- Ajouter des tests pour les nouvelles fonctionnalités
-- Mettre à jour la documentation
-- Suivre les conventions de sécurité existantes
+Votre PR doit passer **tous les checks** avant merge :
+
+- ✅ **CI** - Validation structure + syntaxe
+- ✅ **Security Audit** - CodeQL + Bandit + Safety + Trivy
+- ✅ **Code Quality** - Pylint + Black + isort + Flake8
+- ✅ **Secret Scanning** - Gitleaks + TruffleHog
+- ✅ **Review** - Minimum 1 approbation
+- ✅ **Conversations** - Toutes résolues
+
+### 📋 Guidelines
+
+- ✅ Respecter PEP 8 et Black (line length 120)
+- ✅ Ajouter des tests pour les nouvelles fonctionnalités
+- ✅ Mettre à jour la documentation
+- ✅ Commits signés GPG obligatoires
+- ✅ Pas de secrets dans le code
+- ✅ Suivre [CONTRIBUTING.md](CONTRIBUTING.md)
+
+### 🔒 Sécurité
+
+- ❌ **JAMAIS** commit de secrets (API keys, tokens, passwords)
+- ❌ **JAMAIS** push direct sur `main` ou `develop`
+- ❌ **JAMAIS** force push
+- ✅ **TOUJOURS** signer vos commits
+- ✅ **TOUJOURS** tester localement avant PR
 
 ---
 
