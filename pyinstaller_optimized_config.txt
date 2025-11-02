@@ -1,0 +1,178 @@
+# ============================================================================
+# Configuration PyInstaller Optimisée Anti-Faux Positifs
+# 5GH'z Cleaner - Build Configuration
+# ============================================================================
+
+# COMMANDE DE BUILD RECOMMANDÉE (copier-coller dans le terminal):
+
+pyinstaller ^
+    --name="5Ghz_Cleaner" ^
+    --onefile ^
+    --windowed ^
+    --icon="assets/icon.ico" ^
+    --version-file="version_info.py" ^
+    --add-data="libs;libs" ^
+    --add-data="assets;assets" ^
+    --add-data="config;config" ^
+    --hidden-import=flet ^
+    --hidden-import=psutil ^
+    --hidden-import=pywin32 ^
+    --hidden-import=pythonnet ^
+    --hidden-import=cryptography ^
+    --noupx ^
+    --clean ^
+    --noconfirm ^
+    main.py
+
+# ============================================================================
+# EXPLICATIONS DES OPTIONS
+# ============================================================================
+
+# --name="5Ghz_Cleaner"
+#   Nom de l'exécutable final
+
+# --onefile
+#   Crée un seul fichier .exe (plus pratique)
+#   Alternative: --onedir (moins suspect mais dossier avec DLLs)
+
+# --windowed
+#   Pas de console visible (GUI uniquement)
+#   Équivalent: --noconsole
+
+# --icon="assets/icon.ico"
+#   Icône officielle (améliore la réputation)
+
+# --version-file="version_info.py"
+#   ⚠️ CRITIQUE: Métadonnées complètes (réduit faux positifs de 50%)
+#   Contient: nom, version, copyright, description
+
+# --add-data="libs;libs"
+#   Inclut les DLLs externes (LibreHardwareMonitor, HidSharp)
+
+# --noupx
+#   ⚠️ CRITIQUE: Désactive compression UPX (flag majeur antivirus)
+#   UPX = Packer utilisé par les malwares = détection automatique
+
+# --clean
+#   Nettoie les builds précédents
+
+# --noconfirm
+#   Pas de confirmation (automatisation)
+
+# ============================================================================
+# APRÈS LE BUILD: SIGNATURE NUMÉRIQUE
+# ============================================================================
+
+# 1. Obtenir un certificat de signature de code
+#    Fournisseurs: DigiCert, Sectigo, GlobalSign
+#    Type: Code Signing Certificate (Standard ou EV)
+#    Coût: 150-500€/an (Standard) ou 300-800€/an (EV)
+#    EV = Réputation immédiate SmartScreen (recommandé)
+
+# 2. Signer l'exécutable avec signtool.exe (Windows SDK)
+#    Commande:
+
+signtool sign ^
+    /f "certificate.pfx" ^
+    /p "password" ^
+    /t "http://timestamp.digicert.com" ^
+    /fd SHA256 ^
+    /d "5GHz Cleaner" ^
+    /du "https://github.com/UndKiMi/5Ghz_Cleaner" ^
+    "dist\5Ghz_Cleaner.exe"
+
+# 3. Vérifier la signature
+#    Commande:
+
+signtool verify /pa /v "dist\5Ghz_Cleaner.exe"
+
+# Ou clic droit > Propriétés > Signatures numériques
+
+# ============================================================================
+# OPTIMISATIONS SUPPLÉMENTAIRES
+# ============================================================================
+
+# 1. Désactiver la télémétrie PyInstaller
+#    Créer fichier: .pyinstaller-no-telemetry
+
+# 2. Exclure modules inutiles (réduit la taille et les faux positifs)
+#    --exclude-module=tkinter
+#    --exclude-module=matplotlib
+#    --exclude-module=numpy
+
+# 3. Mode debug (si besoin de diagnostiquer)
+#    --debug=all
+#    --console  (au lieu de --windowed)
+
+# ============================================================================
+# CHECKLIST POST-BUILD
+# ============================================================================
+
+# [ ] Vérifier la taille de l'exécutable (< 100 MB recommandé)
+# [ ] Vérifier les métadonnées (clic droit > Propriétés > Détails)
+# [ ] Vérifier la signature numérique (Propriétés > Signatures)
+# [ ] Tester sur machine propre (sans Python installé)
+# [ ] Scanner avec Windows Defender
+# [ ] Scanner avec VirusTotal (https://www.virustotal.com)
+# [ ] Tester avec différents niveaux de protection Defender
+# [ ] Vérifier SmartScreen (première exécution)
+
+# ============================================================================
+# SOUMISSION AUX ANTIVIRUS
+# ============================================================================
+
+# 1. Microsoft Defender
+#    https://www.microsoft.com/en-us/wdsi/filesubmission
+
+# 2. VirusTotal
+#    https://www.virustotal.com
+#    Signaler les faux positifs aux éditeurs
+
+# 3. Kaspersky
+#    https://opentip.kaspersky.com
+
+# 4. Bitdefender
+#    https://www.bitdefender.com/submit/
+
+# 5. Avira
+#    https://www.avira.com/en/analysis/submit
+
+# 6. Norton
+#    https://submit.norton.com
+
+# ============================================================================
+# RÉSOLUTION DES PROBLÈMES
+# ============================================================================
+
+# Problème: "Application non reconnue" (SmartScreen)
+# Solution: Signature numérique EV + temps (réputation se construit)
+
+# Problème: Détection par Windows Defender
+# Solution: Soumettre à Microsoft, ajouter métadonnées, désactiver UPX
+
+# Problème: Taille de l'exécutable trop grande
+# Solution: --onedir au lieu de --onefile, exclure modules inutiles
+
+# Problème: Erreur au lancement
+# Solution: Vérifier les dépendances, tester avec --console pour voir les erreurs
+
+# ============================================================================
+# MAINTENANCE
+# ============================================================================
+
+# À chaque nouvelle version:
+# 1. Mettre à jour version_info.py (numéro de version)
+# 2. Rebuild avec --clean
+# 3. Re-signer l'exécutable
+# 4. Tester sur machine propre
+# 5. Re-soumettre à VirusTotal si détections
+# 6. Mettre à jour les checksums SHA256
+
+# ============================================================================
+# SUPPORT
+# ============================================================================
+
+# Documentation complète: README.md
+# FAQ Antivirus: ANTIVIRUS_FAQ.md
+# Rapport d'optimisation: ANTIVIRUS_OPTIMIZATION_REPORT.md
+# GitHub Issues: https://github.com/UndKiMi/5Ghz_Cleaner/issues
