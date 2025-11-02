@@ -9,7 +9,6 @@ from .security import *
 from .security_core import *
 from .security_auditor import *
 from .signature_manager import *
-from .telemetry_checker import *
 
 __all__ = [
     'hardware_monitor',
@@ -18,5 +17,4 @@ __all__ = [
     'security_core',
     'security_auditor',
     'signature_manager',
-    'telemetry_checker',
 ]

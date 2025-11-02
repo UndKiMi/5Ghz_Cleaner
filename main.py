@@ -45,12 +45,23 @@ from src.utils.console_colors import (
     print_success, print_error, print_warning, print_info, print_separator
 )
 
+# Importer la vérification d'intégrité runtime (SÉCURITÉ 2025)
+from src.utils.runtime_integrity import verify_runtime_integrity
+
 # Optimisation mémoire: Activer le garbage collector agressif
 gc.enable()
 gc.set_threshold(700, 10, 10)  # Plus agressif pour libérer la mémoire rapidement
 
 # Vérification de la signature au démarrage (optionnel)
-VERIFY_SIGNATURE_ON_STARTUP = False  # Mettre à True pour activer  
+VERIFY_SIGNATURE_ON_STARTUP = False  # Mettre à True pour activer
+
+# SÉCURITÉ: Constantes de sécurité conformes NIST SP 800-53
+MAX_PATH_LENGTH = 260  # Windows MAX_PATH
+MAX_COMMAND_LENGTH = 8191  # Windows command line limit
+ALLOWED_EXECUTABLES = frozenset([
+    'powershell.exe', 'cmd.exe', 'defrag.exe', 'wmic.exe',
+    'sc.exe', 'reg.exe', 'rundll32.exe', 'nvidia-smi.exe'
+])  
 
 
 def check_windows_11():
@@ -100,6 +111,7 @@ def request_admin_if_needed():
     """
     Demande les privilèges admin si nécessaire
     SÉCURITÉ: Validation des retours ctypes (PATCH)
+    Conforme: OWASP ASVS 4.0 V4.1, NIST SP 800-53 AC-6
     """
     try:
         # SÉCURITÉ: Vérifier que ctypes est disponible
@@ -382,13 +394,22 @@ if __name__ == "__main__":
     print()
     
     # Etape 2: Optimisation des ressources
-    print_section(2, 6, "Process Optimization")
+    print_section(2, 7, "Process Optimization")
     optimize_process()
     print_success("Resources optimized")
     print()
     
-    # Etape 3: Privileges administrateur
-    print_section(3, 6, "Administrator Privileges")
+    # Etape 3: Vérification d'intégrité runtime (SÉCURITÉ 2025)
+    print_section(3, 7, "Runtime Integrity Verification")
+    try:
+        verify_runtime_integrity(strict=False)
+        print_success("Runtime integrity verified")
+    except Exception as e:
+        print_warning(f"Integrity check warning: {e}")
+    print()
+    
+    # Etape 4: Privileges administrateur
+    print_section(4, 7, "Administrator Privileges")
     request_admin_if_needed()
     if not check_windows_version():
         print_error("Incompatible system")
@@ -407,8 +428,8 @@ if __name__ == "__main__":
         print_warning(f"Privilege check failed: {e}")
     print()
     
-    # Etape 4: Point de restauration
-    print_section(4, 6, "System Restore Point")
+    # Etape 5: Point de restauration
+    print_section(5, 7, "System Restore Point")
     restore_created = create_restore_point()
     if restore_created:
         print_success("Restore point created successfully")
@@ -416,14 +437,14 @@ if __name__ == "__main__":
         print_warning("Restore point not created")
     print()
     
-    # Etape 5: LibreHardwareMonitor
-    print_section(5, 6, "Hardware Monitoring Setup")
+    # Etape 6: LibreHardwareMonitor
+    print_section(6, 7, "Hardware Monitoring Setup")
     check_and_download_librehardwaremonitor()
     print_success("Hardware monitoring ready")
     print()
     
-    # Etape 6: Lancement de l'application
-    print_section(6, 6, "Application Launch")
+    # Etape 7: Lancement de l'application
+    print_section(7, 7, "Application Launch")
     print_info("Starting Flet application...")
     print_separator()
     print()

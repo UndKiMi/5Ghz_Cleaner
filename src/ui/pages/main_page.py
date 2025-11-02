@@ -6,7 +6,7 @@ import flet as ft
 from ..design_system import *
 from ..design_system.theme import Colors, Spacing, Typography, BorderRadius
 from src.core import cleaner
-from src.utils.logger import CleaningLogger
+from src.utils.logger_safe import SafeCleaningLogger as CleaningLogger
 from src.services.security import security_manager
 from src.services.hardware_monitor import hardware_monitor
 

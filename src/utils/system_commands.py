@@ -1,6 +1,8 @@
 """
 Module de commandes système sécurisées
 Définit les chemins absolus pour toutes les commandes Windows
+
+Conforme: OWASP ASVS 4.0 V5.3, MITRE CWE-78, NIST SP 800-53 SI-10
 """
 import os
 import subprocess
@@ -30,7 +32,48 @@ NVIDIA_SMI = os.path.join(os.getenv('ProgramFiles', 'C:\\Program Files'), 'NVIDI
 
 
 class SystemCommand:
-    """Wrapper sécurisé pour les commandes système"""
+    """Wrapper sécurisé pour les commandes système
+    
+    Protections implémentées:
+    - Chemins absolus uniquement (prévention PATH hijacking)
+    - shell=False forcé (prévention injection)
+    - Timeouts configurés (prévention DoS)
+    - Validation des arguments (prévention manipulation)
+    - Capture sécurisée des sorties
+    
+    Conforme: OWASP Top 10 2021 A03, MITRE CWE-78, CWE-88
+    """
+    
+    @staticmethod
+    def _validate_command_args(args: List[str]) -> bool:
+        """Valide les arguments de commande
+        
+        Args:
+            args: Liste d'arguments
+            
+        Returns:
+            bool: True si valide
+            
+        Raises:
+            ValueError: Si arguments invalides
+        """
+        if not args or not isinstance(args, list):
+            raise ValueError("Arguments must be a non-empty list")
+        
+        for arg in args:
+            if not isinstance(arg, str):
+                raise ValueError(f"Invalid argument type: {type(arg)}")
+            
+            # Vérifier longueur maximale
+            if len(arg) > 8191:  # Windows command line limit
+                raise ValueError(f"Argument too long: {len(arg)} chars")
+            
+            # Vérifier caractères dangereux
+            dangerous_chars = ['|', '&', ';', '\n', '\r', '`', '$', '(', ')']
+            if any(char in arg for char in dangerous_chars):
+                raise ValueError(f"Dangerous character detected in argument: {arg}")
+        
+        return True
     
     @staticmethod
     def run_sc(args: List[str], timeout: int = None) -> subprocess.CompletedProcess:

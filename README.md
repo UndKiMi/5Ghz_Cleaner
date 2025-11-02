@@ -1,395 +1,276 @@
-# 5GH'z Cleaner
+# 🧹 5GH'z Cleaner
 
-<div align="center">
+**Nettoyez et optimisez votre PC Windows 11 en quelques clics !**
 
-![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue.svg)
-![Platform](https://img.shields.io/badge/Platform-Windows%2011-0078D6.svg)
-![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg)
+Un outil simple et efficace pour libérer de l'espace disque, accélérer votre ordinateur et surveiller ses performances.
+
 ![Version](https://img.shields.io/badge/Version-1.7.0-green.svg)
-![Security](https://img.shields.io/badge/Security-Hardened-brightgreen.svg)
+![Windows 11](https://img.shields.io/badge/Windows-11-0078D6.svg)
+![Gratuit](https://img.shields.io/badge/Gratuit-100%25-brightgreen.svg)
 
-[![Security Audit](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security-audit.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/security-audit.yml)
-[![Code Quality](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/code-quality.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/code-quality.yml)
-[![Trivy](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/trivy-security.yml)
-[![OpenSSF Scorecard](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/scorecard.yml)
-[![Secret Scanning](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/UndKiMi/5Ghz_Cleaner/actions/workflows/secret-scan.yml)
+## 🎯 À quoi ça sert ?
 
-**Outil de nettoyage et d'optimisation pour Windows 11**
+5GH'z Cleaner vous aide à :
+- 🗑️ **Libérer de l'espace** - Supprime les fichiers temporaires inutiles
+- ⚡ **Accélérer votre PC** - Libère la mémoire RAM et optimise le disque
+- 📊 **Surveiller votre système** - Températures, mémoire, espace disque en temps réel
+- 🛡️ **En toute sécurité** - Sauvegarde automatique avant chaque action
 
-[Installation](#-installation) • [Fonctionnalités](#-fonctionnalités) • [Utilisation](#-utilisation) • [Licence](#-licence)
+### Pourquoi choisir 5GH'z Cleaner ?
 
-</div>
+- ✅ **Facile à utiliser** - Interface claire et intuitive
+- ✅ **Rapide** - Nettoyage en quelques minutes
+- ✅ **Sûr** - Sauvegarde automatique et point de restauration
+- ✅ **Gratuit** - 100% gratuit et sans publicité
+- ✅ **Transparent** - Code source ouvert, aucune donnée collectée
 
----
+## ✨ Que peut faire 5GH'z Cleaner ?
 
-## 📋 Description
+### 🧹 Nettoyage
 
-**5GH'z Cleaner** est un outil de maintenance système moderne pour Windows 11, offrant nettoyage, optimisation et monitoring matériel en temps réel. Interface élégante, opérations sécurisées, performances optimales.
+- **Fichiers temporaires** - Supprime les fichiers inutiles qui encombrent votre disque
+- **Corbeille** - Vide la corbeille en un clic
+- **Cache Windows** - Nettoie les fichiers de mise à jour obsolètes
+- **Miniatures** - Supprime le cache des aperçus d'images
 
-### Pourquoi 5GH'z Cleaner ?
+### ⚡ Optimisation
 
-- ✅ **Interface moderne** - Design épuré avec Flet
-- ✅ **Ultra-rapide** - Optimisations parallèles (5-7x plus rapide)
-- ✅ **Sécurité renforcée** - Validation quadruple couche, vérification d'intégrité
-- ✅ **Complet** - Nettoyage + Optimisation + Monitoring
-- ✅ **Transparent** - Logs sécurisés, code open-source
-- ✅ **Protection maximale** - Backup automatique, cooldown 10 minutes
+- **Libérer la mémoire** - Récupère jusqu'à 20% de RAM
+- **Optimiser le disque** - Défragmente (HDD) ou optimise (SSD/NVMe) automatiquement
+- **Vider le cache DNS** - Résout les problèmes de connexion internet
 
----
+### 📊 Surveillance
 
-## ✨ Fonctionnalités
+- **Température** - Surveille la température de votre processeur et carte graphique
+- **Mémoire RAM** - Affiche l'utilisation en temps réel
+- **Espace disque** - Montre l'espace disponible sur vos disques
 
-### 🧹 Nettoyage Système
+### 🛡️ Sécurité
 
-- **Fichiers temporaires** - Suppression sécurisée avec backup automatique
-- **Cache Windows Update** - Nettoyage optimisé (scan limité 2 niveaux)
-- **WinSxS** - Nettoyage ultra-rapide (1-3 min au lieu de 10-20 min)
-- **Prefetch & Miniatures** - Suppression rapide
-- **Corbeille** - Vidage complet avec confirmation
-- **Logs volumineux** - Suppression fichiers > 100 MB
-
-### ⚡ Optimisations
-
-- **RAM Standby** - Libération mémoire (jusqu'à 20%)
-- **DNS Flush** - Vidage cache DNS
-- **Optimisation disque automatique** - Détection HDD/SSD/NVMe + optimisations spécifiques
-  - HDD: Défragmentation + Indexation optimisée
-  - SSD: TRIM + Désactivation défrag + Désactivation indexation
-  - NVMe: TRIM + Désactivation indexation + Mode Hautes performances
-- **Cooldown intelligent** - Protection anti-spam de 10 minutes sur actions critiques
-
-### 📊 Monitoring Temps Réel
-
-- **Température CPU/GPU** - Surveillance avec LibreHardwareMonitor
-- **Utilisation RAM** - Détails complets (utilisée, disponible, standby)
-- **Espace disque** - Analyse tous les lecteurs
-- **Performances** - Vue d'ensemble système
-
-### 🔒 Sécurité Renforcée
-
-- **Validation quadruple couche** - Liens symboliques, hard links, junction points
-- **Vérification d'intégrité** - Hash SHA256 des DLLs critiques
-- **Backup automatique** - Sauvegarde avant toute suppression
-- **Mode Dry-Run** - Prévisualisation ultra-rapide (5-10s)
-- **Point de restauration** - Création automatique au démarrage
-- **Logs sécurisés** - Thread-safe, chemins masqués
-- **Cooldown 10 minutes** - Protection anti-spam renforcée
-- **Élévation contrôlée** - Validation post-élévation des privilèges
+- **Sauvegarde automatique** - Tous les fichiers sont sauvegardés avant suppression
+- **Point de restauration** - Créé automatiquement au démarrage
+- **Prévisualisation** - Voyez ce qui sera supprimé avant de confirmer
+- **Protection** - Impossible de supprimer des fichiers système importants
 
 ---
 
-## 🚀 Installation
+## 🚀 Comment l'installer ?
 
-### Prérequis
+### Ce dont vous avez besoin
 
-- **Windows 11** (64-bit) - OBLIGATOIRE
-- **Python 3.11+** - [Télécharger](https://www.python.org/downloads/)
-- **Droits administrateur** - Requis
+- **Windows 11** (version 64-bit)
+- **Python 3.11 ou plus récent** - [Télécharger ici](https://www.python.org/downloads/)
+  - ⚠️ Cochez "Add Python to PATH" pendant l'installation
+- **Droits administrateur** sur votre PC
 
-### Installation Rapide
+### Étapes d'installation
 
+**1. Téléchargez le logiciel**
 ```bash
-# 1. Cloner le dépôt
 git clone https://github.com/UndKiMi/5Ghz_Cleaner.git
-cd 5Ghz_Cleaner
+```
+Ou téléchargez le ZIP depuis GitHub et décompressez-le.
 
-# 2. Installer les dépendances
+**2. Ouvrez un terminal dans le dossier**
+- Faites un clic droit dans le dossier
+- Sélectionnez "Ouvrir dans le Terminal" ou "PowerShell"
+
+**3. Installez les composants nécessaires**
+```bash
 pip install -r requirements.txt
-
-# 3. Lancer l'application
-python main.py
 ```
 
----
-
-## 🎯 Utilisation
-
-### Démarrage
-
+**4. Lancez le logiciel**
 ```bash
 python main.py
 ```
 
-L'application démarre **directement** (pas de page de conditions).
+## 🎯 Comment l'utiliser ?
 
-### Mode Prévisualisation (Recommandé)
+### Première utilisation
 
-1. Cliquer sur **"Prévisualiser le nettoyage"**
-2. Attendre l'analyse parallèle (5-10s)
-3. Consulter le rapport détaillé
-4. Cocher/décocher les opérations
-5. Lancer le nettoyage
+1. **Lancez le logiciel**
+   ```bash
+   python main.py
+   ```
+   - Une fenêtre va s'ouvrir
+   - Le logiciel va demander les droits administrateur (c'est normal)
 
-### Actions Rapides
+2. **Prévisualisez avant de nettoyer** (recommandé)
+   - Cliquez sur le bouton **"🔍 Prévisualiser"**
+   - Attendez quelques secondes
+   - Vous verrez exactement ce qui sera supprimé
+   - Cochez ou décochez ce que vous voulez garder
 
-| Bouton | Action | Cooldown |
-|--------|--------|----------|
-| 🧹 **Nettoyer** | Fichiers temporaires + backup | 10 min |
-| 💾 **Libérer RAM** | Vide RAM Standby | 10 min |
-| 🗑️ **Vider corbeille** | Suppression définitive | 10 min |
-| 🌐 **Flush DNS** | Vide cache DNS | 10 min |
+3. **Lancez le nettoyage**
+   - Cliquez sur **"🧹 Nettoyer"**
+   - Le logiciel fait une sauvegarde automatique
+   - Attendez la fin du nettoyage
 
-### Optimisation Disque (Nouveau)
+### Actions rapides disponibles
 
-**Onglet Configuration → Disque C:\ → Bouton "Optimiser"**
+| Bouton | À quoi ça sert | Temps d'attente |
+|--------|------------------|------------------|
+| 🧹 **Nettoyer** | Supprime les fichiers temporaires | 10 minutes |
+| 💾 **Libérer RAM** | Libère la mémoire | 10 minutes |
+| 🗑️ **Vider corbeille** | Vide la corbeille | 10 minutes |
+| 🌐 **Vider DNS** | Résout les problèmes internet | 10 minutes |
 
-- Détection automatique du type (HDD/SSD/NVMe)
-- Optimisations spécifiques appliquées
-- Barre de progression intégrée (pas de pop-up)
-- Résultat affiché dans le bouton
-- Cooldown visible de 3 minutes
+⚠️ **Pourquoi 10 minutes ?** Pour éviter de nettoyer trop souvent et protéger votre système.
 
----
+### Optimiser votre disque
 
-## 🆕 Nouveautés v1.7.0 - Sécurité Renforcée
-
-### 🔒 Correctifs de Sécurité Majeurs
-
-#### Validation Avancée des Chemins
-- **Détection liens symboliques** - Résolution et validation des cibles
-- **Détection hard links** - Blocage des fichiers avec nlink > 1
-- **Détection junction points** - Protection contre suppressions récursives hors scope
-- **Validation quadruple couche** - Sécurité maximale
-
-#### Vérification d'Intégrité
-- **Hash SHA256 des DLLs** - Vérification LibreHardwareMonitor et dépendances
-- **Base de données de hash** - Détection de fichiers corrompus ou modifiés
-- **Validation au démarrage** - Contrôle automatique avant utilisation
-
-#### Backup Automatique
-- **Sauvegarde avant suppression** - Tous les fichiers backupés
-- **Restauration complète** - Rollback en cas d'erreur
-- **Manifeste détaillé** - Traçabilité complète
-- **Nettoyage automatique** - Backups > 7 jours supprimés
-
-#### Protection Renforcée
-- **Cooldown 10 minutes** - Protection anti-spam maximale
-- **Logs sécurisés** - Chemins utilisateurs masqués (C:\Users\***)
-- **Élévation validée** - Re-vérification post-élévation
-- **SSL strict** - Vérification certificats pour téléchargements
-
-### ⚡ Performances (v1.6.1)
-
-- **Dry-run 5-7x plus rapide** - Parallélisation 8 threads
-- **Nettoyage 3-4x plus rapide** - os.scandir() + cache
-- **WinSxS 5-10x plus rapide** - Analyse préalable
-
-### 🎨 Interface (v1.6.1)
-
-- **Démarrage direct** - Pas de page conditions
-- **Bouton optimisation disque** - Feedback visuel intégré
-- **Cooldown visible** - Timer dégressif
-- **Expérience fluide** - Aucun pop-up
-- **Logs thread-safe** - Écritures atomiques
-- **Protection anti-spam** - Timer visible
+1. Allez dans l'onglet **"Configuration"**
+2. Trouvez votre disque (ex: C:\)
+3. Cliquez sur **"Optimiser"**
+4. Le logiciel détecte automatiquement votre type de disque
+5. Attendez la fin (quelques minutes)
 
 ---
 
-## 📁 Structure
+## 🆕 Quoi de neuf dans cette version ?
 
-```
-5Ghz_Cleaner/
-├── main.py                    # Point d'entrée
-├── README.md                  # Documentation
-├── requirements.txt           # Dépendances
-│
-├── src/
-│   ├── core/                  # Logique métier
-│   │   ├── cleaner.py        # Nettoyage (optimisé, quadruple validation)
-│   │   ├── dry_run.py        # Dry-run (parallèle, 8 threads)
-│   │   ├── disk_auto_optimizer.py  # Optimisation disque auto
-│   │   └── advanced_optimizations.py
-│   │
-│   ├── services/              # Services
-│   │   ├── hardware_monitor.py
-│   │   └── security_core.py  # Validation chemins
-│   │
-│   ├── ui/                    # Interface
-│   │   ├── app.py            # Application Flet
-│   │   ├── design_system/    # Composants UI
-│   │   └── pages/            # Pages (main, preview)
-│   │
-│   └── utils/                 # Utilitaires
-│       ├── logger_safe.py    # Logs thread-safe
-│       ├── integrity_checker.py  # Vérification SHA256
-│       ├── path_validator.py # Validation avancée
-│       ├── backup_manager.py # Backup automatique
-│       └── elevation.py      # Privilèges
-│
-├── config/                    # Configuration
-├── assets/                    # Ressources
-├── libs/                      # Bibliothèques
-└── scripts/                   # Scripts
-```
+### Version 1.7.0 - Améliorations de sécurité
 
----
+**Plus sûr que jamais !**
+- ✅ Sauvegarde automatique de tous les fichiers avant suppression
+- ✅ Vérification de l'intégrité du logiciel au démarrage
+- ✅ Protection renforcée contre les suppressions accidentelles
+- ✅ Temps d'attente de 10 minutes entre chaque nettoyage
 
-## 🔧 Développement
+**Plus rapide !**
+- ⚡ Nettoyage 3 à 4 fois plus rapide
+- ⚡ Prévisualisation en quelques secondes
+- ⚡ Optimisation disque améliorée
 
-### Conventions
+**Plus simple !**
+- 🎨 Interface plus claire
+- 🎨 Pas de fenêtres pop-up gênantes
+- 🎨 Retour visuel sur toutes les actions
 
-- **Style**: PEP 8
-- **Type Hints**: Obligatoires
-- **Docstrings**: Google Style
-- **Logging**: `CleaningLogger`
+## ❓ Problèmes courants
 
-### Tests
+### Le logiciel ne se lance pas
 
+**Erreur "Python n'est pas reconnu"**
+- Vérifiez que Python est installé
+- Réinstallez Python en cochant "Add to PATH"
+
+**Erreur "Module not found"**
 ```bash
-# Vérifier imports
-python -c "from src.core import cleaner; print('✓ OK')"
-
-# Tester dry-run
-python -c "from src.core.dry_run import dry_run_manager; print('✓ OK')"
+pip install -r requirements.txt
 ```
 
----
+### Le logiciel demande les droits administrateur
 
-## 🛡️ Audits de Sécurité
+**C'est normal !** Le logiciel a besoin de ces droits pour :
+- Supprimer les fichiers temporaires système
+- Optimiser le disque
+- Libérer la mémoire
 
-Ce projet intègre une suite complète d'outils d'audit automatisés via GitHub Actions :
+Vous pouvez refuser, mais certaines fonctions seront limitées.
 
-### 🔒 Security Audit (Workflow Consolidé)
-- **CodeQL** - Analyse statique avancée (Microsoft)
-- **Bandit** - Linter de sécurité Python
-- **Safety** - Vérification vulnérabilités CVE
-- **Trivy** - Scanner multi-format
-- **Gitleaks** - Détection secrets exposés
+### Mon antivirus bloque le logiciel
 
-### 📊 Code Quality
-- **Pylint** - Analyse qualité code
-- **Black** - Formatage automatique
-- **isort** - Organisation imports
-- **Flake8** - Vérification style
-- **Pytest** - Tests unitaires
+**C'est un faux positif.** 5GH'z Cleaner est sûr :
+- ✅ Code source ouvert et vérifiable
+- ✅ Aucune donnée collectée
+- ✅ Aucune connexion internet
 
-### 🎯 Autres Audits
-- **Dependabot** - Mises à jour automatiques
-- **OpenSSF Scorecard** - Score sécurité global
-- **Secret Scanning** - TruffleHog + Gitleaks
+**Pour autoriser le logiciel :**
+1. Ouvrez votre antivirus
+2. Ajoutez une exception pour le dossier 5Ghz_Cleaner
+3. Relancez le logiciel
 
-### ⏰ Fréquence
-- **Push/PR** : Security Audit, Code Quality
-- **Hebdomadaire** : Scorecard (lundi 2h), Dependabot (lundi 9h)
+### Le nettoyage est bloqué pendant 10 minutes
 
-Tous les résultats sont disponibles dans l'onglet **Actions** du dépôt GitHub.
+**C'est une protection !** Pour éviter de nettoyer trop souvent et protéger votre système.
 
----
+Si vous avez vraiment besoin de nettoyer avant, redémarrez le logiciel.
 
-## 🔒 Protections de Sécurité
+### J'ai supprimé quelque chose par erreur
 
-Ce projet implémente des protections de niveau entreprise :
+**Pas de panique !** Deux solutions :
 
-### 🛡️ Protection des Branches
-- ✅ **Branche `main` protégée** - Aucun push direct autorisé
-- ✅ **Pull Request obligatoire** - Toute modification passe par PR
-- ✅ **Reviews requises** - Minimum 1 approbation + CODEOWNERS
-- ✅ **Status checks obligatoires** - Tous les audits doivent passer
-- ✅ **Commits signés requis** - Signature GPG obligatoire
-- ✅ **Historique linéaire** - Pas de merge commits
-- ✅ **Suppression interdite** - Impossible de supprimer main/develop
-- ✅ **Force push interdit** - Aucun `git push --force` autorisé
+1. **Restaurer depuis la sauvegarde**
+   - Les fichiers sont dans `Documents/5GH'zCleaner-backups`
+   - Copiez-les à leur emplacement d'origine
 
-### 🔐 Audits Automatiques
-- ✅ **CodeQL** - Analyse statique (Microsoft)
-- ✅ **Dependabot** - Mises à jour sécurité automatiques
-- ✅ **Secret Scanning** - Détection secrets exposés (push protection)
-- ✅ **Gitleaks + TruffleHog** - Double scan de secrets
-- ✅ **Trivy** - Scanner vulnérabilités
-- ✅ **Bandit + Safety** - Sécurité Python
-- ✅ **OpenSSF Scorecard** - Score sécurité global
+2. **Utiliser le point de restauration**
+   - Tapez "Restauration" dans la recherche Windows
+   - Sélectionnez "Créer un point de restauration"
+   - Cliquez sur "Restauration du système"
+   - Choisissez le point créé par 5GH'z Cleaner
 
-### 📋 Conformité
-- ✅ **OWASP ASVS** - Application Security Verification Standard
-- ✅ **CIS Controls** - Center for Internet Security
-- ✅ **NIST CSF** - Cybersecurity Framework
-- ✅ **OpenSSF Best Practices** - Certification en cours
+## 💡 Conseils d'utilisation
 
-### 🚨 Signalement de Vulnérabilité
-**NE PAS créer d'issue publique pour les vulnérabilités.**
+### Pour de meilleurs résultats
 
-Utiliser [GitHub Security Advisories](https://github.com/UndKiMi/5Ghz_Cleaner/security/advisories) pour un signalement privé.
+1. **Utilisez la prévisualisation**
+   - Voyez toujours ce qui sera supprimé avant de confirmer
+   - Décochez ce que vous voulez garder
 
-Voir [SECURITY.md](.github/SECURITY.md) pour plus de détails.
+2. **Nettoyez régulièrement**
+   - Une fois par semaine est idéal
+   - Pas besoin de nettoyer tous les jours
 
----
+3. **Optimisez votre disque**
+   - Une fois par mois suffit
+   - Le logiciel détecte automatiquement votre type de disque
 
-## 🤝 Contribution
+4. **Surveillez les températures**
+   - Si votre PC chauffe beaucoup, vérifiez les températures
+   - CPU > 80°C = nettoyez la poussière de votre PC
 
-Les contributions sont les bienvenues ! Pour contribuer :
+### Ce qu'il ne faut PAS faire
 
-1. **Fork** le projet
-2. Créer une branche (`git checkout -b feature/amelioration`)
-3. **Signer vos commits** avec GPG (`git commit -S -m 'message'`)
-4. Push vers la branche (`git push origin feature/amelioration`)
-5. Ouvrir une **Pull Request**
+❌ **Ne nettoyez pas trop souvent** - Une fois par semaine maximum
+❌ **Ne décochez pas les protections** - Elles sont là pour votre sécurité
+❌ **Ne fermez pas pendant un nettoyage** - Attendez toujours la fin
+❌ **Ne supprimez pas les sauvegardes** - Elles peuvent vous sauver
 
-### ✅ Exigences
+### Besoin d'aide ?
 
-Votre PR doit passer **tous les checks** avant merge :
+- 🐛 **Vous avez trouvé un bug ?** Signalez-le sur [GitHub Issues](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
+- ❓ **Une question ?** Consultez d'abord cette documentation
+- 💡 **Une idée d'amélioration ?** Partagez-la sur GitHub
 
-- ✅ **CI** - Validation structure + syntaxe
-- ✅ **Security Audit** - CodeQL + Bandit + Safety + Trivy
-- ✅ **Code Quality** - Pylint + Black + isort + Flake8
-- ✅ **Secret Scanning** - Gitleaks + TruffleHog
-- ✅ **Review** - Minimum 1 approbation
-- ✅ **Conversations** - Toutes résolues
+## 📄 Licence et avertissement
 
-### 📋 Guidelines
+### Licence
 
-- ✅ Respecter PEP 8 et Black (line length 120)
-- ✅ Ajouter des tests pour les nouvelles fonctionnalités
-- ✅ Mettre à jour la documentation
-- ✅ Commits signés GPG obligatoires
-- ✅ Pas de secrets dans le code
-- ✅ Suivre [CONTRIBUTING.md](CONTRIBUTING.md)
+**Gratuit pour un usage personnel** - Licence CC BY-NC-SA 4.0
 
-### 🔒 Sécurité
+Vous pouvez :
+- ✅ Utiliser gratuitement
+- ✅ Partager avec vos amis
+- ✅ Modifier le code
 
-- ❌ **JAMAIS** commit de secrets (API keys, tokens, passwords)
-- ❌ **JAMAIS** push direct sur `main` ou `develop`
-- ❌ **JAMAIS** force push
-- ✅ **TOUJOURS** signer vos commits
-- ✅ **TOUJOURS** tester localement avant PR
+Vous ne pouvez pas :
+- ❌ Vendre ce logiciel
+- ❌ L'utiliser commercialement
 
----
+### Avertissement important
 
-## 📄 Licence
+⚠️ **Utilisez ce logiciel à vos propres risques**
 
-**CC BY-NC-SA 4.0** - Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+Bien que 5GH'z Cleaner soit conçu pour être sûr :
+- Un point de restauration est créé automatiquement
+- Tous les fichiers sont sauvegardés avant suppression
+- Les fichiers système sont protégés
 
-### Vous êtes libre de :
+**Mais** l'auteur ne peut être tenu responsable en cas de problème.
 
-- ✅ **Partager** - Copier et redistribuer
-- ✅ **Adapter** - Modifier et créer des dérivés
-- 📝 **Attribution** - Créditer l'auteur original
-- 🚫 **Non-commercial** - Pas d'utilisation commerciale
-- 🔄 **Partage identique** - Même licence pour les dérivés
-
----
-
-## ⚠️ Avertissement
-
-Cet outil effectue des opérations système sensibles :
-
-- ⚠️ Utilisez à vos propres risques
-- ⚠️ Point de restauration créé automatiquement
-- ⚠️ Backup automatique avant toute suppression
-- ⚠️ Testez en mode prévisualisation d'abord
-- ⚠️ Lisez les avertissements avant toute action
-
-**L'auteur ne peut être tenu responsable des dommages causés par une mauvaise utilisation.**
+💡 **Conseil :** Utilisez toujours la prévisualisation avant de nettoyer !
 
 ---
 
 <div align="center">
 
-**Version 1.7.0 - Security Hardened** • **Novembre 2025**
+**5GH'z Cleaner v1.7.0** • Novembre 2025
 
-Made with ❤️ for Windows 11 users
+Fait avec ❤️ pour les utilisateurs de Windows 11
 
-[![Star on GitHub](https://img.shields.io/github/stars/UndKiMi/5Ghz_Cleaner?style=social)](https://github.com/UndKiMi/5Ghz_Cleaner)
-[![Issues](https://img.shields.io/github/issues/UndKiMi/5Ghz_Cleaner)](https://github.com/UndKiMi/5Ghz_Cleaner/issues)
-[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue.svg)](LICENSE)
+[GitHub](https://github.com/UndKiMi/5Ghz_Cleaner) • [Signaler un bug](https://github.com/UndKiMi/5Ghz_Cleaner/issues) • [Licence](LICENSE)
 
 </div>
