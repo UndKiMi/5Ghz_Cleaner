@@ -663,7 +663,6 @@ class CleanerApp:
 
     def show_main_page(self):
         """Affiche la page principale"""
-        print("[DEBUG] Retour à la page principale")
         self.page.controls.clear()
         
         # Recréer la page principale

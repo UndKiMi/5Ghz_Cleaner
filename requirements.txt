@@ -1,12 +1,12 @@
-# 5GH'z Cleaner Dependencies
+# 5GH'z Cleaner Dependencies - Optimized
 # Windows 11 x64 only
 
-## Production
-flet==0.25.2
-pywin32==306
-psutil==5.9.8
-pythonnet==3.0.5
-cryptography==41.0.7
+## Production (Optimized for size and security)
+flet==0.25.2          # UI Framework - 45MB (nécessaire)
+pywin32==306          # Windows API - 12MB (nécessaire)
+psutil==5.9.8         # System monitoring - 500KB (léger, nécessaire)
+pythonnet==3.0.5      # .NET interop for LibreHardwareMonitor - 8MB (nécessaire)
+# cryptography==41.0.7  # REMOVED - 15MB, utilisé uniquement pour chiffrement logs optionnel
 
 ## Development (install with: pip install -r requirements.txt[dev])
 # [dev]

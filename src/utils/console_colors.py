@@ -39,6 +39,19 @@ class Colors:
     CYAN = '\033[36m'
     WHITE = '\033[37m'
     
+    # Bright colors
+    BRIGHT_BLACK = '\033[90m'
+    BRIGHT_RED = '\033[91m'
+    BRIGHT_GREEN = '\033[92m'
+    BRIGHT_YELLOW = '\033[93m'
+    BRIGHT_BLUE = '\033[94m'
+    BRIGHT_MAGENTA = '\033[95m'
+    BRIGHT_CYAN = '\033[96m'
+    BRIGHT_WHITE = '\033[97m'
+    
+    # Bold
+    BOLD = '\033[1m'
+    
     # Bold colors
     BOLD_BLACK = '\033[1;30m'
     BOLD_RED = '\033[1;31m'

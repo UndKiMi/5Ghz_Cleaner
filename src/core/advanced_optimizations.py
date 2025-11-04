@@ -446,8 +446,6 @@ def clean_winsxs():
             return {"success": True, "message": "WinSxS nettoyé - Redémarrage recommandé"}
         else:
             print(f"[WARNING] DISM returned code {result.returncode}")
-            if result.stderr:
-                print(f"[DEBUG] DISM stderr: {result.stderr[:200]}")
             return {"success": False, "message": f"Erreur DISM (code {result.returncode})"}
     
     except subprocess.TimeoutExpired:
@@ -483,9 +481,7 @@ def optimize_pagefile():
             print("[SUCCESS] Pagefile optimisé (gestion automatique activée)")
             return {"success": True, "message": "Pagefile optimisé"}
         else:
-            # Afficher l'erreur pour diagnostic
-            if result.stderr:
-                print(f"[DEBUG] PowerShell stderr: {result.stderr[:200]}")
+            # Erreur lors de l'optimisation
             return {"success": False, "message": "Erreur optimisation pagefile"}
     
     except subprocess.TimeoutExpired:

@@ -446,8 +446,8 @@ class HardwareMonitor:
                 temp = hardware_sensors.get_cpu_temperature()
                 if temp is not None:
                     return round(temp, 1)
-            except Exception as e:
-                print(f"[DEBUG] LibreHardwareMonitor CPU temp failed: {e}")
+            except Exception:
+                pass
         
         # Méthode 2: WMI MSAcpi_ThermalZoneTemperature (NATIF WINDOWS)
         try:
@@ -580,8 +580,8 @@ class HardwareMonitor:
                 temp = hardware_sensors.get_gpu_temperature(gpu_name)
                 if temp is not None:
                     return round(temp, 1)
-            except Exception as e:
-                print(f"[DEBUG] LibreHardwareMonitor GPU temp failed: {e}")
+            except Exception:
+                pass
         
         # Méthode 2: NVIDIA via nvidia-smi (installé avec les drivers NVIDIA)
         if "nvidia" in gpu_name.lower():
@@ -649,8 +649,8 @@ class HardwareMonitor:
                 usage = hardware_sensors.get_gpu_usage(gpu_name)
                 if usage is not None:
                     return round(usage, 1)
-            except Exception as e:
-                print(f"[DEBUG] LibreHardwareMonitor GPU usage failed: {e}")
+            except Exception:
+                pass
         
         # Méthode 2: NVIDIA via nvidia-smi (natif avec drivers)
         if "nvidia" in gpu_name.lower():

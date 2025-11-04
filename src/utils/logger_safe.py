@@ -64,8 +64,11 @@ class SafeCleaningLogger:
         # Configuration sécurité
         self.enable_encryption = enable_encryption and CRYPTO_AVAILABLE
         self.retention_days = retention_days
-        self.username = os.getenv('USERNAME', 'User')
-        self.home_path = str(Path.home())
+        
+        # CONFIDENTIALITÉ: Anonymisation automatique (RGPD/CCPA 2025)
+        from src.utils.privacy_manager import privacy_manager
+        self.username = privacy_manager.anonymize_username()
+        self.home_path = privacy_manager.anonymize_path(str(Path.home()))
         
         # SÉCURITÉ: Lock pour toutes les opérations d'écriture (PROTECTION RACE CONDITION)
         self._write_lock = threading.RLock()  # RLock pour réentrance
@@ -208,8 +211,8 @@ class SafeCleaningLogger:
 
 Session ID      : {self.session_id}
 Date et heure   : {self.session_start.strftime("%d/%m/%Y à %H:%M:%S")}
-Utilisateur     : [USER]
-Ordinateur      : {self._anonymize_text(os.getenv('COMPUTERNAME', 'Unknown'))}
+Utilisateur     : {self.username}
+Ordinateur      : {privacy_manager.anonymize_computer_name()}
 
 {'='*80}
 

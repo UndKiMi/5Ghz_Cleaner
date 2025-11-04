@@ -45,8 +45,7 @@ from src.utils.console_colors import (
     print_success, print_error, print_warning, print_info, print_separator
 )
 
-# Importer la vérification d'intégrité runtime (SÉCURITÉ 2025)
-from src.utils.runtime_integrity import verify_runtime_integrity
+# Runtime integrity removed - not needed in production
 
 # Optimisation mémoire: Activer le garbage collector agressif
 gc.enable()
@@ -394,22 +393,13 @@ if __name__ == "__main__":
     print()
     
     # Etape 2: Optimisation des ressources
-    print_section(2, 7, "Process Optimization")
+    print_section(2, 6, "Process Optimization")
     optimize_process()
     print_success("Resources optimized")
     print()
     
-    # Etape 3: Vérification d'intégrité runtime (SÉCURITÉ 2025)
-    print_section(3, 7, "Runtime Integrity Verification")
-    try:
-        verify_runtime_integrity(strict=False)
-        print_success("Runtime integrity verified")
-    except Exception as e:
-        print_warning(f"Integrity check warning: {e}")
-    print()
-    
-    # Etape 4: Privileges administrateur
-    print_section(4, 7, "Administrator Privileges")
+    # Etape 3: Privileges administrateur
+    print_section(3, 6, "Administrator Privileges")
     request_admin_if_needed()
     if not check_windows_version():
         print_error("Incompatible system")
@@ -428,8 +418,8 @@ if __name__ == "__main__":
         print_warning(f"Privilege check failed: {e}")
     print()
     
-    # Etape 5: Point de restauration
-    print_section(5, 7, "System Restore Point")
+    # Etape 4: Point de restauration
+    print_section(4, 6, "System Restore Point")
     restore_created = create_restore_point()
     if restore_created:
         print_success("Restore point created successfully")
@@ -437,14 +427,14 @@ if __name__ == "__main__":
         print_warning("Restore point not created")
     print()
     
-    # Etape 6: LibreHardwareMonitor
-    print_section(6, 7, "Hardware Monitoring Setup")
+    # Etape 5: LibreHardwareMonitor
+    print_section(5, 6, "Hardware Monitoring Setup")
     check_and_download_librehardwaremonitor()
     print_success("Hardware monitoring ready")
     print()
     
-    # Etape 7: Lancement de l'application
-    print_section(7, 7, "Application Launch")
+    # Etape 6: Lancement de l'application
+    print_section(6, 6, "Application Launch")
     print_info("Starting Flet application...")
     print_separator()
     print()

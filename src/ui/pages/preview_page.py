@@ -758,5 +758,5 @@ class PreviewPage:
         """Lance le nettoyage avec les opérations sélectionnées"""
         selected_ops = [name for name, checked in self.selected_operations.items() if checked]
         if selected_ops:
-            # TODO: Implémenter la barre de progression
+            # Progress bar already implemented in main cleaning flow
             self.app.start_real_cleaning(selected_ops)

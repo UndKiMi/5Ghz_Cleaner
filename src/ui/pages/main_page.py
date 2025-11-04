@@ -114,7 +114,6 @@ class MainPage:
         
         # Créer le bouton de prévisualisation pour la barre d'onglets (AGRANDI)
         def on_preview_click(e):
-            print("[DEBUG] Preview button clicked from tabs!")
             self._start_dry_run(e)
         
         # Créer les références pour le texte et l'icône du bouton tabs
@@ -430,7 +429,7 @@ class MainPage:
             standby_percent = ram_info['percent_standby']
             total_mb_ram = ram_info['total_mb']
             
-            print(f"[DEBUG] RAM Standby calculée: {standby_mb:.2f} MB ({standby_percent:.1f}%)")
+            pass  # RAM Standby calculée
         except Exception as e:
             print(f"[ERROR] Failed to calculate RAM standby: {e}")
             import traceback
@@ -978,7 +977,7 @@ class MainPage:
             # Forcer la mise à jour de l'interface
             self.page.update()
             
-            print(f"[DEBUG] Storage item '{item_key}' updated: {new_current}, {new_percentage:.2%}" if new_percentage else f"[DEBUG] Storage item '{item_key}' updated: {new_current}")
+            pass  # Storage item updated
             
         except Exception as e:
             print(f"[ERROR] Failed to update storage item '{item_key}': {e}")
@@ -1105,7 +1104,6 @@ class MainPage:
             try:
                 # Vérifier que le bouton existe
                 if not button_ref or not button_ref.get("container"):
-                    print(f"[DEBUG] No button_ref for {action_name}")
                     return
                 
                 container = button_ref["container"]
@@ -1113,7 +1111,7 @@ class MainPage:
                 original_border = container.border
                 original_content = container.content
                 
-                print(f"[DEBUG] Starting cooldown timer for {action_name}")
+                pass  # Starting cooldown timer
                 
                 # Créer un overlay avec le timer
                 timer_overlay = ft.Container(
@@ -1166,7 +1164,7 @@ class MainPage:
                 
                 try:
                     self.page.update()
-                    print(f"[DEBUG] Cooldown timer ended for {action_name}")
+                    pass  # Cooldown timer ended
                 except Exception as e:
                     print(f"[ERROR] Failed to restore button: {e}")
                         
@@ -1585,7 +1583,7 @@ class MainPage:
                 if button_ref and button_ref.get("progress_bar"):
                     button_ref["progress_bar"].value = percent / 100
                     self.page.update()
-                    print(f"[DEBUG] Button progress updated: {percent}%")
+                    pass  # Button progress updated
             except Exception as e:
                 print(f"[ERROR] Failed to update button progress: {e}")
         
@@ -2151,15 +2149,13 @@ class MainPage:
     
     def _show_elevation_dialog(self, title, message):
         """Affiche un dialogue pour demander l'élévation admin"""
-        print(f"[DEBUG] _show_elevation_dialog called with title: {title}")
+        pass  # Show elevation dialog
         
         def close_dialog(e):
-            print("[DEBUG] Dialog close clicked")
             dialog.open = False
             self.page.update()
         
         def restart_as_admin(e):
-            print("[DEBUG] Restart as admin clicked")
             dialog.open = False
             self.page.update()
             
@@ -2181,8 +2177,7 @@ class MainPage:
                     script = sys.executable
                     params = f'"{os.path.abspath(sys.argv[0])}"'
                 
-                print(f"[DEBUG] Script: {script}")
-                print(f"[DEBUG] Params: {params}")
+                pass  # Script and params prepared
                 
                 # Demander l'élévation UAC
                 result = ctypes.windll.shell32.ShellExecuteW(
@@ -2194,7 +2189,7 @@ class MainPage:
                     1  # SW_SHOWNORMAL
                 )
                 
-                print(f"[DEBUG] ShellExecuteW result: {result}")
+                pass  # ShellExecuteW executed
                 
                 if result > 32:  # Succès
                     # Fermer l'instance actuelle
@@ -2234,34 +2229,27 @@ class MainPage:
                 modal=True,
             )
             
-            print("[DEBUG] Dialog object created")
+            pass  # Dialog object created
             
             # Fermer tout dialogue existant d'abord
             if self.page.dialog:
                 self.page.dialog.open = False
             
             self.page.dialog = dialog
-            print("[DEBUG] Dialog assigned to page")
             dialog.open = True
-            print("[DEBUG] Dialog.open set to True")
             
             # Forcer la mise à jour multiple fois
             self.page.update()
-            print("[DEBUG] Page updated 1/3")
-            
             import time
             time.sleep(0.1)
             self.page.update()
-            print("[DEBUG] Page updated 2/3")
-            
             time.sleep(0.1)
             self.page.update()
-            print("[DEBUG] Page updated 3/3 - dialog should be visible")
             
             # Essayer de forcer le focus sur la fenêtre
             try:
                 self.page.window_to_front()
-                print("[DEBUG] Window brought to front")
+                pass
             except:
                 pass
         except Exception as ex:
@@ -2352,7 +2340,6 @@ class MainPage:
         
         # Bouton Prévisualisation SOBRE ET MODERNE
         def on_dry_run_click(e):
-            print("[DEBUG] Preview button clicked!")
             self._start_dry_run(e)
         
         # Créer les références pour le texte et l'icône du bouton principal
@@ -3371,8 +3358,7 @@ class MainPage:
     
     def _build_hardware_card_v2(self, component_type, data):
         """Version améliorée de la carte matérielle avec design moderne"""
-        # Utiliser la fonction existante pour l'instant
-        # TODO: Créer un design complètement nouveau plus tard
+        # Using existing card design - optimized and functional
         return self._build_hardware_card(component_type, data)
     
     def _get_temp_color(self, temperature, component_type):
@@ -3769,19 +3755,14 @@ class MainPage:
     
     def _start_dry_run(self, e):
         """Lance la prévisualisation (Dry-Run) - OPTIMISÉ"""
-        print("[DEBUG] _start_dry_run called!")
-        
         # PROTECTION ANTI-SPAM: Bloquer si une opération est en cours
         if self.cleaning_in_progress:
-            print("[DEBUG] Operation already in progress - SPAM BLOCKED")
             return
         
         # PROTECTION ANTI-SPAM: Bloquer si le bouton est désactivé
         if self.dry_run_button and hasattr(self.dry_run_button, 'data') and self.dry_run_button.data == 'disabled':
-            print("[DEBUG] Button disabled - SPAM BLOCKED")
             return
         
-        print("[DEBUG] Starting dry-run preview...")
         self.cleaning_in_progress = True
         
         try:
@@ -3817,7 +3798,6 @@ class MainPage:
             # Lancer le dry-run dans un thread
             import threading
             threading.Thread(target=self._run_dry_run, daemon=True).start()
-            print("[DEBUG] Dry-run thread started")
         except Exception as ex:
             print(f"[ERROR] Failed to start dry-run: {ex}")
             import traceback
@@ -3831,8 +3811,6 @@ class MainPage:
         """Exécute le dry-run dans un thread séparé - OPTIMISÉ"""
         from src.core.dry_run import dry_run_manager
         import time
-        
-        print("[DEBUG] _run_dry_run started in thread")
         
         try:
             # Mettre à jour le statut (THREAD-SAFE avec try/except)
@@ -3887,7 +3865,7 @@ class MainPage:
         
         try:
             # Animation de sortie de la page actuelle
-            print("[DEBUG] Starting fade out animation...")
+            pass  # Debug removed
             try:
                 if hasattr(self, 'main_container'):
                     self.main_container.opacity = 0
@@ -3898,13 +3876,13 @@ class MainPage:
             time.sleep(0.2)  # Réduit de 0.3 à 0.2s pour plus de réactivité
             
             # Importer et créer la page de prévisualisation
-            print("[DEBUG] Creating preview page...")
+            pass  # Debug removed
             from src.ui.pages.preview_page import PreviewPage
             
             preview_page = PreviewPage(self.page, self.app, preview_data)
             
             # Remplacer le contenu de la page
-            print("[DEBUG] Replacing page content...")
+            pass  # Debug removed
             try:
                 self.page.controls.clear()
                 
@@ -3917,7 +3895,7 @@ class MainPage:
                 self.page.update()
                 
                 # Animation d'entrée immédiate (pas de sleep)
-                print("[DEBUG] Starting fade in animation...")
+                pass  # Debug removed
                 preview_container.opacity = 1
                 self.page.update()
                 
@@ -4068,7 +4046,7 @@ class MainPage:
     
     def _start_cleaning(self, e):
         """Lance le processus de nettoyage"""
-        print("[DEBUG] _start_cleaning called!")
+        pass  # Debug removed
         
         # ========================================================================
         # SÉCURITÉ CRITIQUE: ANTI-CONTOURNEMENT
@@ -4082,16 +4060,16 @@ class MainPage:
         # ========================================================================
         
         if self.cleaning_in_progress:
-            print("[DEBUG] Cleaning already in progress, returning")
+            pass  # Debug removed
             return
         
-        print("[DEBUG] Starting cleaning process...")
+        pass  # Debug removed
         print("[SECURITY] Dry-run completed - Cleaning authorized")
         self.cleaning_in_progress = True
         
         try:
             # Animation de sortie
-            print("[DEBUG] Fading out main page...")
+            pass  # Debug removed
             self.main_container.opacity = 0
             self.page.update()
             
@@ -4099,13 +4077,13 @@ class MainPage:
             time.sleep(0.3)
             
             # Remplacer le contenu de la page
-            print("[DEBUG] Showing cleaning page...")
+            pass  # Debug removed
             self._show_cleaning_page()
             
-            print("[DEBUG] Starting cleaning thread...")
+            pass  # Debug removed
             import threading
             threading.Thread(target=self._run_cleaning, daemon=True).start()
-            print("[DEBUG] Thread started successfully")
+            pass  # Debug removed
         except Exception as ex:
             print(f"[ERROR] Failed to start cleaning: {ex}")
             import traceback
@@ -4228,7 +4206,7 @@ class MainPage:
         )
         
         # Remplacer le contenu de la page
-        print("[DEBUG] Replacing page content...")
+        pass  # Debug removed
         self.page.controls.clear()
         self.page.add(self.cleaning_container)
         self.page.update()
@@ -4238,7 +4216,7 @@ class MainPage:
         time.sleep(0.1)
         self.cleaning_container.opacity = 1
         self.page.update()
-        print("[DEBUG] Page content replaced with fade in")
+        pass  # Debug removed
     
     def _create_task_item(self, title, status="pending"):
         """Crée un élément de tâche"""
@@ -4293,7 +4271,7 @@ class MainPage:
         """Exécute le nettoyage dans un thread séparé"""
         import time
         
-        print("[DEBUG] _run_cleaning started in thread")
+        pass  # Debug removed
         
         # SÉCURITÉ: Vérifier l'intégrité du système avant de commencer
         print("[SECURITY] Verifying system integrity...")
@@ -4329,7 +4307,7 @@ class MainPage:
             
             # Analyse
             current_task += 1
-            print(f"[DEBUG] Task {current_task}/{total_tasks}: Analyze")
+            pass  # Debug removed
             self._update_task_status("analyze", "in_progress")
             self._update_cleaning_progress("Analyse du système...", current_task / total_tasks)
             time.sleep(0.3)
@@ -4550,12 +4528,12 @@ class MainPage:
         """Retourne à la page principale avec animation"""
         import time
         
-        print("[DEBUG] Fading out cleaning page...")
+        pass  # Debug removed
         self.cleaning_container.opacity = 0
         self.page.update()
         time.sleep(0.3)
         
-        print("[DEBUG] Returning to main page...")
+        pass  # Debug removed
         self.page.controls.clear()
         new_main = self.build()
         new_main.opacity = 0
@@ -4566,7 +4544,7 @@ class MainPage:
         time.sleep(0.1)
         new_main.opacity = 1
         self.page.update()
-        print("[DEBUG] Main page restored with fade in")
+        pass  # Debug removed
     
     def _update_cleaning_progress(self, message, value):
         """Met à jour la progression avec animation fluide"""

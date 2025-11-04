@@ -87,8 +87,8 @@ class SecurityManager:
                 result = system_cmd.run_sc(['query', service])
                 if result.returncode != 0:
                     self.warnings.append(f"Service {service} not available")
-        except Exception as e:
-            print(f"[DEBUG] Service check failed: {e}")
+        except Exception:
+            pass
         
         return True
     

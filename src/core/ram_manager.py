@@ -186,22 +186,18 @@ class RAMManager:
         """
         # Si déjà activé, ne pas réessayer
         if self._privileges_enabled:
-            print("[DEBUG] Privileges already enabled, skipping")
             return True
             
         if not self.advapi32 or not self.kernel32:
             print("[WARNING] Cannot enable privileges: DLLs not loaded")
             return False
         
-        print("[DEBUG] Attempting to enable privileges for EmptyStandbyList...")
-        
         try:
             # FIX CRITIQUE: Utiliser OpenProcess au lieu de GetCurrentProcess
-            # GetCurrentProcess() retourne un pseudo-handle (-1) qui peut être invalide
+            # Raison: GetCurrentProcess retourne un pseudo-handle (-1) qui ne fonctionne pas
             # dans certains contextes (PyInstaller, threads, etc.)
             import os
             pid = os.getpid()
-            print(f"[DEBUG] Current PID: {pid}")
             
             # Ouvrir le processus avec le PID réel
             PROCESS_ALL_ACCESS = 0x1F0FFF
@@ -216,8 +212,6 @@ class RAMManager:
                 print(f"[ERROR] OpenProcess failed with error: {error}")
                 return False
             
-            print(f"[DEBUG] Process handle: 0x{process_handle:08X}")
-            
             # Ouvrir le token du processus
             token_handle = wintypes.HANDLE()
             result = self.advapi32.OpenProcessToken(
@@ -231,8 +225,6 @@ class RAMManager:
                 print(f"[ERROR] OpenProcessToken failed with error: {error}")
                 self.kernel32.CloseHandle(process_handle)  # Fermer le handle du processus
                 return False
-            
-            print(f"[DEBUG] Token handle: 0x{token_handle.value:08X}")
             
             # Liste des privilèges à activer
             # CORRECTION: Ajout de SeDebugPrivilege requis pour EmptyStandbyList
@@ -362,8 +354,6 @@ class RAMManager:
                             
                             # RAM modifiée (approximation)
                             modified_mb = max(0, available_mb - standby_mb)
-                            
-                            print(f"[DEBUG] SystemCache: {system_cache_mb:.2f} MB, Available: {available_mb:.2f} MB")
                         else:
                             # Fallback si GetPerformanceInfo échoue
                             print("[WARNING] GetPerformanceInfo failed, using estimation")

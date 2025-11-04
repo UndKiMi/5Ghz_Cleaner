@@ -28,7 +28,8 @@ WMIC_EXE = os.path.join(WBEM, 'wmic.exe')
 
 # Commandes optionnelles (peuvent ne pas exister)
 # Utilise PROGRAM_FILES dynamique au lieu de C:\ hardcodé
-NVIDIA_SMI = os.path.join(os.getenv('ProgramFiles', 'C:\\Program Files'), 'NVIDIA Corporation', 'NVSMI', 'nvidia-smi.exe')
+from src.utils.secure_env import secure_env
+NVIDIA_SMI = os.path.join(secure_env.get('PROGRAMFILES', 'C:\\Program Files'), 'NVIDIA Corporation', 'NVSMI', 'nvidia-smi.exe')
 
 
 class SystemCommand:
