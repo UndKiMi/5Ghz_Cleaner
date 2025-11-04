@@ -37,6 +37,28 @@ class HardwareMonitor:
         self._gpu_warning_shown = False
         self._disk_info_cache = {}  # Cache pour les infos statiques des disques (modèle, type)
     
+    def get_cpu_usage(self) -> float:
+        """
+        Récupère l'utilisation CPU actuelle en %
+        
+        Returns:
+            float: Utilisation CPU en pourcentage (0-100)
+        """
+        try:
+            return psutil.cpu_percent(interval=0.1)
+        except Exception as e:
+            print(f"[ERROR] Failed to get CPU usage: {e}")
+            return 0.0
+    
+    def get_cpu_temperature(self) -> Optional[float]:
+        """
+        Récupère la température CPU actuelle
+        
+        Returns:
+            Optional[float]: Température en °C ou None si non disponible
+        """
+        return self._get_cpu_temperature()
+    
     def get_cpu_info(self) -> Dict:
         """Récupère les informations CPU"""
         try:
