@@ -37,11 +37,14 @@ class CPUOptimizer:
         'mpssvc', 'bfe', 'mpsdrv', 'wdiservicehost', 'wdisystemhost'
     }
     
-    # Processus système à protéger (Python, antivirus, etc.)
+    # Processus système à protéger (Python, antivirus, IDE, etc.)
     PROTECTED_PATTERNS = {
         'python', 'pythonw', 'antimalware', 'defender', 'kaspersky',
         'avast', 'avg', 'norton', 'mcafee', 'bitdefender', 'eset',
-        'malwarebytes', 'sophos', 'trend', 'panda', 'avira'
+        'malwarebytes', 'sophos', 'trend', 'panda', 'avira',
+        'windsurf', 'code', 'vscode', 'pycharm', 'intellij', 'eclipse',
+        'visualstudio', 'devenv', 'rider', 'webstorm', 'phpstorm',
+        'sublime', 'atom', 'notepad++', 'vim', 'emacs', 'cursor'
     }
     
     def __init__(self):

@@ -251,52 +251,25 @@ class MainPage:
                         padding=ft.padding.only(bottom=Spacing.MD),
                     ),
                     
-                    # Grille d'actions rapides CENTRÉE - 2x2
+                    # Grille d'actions rapides CENTRÉE - 1x2
                     ft.Container(
-                        content=ft.Column(
+                        content=ft.Row(
                             [
-                                # Ligne 1
-                                ft.Row(
-                                    [
-                                        self._build_quick_action_button(
-                                            icon=ft.Icons.RESTORE_ROUNDED,
-                                            title="Point de restauration",
-                                            description="Crée une sauvegarde du système.",
-                                            action="restore_point",
-                                        ),
-                                        ft.Container(width=Spacing.LG),
-                                        self._build_quick_action_button(
-                                            icon=ft.Icons.STORAGE_ROUNDED,
-                                            title="Optimisation Disque dur",
-                                            description="Optimise et fluidifie le disque.",
-                                            action="optimize_disk",
-                                        ),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
+                                self._build_quick_action_button(
+                                    icon=ft.Icons.RESTORE_ROUNDED,
+                                    title="Point de restauration",
+                                    description="Crée une sauvegarde du système.",
+                                    action="restore_point",
                                 ),
-                                Spacer(height=Spacing.LG),
-                                # Ligne 2
-                                ft.Row(
-                                    [
-                                        self._build_quick_action_button(
-                                            icon=ft.Icons.DELETE_SWEEP_ROUNDED,
-                                            title="Vider la corbeille",
-                                            description="Supprime définitivement les éléments.",
-                                            action="empty_recycle",
-                                        ),
-                                        ft.Container(width=Spacing.LG),
-                                        self._build_quick_action_button(
-                                            icon=ft.Icons.DNS_ROUNDED,
-                                            title="Flush DNS",
-                                            description="Réinitialise le cache DNS.",
-                                            action="flush_dns",
-                                        ),
-                                    ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
+                                ft.Container(width=Spacing.LG),
+                                self._build_quick_action_button(
+                                    icon=ft.Icons.DNS_ROUNDED,
+                                    title="Flush DNS",
+                                    description="Réinitialise le cache DNS.",
+                                    action="flush_dns",
                                 ),
                             ],
-                            spacing=0,
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            alignment=ft.MainAxisAlignment.CENTER,
                         ),
                     ),
                     
@@ -631,12 +604,15 @@ class MainPage:
             
             self.storage_dns_item = self._build_storage_item_with_tooltip(
                 icon=ft.Icons.DNS_OUTLINED,
-                title="Cache DNS",
+                title="Cache DNS & Réseau",
                 current=f"{dns_mb:.2f} MB" if dns_mb >= 1 else f"{dns_mb * 1024:.0f} KB",
                 percentage=dns_mb / total_mb if total_mb > 0 else 0,
                 color=Colors.SUCCESS,
-                show_button=False,
-                tooltip="Le cache DNS est une mémoire locale sur ton PC qui stocke les adresses IP des sites récemment visités pour accélérer leur accès et éviter de redemander l'information à chaque fois à l'ordinateur.",
+                show_button=True,
+                button_text="Optimiser Réseau",
+                button_action=lambda e: self._optimize_dns_network_action(),
+                button_ref_key="dns_button",
+                tooltip="Cache DNS + optimisations réseau complètes : flush DNS, reset Winsock, reset TCP/IP, renouvellement IP. Améliore la connexion et résout les problèmes réseau.",
                 item_key="dns"
             )
             
@@ -1272,9 +1248,28 @@ class MainPage:
                     button.content.value = "⏳ Vidage..."
                     self.page.update()
                 
+                # Détecter le fabricant CPU pour optimisations adaptées
+                cpu_manufacturer = "Unknown"
+                try:
+                    from src.core.cpu_optimizer_advanced import cpu_optimizer_advanced
+                    cpu_info = cpu_optimizer_advanced.detect_cpu()
+                    cpu_manufacturer = cpu_info.get('manufacturer', 'Unknown')
+                except Exception:
+                    pass
+                
                 # Vider la RAM
                 result = cleaner.clear_standby_memory()
                 success = result.get('ram_standby_cleared', False)
+                
+                # Appliquer optimisations RAM légères adaptées
+                light_opts = []
+                try:
+                    from src.core.light_optimizations import light_optimizer
+                    light_result = light_optimizer.optimize_ram_light(cpu_manufacturer)
+                    if light_result.get('success'):
+                        light_opts = light_result.get('optimizations', [])
+                except Exception as e:
+                    print(f"[WARNING] Light RAM optimizations failed: {e}")
                 
                 # Obtenir la quantité de RAM après nettoyage
                 import time
@@ -1348,14 +1343,20 @@ class MainPage:
                         
                         # Afficher un message de succès avec détails
                         method_used = result.get('method_used', 'unknown')
-                        self._show_success_dialog(
-                            "✓ RAM vidée",
-                            f"La RAM standby a été vidée avec succès.\n\n"
-                            f"Méthode utilisée: {method_used}\n"
-                            f"RAM standby libérée: {freed_mb:.0f} MB\n"
-                            f"RAM disponible maintenant: {ram_info_after['available_mb'] / 1024:.2f} GB\n"
-                            f"Nouveau pourcentage RAM standby: {standby_percent_after:.1f}%"
-                        )
+                        
+                        # Construire le message avec optimisations légères
+                        message = f"La RAM standby a été vidée avec succès.\n\n"
+                        message += f"Méthode utilisée: {method_used}\n"
+                        message += f"RAM standby libérée: {freed_mb:.0f} MB\n"
+                        message += f"RAM disponible maintenant: {ram_info_after['available_mb'] / 1024:.2f} GB\n"
+                        message += f"Nouveau pourcentage RAM standby: {standby_percent_after:.1f}%\n"
+                        
+                        if light_opts:
+                            opts_text = "\n".join([f"  {opt}" for opt in light_opts[:4]])
+                            message += f"\n⚡ OPTIMISATIONS RAM APPLIQUÉES:\n{opts_text}\n"
+                            message += f"\n💡 CPU détecté: {cpu_manufacturer}"
+                        
+                        self._show_success_dialog("✓ RAM Optimisée", message)
                     else:
                         # Animation rouge (échec)
                         button.bgcolor = ft.Colors.RED
@@ -1417,12 +1418,13 @@ class MainPage:
         self._register_action('optimize_cpu')
         
         def optimize_cpu():
+            from src.core.cpu_optimizer_advanced import cpu_optimizer_advanced
             from src.core.cpu_optimizer import cpu_optimizer
             import psutil
             import time
             
             try:
-                print("[INFO] Optimizing CPU usage...")
+                print("[INFO] Optimizing CPU usage with advanced gaming optimizations...")
                 
                 # Obtenir la référence du bouton
                 button = None
@@ -1435,15 +1437,26 @@ class MainPage:
                 # Animation de chargement
                 if button:
                     button.bgcolor = ft.Colors.ORANGE
-                    button.content.value = "⏳ Optimisation..."
+                    button.content.value = "⏳ Optimisation avancée..."
                     self.page.update()
                 
-                # Appliquer les optimisations gaming spécifiques au modèle
-                gaming_result = cpu_optimizer.apply_gaming_optimizations()
+                # Appliquer les optimisations gaming avancées
+                gaming_result = cpu_optimizer_advanced.apply_gaming_optimizations()
                 gaming_success = gaming_result.get('success', False)
                 gaming_opts = gaming_result.get('optimizations', [])
                 cpu_model = gaming_result.get('cpu_model', 'Unknown')
                 manufacturer = gaming_result.get('manufacturer', 'Unknown')
+                architecture = gaming_result.get('architecture', 'Unknown')
+                
+                # Appliquer optimisations CPU légères supplémentaires
+                light_opts = []
+                try:
+                    from src.core.light_optimizations import light_optimizer
+                    light_result = light_optimizer.optimize_cpu_light(manufacturer)
+                    if light_result.get('success'):
+                        light_opts = light_result.get('optimizations', [])
+                except Exception as e:
+                    print(f"[WARNING] Light CPU optimizations failed: {e}")
                 
                 # Optimiser le CPU (fermer processus non essentiels)
                 result = cpu_optimizer.optimize_cpu(aggressive=False)
@@ -1492,17 +1505,33 @@ class MainPage:
                             for p in terminated_procs[:5]  # Afficher max 5 processus
                         ])
                         
-                        # Construire le texte des optimisations gaming
-                        gaming_text = "\n".join([f"✓ {opt}" for opt in gaming_opts[:6]])
+                        # Construire le texte des optimisations gaming (limité à 6 pour l'affichage)
+                        gaming_text = "\n".join([f"{opt}" for opt in gaming_opts[:6]])
+                        
+                        # Ajouter les optimisations légères
+                        if light_opts:
+                            light_text = "\n".join([f"{opt}" for opt in light_opts[:3]])
+                            gaming_text += f"\n{light_text}"
+                        
+                        # Générer le rapport complet
+                        full_report = cpu_optimizer_advanced.get_optimization_report()
+                        print(f"\n{full_report}\n")
                         
                         self._show_success_dialog(
-                            f"✓ CPU {manufacturer} optimisé pour le gaming",
-                            f"Modèle: {cpu_model}\n\n"
-                            f"Optimisations gaming appliquées:\n{gaming_text}\n\n"
-                            f"Processus fermés: {terminated_count}\n{procs_text}\n\n"
-                            f"Utilisation CPU avant: {cpu_before:.1f}%\n"
-                            f"Utilisation CPU après: {cpu_after:.1f}%\n"
-                            f"Réduction: {cpu_reduced:.1f}%"
+                            f"✓ CPU {manufacturer} Optimisé - Gaming Mode",
+                            f"📊 PROCESSEUR:\n"
+                            f"  • Modèle: {cpu_model}\n"
+                            f"  • Architecture: {architecture}\n\n"
+                            f"⚡ OPTIMISATIONS APPLIQUÉES:\n{gaming_text}\n\n"
+                            f"🔧 PROCESSUS FERMÉS: {terminated_count}\n{procs_text}\n\n"
+                            f"📈 PERFORMANCES:\n"
+                            f"  • Avant: {cpu_before:.1f}% CPU\n"
+                            f"  • Après: {cpu_after:.1f}% CPU\n"
+                            f"  • Réduction: {cpu_reduced:.1f}%\n\n"
+                            f"💡 RECOMMANDATIONS:\n"
+                            f"  • Redémarrer le PC pour appliquer toutes les optimisations\n"
+                            f"  • Vérifier les températures pendant le gaming\n"
+                            f"  • Un rapport détaillé est disponible dans la console"
                         )
                     else:
                         # Animation orange (aucun processus à optimiser)
@@ -1545,6 +1574,139 @@ class MainPage:
         
         # Lancer dans un thread
         threading.Thread(target=optimize_cpu, daemon=True).start()
+    
+    def _optimize_dns_network_action(self):
+        """Optimise le réseau complet : DNS + Winsock + TCP/IP + IP Renew"""
+        import threading
+        
+        # ANTI-SPAM: Vérifier le cooldown (PROTECTION)
+        can_execute, remaining = self._can_execute_action('optimize_dns_network')
+        if not can_execute:
+            self._show_cooldown_message(remaining)
+            return
+        
+        # Sauvegarder le texte et la couleur ORIGINAUX du bouton avant l'action
+        if hasattr(self, 'storage_item_buttons') and 'dns_button' in self.storage_item_buttons:
+            button = self.storage_item_buttons['dns_button']
+            if hasattr(button.content, 'value'):
+                self._button_original_texts['dns_button'] = button.content.value
+            # Sauvegarder la couleur originale (Colors.SUCCESS pour DNS)
+            self._button_original_colors['dns_button'] = Colors.SUCCESS
+        
+        # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
+        self._register_action('optimize_dns_network')
+        
+        def optimize_network():
+            from src.core.network_optimizer import network_optimizer
+            import time
+            
+            try:
+                print("[INFO] Optimizing network (DNS + Winsock + TCP/IP + IP)...")
+                
+                # Obtenir la référence du bouton
+                button = None
+                if hasattr(self, 'storage_item_buttons') and 'dns_button' in self.storage_item_buttons:
+                    button = self.storage_item_buttons['dns_button']
+                
+                # Animation de chargement
+                if button:
+                    button.bgcolor = ft.Colors.ORANGE
+                    button.content.value = "⏳ Optimisation..."
+                    self.page.update()
+                
+                # Appliquer les optimisations réseau complètes
+                result = network_optimizer.optimize_network_complete()
+                success = result.get('success', False)
+                optimizations = result.get('optimizations', [])
+                errors = result.get('errors', [])
+                count = result.get('count', 0)
+                
+                # Appliquer optimisations réseau légères supplémentaires (sans déconnexion)
+                light_opts = []
+                try:
+                    from src.core.light_optimizations import light_optimizer
+                    light_result = light_optimizer.optimize_network_light()
+                    if light_result.get('success'):
+                        light_opts = light_result.get('optimizations', [])
+                        count += len(light_opts)
+                except Exception as e:
+                    print(f"[WARNING] Light network optimizations failed: {e}")
+                
+                # Attendre un peu pour que le système se stabilise
+                time.sleep(1)
+                
+                # Animation de succès ou échec
+                if button:
+                    if success and count > 0:
+                        # Animation verte (succès)
+                        button.bgcolor = ft.Colors.GREEN
+                        button.content.value = f"✓ {count} optimisations"
+                        self.page.update()
+                        
+                        time.sleep(1.5)
+                        
+                        # ANTI-SPAM: Démarrer le cooldown visuel
+                        self._start_cooldown_timer('optimize_dns_network', 'dns_button')
+                        
+                        # Construire le message de succès
+                        all_opts = optimizations[:4] + light_opts[:2]
+                        opts_text = "\n".join(all_opts)
+                        
+                        message = f"🌐 OPTIMISATIONS RÉSEAU APPLIQUÉES ({count}):\n{opts_text}\n\n"
+                        
+                        if errors:
+                            errors_text = "\n".join([f"⚠ {err}" for err in errors[:3]])
+                            message += f"\n⚠ AVERTISSEMENTS:\n{errors_text}\n\n"
+                        
+                        message += "💡 RECOMMANDATIONS:\n"
+                        message += "  • Redémarrer le PC pour appliquer toutes les optimisations\n"
+                        message += "  • Tester la connexion Internet\n"
+                        message += "  • Les problèmes réseau devraient être résolus"
+                        
+                        self._show_success_dialog(
+                            "✓ Réseau Optimisé",
+                            message
+                        )
+                    else:
+                        # Animation orange (aucune optimisation)
+                        button.bgcolor = ft.Colors.ORANGE
+                        button.content.value = "ℹ Déjà optimisé"
+                        self.page.update()
+                        
+                        time.sleep(1.5)
+                        
+                        # ANTI-SPAM: Démarrer le cooldown visuel
+                        self._start_cooldown_timer('optimize_dns_network', 'dns_button')
+                        
+                        self._show_success_dialog(
+                            "ℹ Réseau déjà optimisé",
+                            "Le réseau est déjà dans un état optimal.\n\n"
+                            "Si vous rencontrez des problèmes de connexion,\n"
+                            "essayez de redémarrer votre routeur/box Internet."
+                        )
+                
+                print(f"[INFO] Network optimization result: {success}, count: {count}")
+                
+            except Exception as e:
+                print(f"[ERROR] Failed to optimize network: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                # Animation d'erreur
+                if button:
+                    button.bgcolor = ft.Colors.RED
+                    button.content.value = "✗ Erreur"
+                    self.page.update()
+                    
+                    time.sleep(1.5)
+                    
+                    # ANTI-SPAM: Démarrer le cooldown visuel même en cas d'exception
+                    self._start_cooldown_timer('optimize_dns_network', 'dns_button')
+                
+                self._show_error_dialog("⚠ Erreur", f"Impossible d'optimiser le réseau:\n{str(e)}")
+        
+        # Lancer dans un thread
+        threading.Thread(target=optimize_network, daemon=True).start()
     
     def _quick_clean_files(self):
         """Nettoie rapidement les fichiers temporaires avec animation de succès/échec"""
@@ -1594,6 +1756,15 @@ class MainPage:
                 # Nettoyer les fichiers
                 result = cleaner.clean_temp_files()
                 success = result.get('success', False)
+                
+                # Vider aussi la corbeille automatiquement
+                recycle_count = 0
+                try:
+                    recycle_result = cleaner.empty_recycle_bin(confirmed=True)
+                    recycle_count = recycle_result.get('recycle_bin_deleted', 0)
+                    print(f"[INFO] Recycle bin emptied: {recycle_count} items")
+                except Exception as e:
+                    print(f"[WARNING] Failed to empty recycle bin: {e}")
                 
                 # Animation de succès ou échec
                 if button:
@@ -1648,12 +1819,13 @@ class MainPage:
                             self.page.update()
                         
                         # Afficher un message de succès
-                        self._show_success_dialog(
-                            "✓ Nettoyage terminé",
-                            f"Fichiers nettoyés avec succès.\n\n"
-                            f"Espace libéré: {total_size_mb:.2f} MB\n"
-                            f"Espace restant à nettoyer: {cleanable_after_mb:.0f} MB"
-                        )
+                        message = f"Fichiers nettoyés avec succès.\n\n"
+                        message += f"Espace libéré: {total_size_mb:.2f} MB\n"
+                        if recycle_count > 0:
+                            message += f"Corbeille vidée: {recycle_count} élément(s)\n"
+                        message += f"Espace restant à nettoyer: {cleanable_after_mb:.0f} MB"
+                        
+                        self._show_success_dialog("✓ Nettoyage Complet", message)
                     else:
                         # Animation rouge (échec)
                         button.bgcolor = ft.Colors.RED
@@ -1904,7 +2076,8 @@ class MainPage:
                             result_ps = subprocess.run(
                                 ["powershell", "-NoProfile", "-Command", ps_command],
                                 capture_output=True,
-                                text=True,
+                                encoding='utf-8',
+                                errors='ignore',
                                 timeout=120  # 2 minutes max
                             )
                             
@@ -2641,30 +2814,107 @@ class MainPage:
                     size=12,
                 ),
                 Spacer(height=Spacing.MD),
-                # Légende des couleurs
+                # Barre d'état avec classification et activation rapide
                 ft.Container(
-                    content=ft.Row(
+                    content=ft.Column(
                         [
-                            # Vert - Sûr
-                            ft.Icon(ft.Icons.INFO_OUTLINE_ROUNDED, size=16, color=Colors.SUCCESS),
-                            ft.Container(width=4),
-                            Caption("Action sûre", color=Colors.FG_SECONDARY, size=11),
-                            ft.Container(width=Spacing.LG),
-                            # Orange - Attention
-                            ft.Icon(ft.Icons.INFO_OUTLINE_ROUNDED, size=16, color=Colors.WARNING),
-                            ft.Container(width=4),
-                            Caption("Attention requise", color=Colors.FG_SECONDARY, size=11),
-                            ft.Container(width=Spacing.LG),
-                            # Rouge - Risque
-                            ft.Icon(ft.Icons.INFO_OUTLINE_ROUNDED, size=16, color=Colors.ERROR),
-                            ft.Container(width=4),
-                            Caption("Action à risque", color=Colors.FG_SECONDARY, size=11),
+                            # Titre
+                            ft.Row(
+                                [
+                                    ft.Icon(ft.Icons.TUNE, size=18, color=Colors.ACCENT_PRIMARY),
+                                    ft.Container(width=Spacing.XS),
+                                    BodyText("Activation rapide par catégorie", weight=Typography.WEIGHT_BOLD, size=14),
+                                ],
+                            ),
+                            Spacer(height=Spacing.SM),
+                            # Boutons de classification
+                            ft.Row(
+                                [
+                                    # Vert - Actions sûres
+                                    ft.Container(
+                                        content=ft.Row(
+                                            [
+                                                ft.Icon(ft.Icons.CHECK_CIRCLE, size=18, color=Colors.SUCCESS),
+                                                ft.Container(width=Spacing.XS),
+                                                ft.Column(
+                                                    [
+                                                        BodyText("Actions sûres", size=12, weight=Typography.WEIGHT_BOLD, color=Colors.SUCCESS),
+                                                        Caption("Aucun risque", size=10, color=Colors.FG_SECONDARY),
+                                                    ],
+                                                    spacing=2,
+                                                ),
+                                            ],
+                                            alignment=ft.MainAxisAlignment.CENTER,
+                                        ),
+                                        padding=Spacing.MD,
+                                        bgcolor=ft.Colors.with_opacity(0.1, Colors.SUCCESS),
+                                        border_radius=BorderRadius.SM,
+                                        border=ft.border.all(2, Colors.SUCCESS),
+                                        expand=True,
+                                        on_click=lambda e: self._activate_category("safe"),
+                                        ink=True,
+                                        tooltip="Activer toutes les actions sûres (RAM, DNS, Logs, Gaming, Pagefile)",
+                                    ),
+                                    ft.Container(width=Spacing.MD),
+                                    # Orange - Attention requise
+                                    ft.Container(
+                                        content=ft.Row(
+                                            [
+                                                ft.Icon(ft.Icons.WARNING_AMBER, size=18, color=Colors.WARNING),
+                                                ft.Container(width=Spacing.XS),
+                                                ft.Column(
+                                                    [
+                                                        BodyText("Attention requise", size=12, weight=Typography.WEIGHT_BOLD, color=Colors.WARNING),
+                                                        Caption("Vérifier avant", size=10, color=Colors.FG_SECONDARY),
+                                                    ],
+                                                    spacing=2,
+                                                ),
+                                            ],
+                                            alignment=ft.MainAxisAlignment.CENTER,
+                                        ),
+                                        padding=Spacing.MD,
+                                        bgcolor=ft.Colors.with_opacity(0.1, Colors.WARNING),
+                                        border_radius=BorderRadius.SM,
+                                        border=ft.border.all(2, Colors.WARNING),
+                                        expand=True,
+                                        on_click=lambda e: self._activate_category("warning"),
+                                        ink=True,
+                                        tooltip="Activer les actions nécessitant attention (Télémétrie, Browser, Events, Superfetch, Cortana, TCP/IP, Services, Drivers)",
+                                    ),
+                                    ft.Container(width=Spacing.MD),
+                                    # Rouge - Actions à risque
+                                    ft.Container(
+                                        content=ft.Row(
+                                            [
+                                                ft.Icon(ft.Icons.DANGEROUS, size=18, color=Colors.ERROR),
+                                                ft.Container(width=Spacing.XS),
+                                                ft.Column(
+                                                    [
+                                                        BodyText("Actions à risque", size=12, weight=Typography.WEIGHT_BOLD, color=Colors.ERROR),
+                                                        Caption("Experts uniquement", size=10, color=Colors.FG_SECONDARY),
+                                                    ],
+                                                    spacing=2,
+                                                ),
+                                            ],
+                                            alignment=ft.MainAxisAlignment.CENTER,
+                                        ),
+                                        padding=Spacing.MD,
+                                        bgcolor=ft.Colors.with_opacity(0.1, Colors.ERROR),
+                                        border_radius=BorderRadius.SM,
+                                        border=ft.border.all(2, Colors.ERROR),
+                                        expand=True,
+                                        on_click=lambda e: self._activate_category("danger"),
+                                        ink=True,
+                                        tooltip="Activer les actions à risque (Hibernation, Restore Points, WinSxS) - Experts uniquement !",
+                                    ),
+                                ],
+                            ),
                         ],
                         spacing=0,
                     ),
-                    padding=ft.padding.symmetric(horizontal=Spacing.MD, vertical=Spacing.SM),
+                    padding=Spacing.LG,
                     bgcolor=ft.Colors.with_opacity(0.05, Colors.FG_TERTIARY),
-                    border_radius=BorderRadius.SM,
+                    border_radius=BorderRadius.MD,
                     border=ft.border.all(1, Colors.BORDER_DEFAULT),
                 ),
                 Spacer(height=Spacing.XL),
@@ -2905,6 +3155,80 @@ class MainPage:
         """Met à jour une option avancée"""
         self.app.advanced_options[key] = value
         print(f"[INFO] Option {key} set to {value}")
+    
+    def _activate_category(self, category: str):
+        """
+        Active toutes les actions d'une catégorie de risque
+        
+        Args:
+            category: "safe", "warning" ou "danger"
+        """
+        from src.ui.pages._activate_category import get_category_actions
+        
+        category_actions = get_category_actions()
+        actions = category_actions.get(category, [])
+        
+        if not actions:
+            print(f"[WARNING] Unknown category: {category}")
+            return
+        
+        # Activer toutes les actions de la catégorie
+        for action_key in actions:
+            self.app.advanced_options[action_key] = True
+        
+        # Afficher un message de confirmation
+        category_names = {
+            "safe": "Actions sûres",
+            "warning": "Actions nécessitant attention",
+            "danger": "Actions à risque"
+        }
+        
+        category_colors = {
+            "safe": Colors.SUCCESS,
+            "warning": Colors.WARNING,
+            "danger": Colors.ERROR
+        }
+        
+        category_icons = {
+            "safe": "✓",
+            "warning": "⚠",
+            "danger": "⚠"
+        }
+        
+        name = category_names.get(category, category)
+        icon = category_icons.get(category, "ℹ")
+        
+        # Afficher un snackbar de confirmation
+        snack = ft.SnackBar(
+            content=ft.Row(
+                [
+                    ft.Icon(
+                        ft.Icons.CHECK_CIRCLE if category == "safe" else ft.Icons.WARNING_AMBER if category == "warning" else ft.Icons.DANGEROUS,
+                        color=ft.Colors.WHITE,
+                        size=20
+                    ),
+                    ft.Container(width=8),
+                    ft.Text(
+                        f"{icon} {len(actions)} {name.lower()} activées",
+                        color=ft.Colors.WHITE,
+                        weight=ft.FontWeight.BOLD,
+                    ),
+                ],
+            ),
+            bgcolor=category_colors.get(category, Colors.ACCENT_PRIMARY),
+            duration=3000,
+        )
+        
+        self.page.snack_bar = snack
+        snack.open = True
+        
+        # Forcer la mise à jour de la page pour rafraîchir les switches
+        self.page.update()
+        
+        # Reconstruire la section pour mettre à jour les switches
+        self._switch_tab(self.current_tab)
+        
+        print(f"[INFO] Activated {len(actions)} actions in category '{category}'")
     
     def _build_configuration_section(self):
         """Construit la section Configuration avec monitoring matériel amélioré"""
