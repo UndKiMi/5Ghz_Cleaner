@@ -322,6 +322,16 @@ class MainPage:
             visible=False,
         )
         
+        # Icône info (i) pour gaming_mode uniquement
+        info_icon = None
+        if action == "gaming_mode":
+            from src.ui.design_system.tooltip import create_info_icon_with_tooltip
+            info_icon = create_info_icon_with_tooltip(
+                tooltip_text=self._get_quick_action_tooltip(action),
+                size=18,
+                risk_level="info"
+            )
+        
         button = ft.Container(
             content=ft.Row(
                 [
@@ -338,7 +348,14 @@ class MainPage:
                     # Texte à droite
                     ft.Column(
                         [
-                            title_text,
+                            ft.Row(
+                                [
+                                    title_text,
+                                    ft.Container(width=Spacing.XS) if info_icon else ft.Container(),
+                                    info_icon if info_icon else ft.Container(),
+                                ],
+                                spacing=0,
+                            ),
                             Spacer(height=Spacing.XS),
                             desc_text,
                             ft.Container(height=Spacing.XS),
@@ -1801,6 +1818,20 @@ class MainPage:
             "optimize_disk": "Optimise votre disque dur selon son type (HDD, SSD ou NVME). Améliore les performances et la fluidité du système.",
             "empty_recycle": "Vide définitivement la corbeille Windows. Les fichiers supprimés ne pourront plus être récupérés.",
             "flush_dns": "Réinitialise le cache DNS pour résoudre les problèmes de connexion Internet et accélérer la navigation.",
+            "gaming_mode": (
+                "🎮 MODE PERFORMANCE MAX - Optimisations appliquées:\n\n"
+                "✓ Windows Game Mode activé\n"
+                "✓ Plan d'alimentation Hautes Performances\n"
+                "✓ GPU Hardware Scheduling activé\n"
+                "✓ Latence réseau optimisée (TCPIP, NetworkThrottling)\n"
+                "✓ Accélération souris désactivée (précision gaming)\n"
+                "✓ Priorité processus optimisée (gaming)\n"
+                "✓ Optimisations CPU légères (scheduling)\n"
+                "✓ Optimisations RAM légères (cache système)\n"
+                "✓ Optimisations réseau légères (TCP/IP, buffers)\n\n"
+                "⚡ Gains: +10-35% FPS, -2-5ms latence, -50-80% micro-stutters\n"
+                "⚠️ Surconsommation énergétique et chauffe accrues"
+            ),
         }
         return tooltips.get(action, "Action rapide.")
     
@@ -3072,7 +3103,7 @@ class MainPage:
                                         expand=True,
                                         on_click=lambda e: self._activate_category("safe"),
                                         ink=True,
-                                        tooltip="Activer toutes les actions sûres (Logs, Pagefile, Démarrage, Pilotes, Windows Update, Orphelins)",
+                                        tooltip="Activer toutes les actions sûres (9 options) : Logs, Pagefile, Démarrage, Pilotes, Windows Update, Orphelins, Planification, Cache Store, Windows Search",
                                     ),
                                     ft.Container(width=Spacing.MD),
                                     # Orange - Attention requise
@@ -3098,7 +3129,7 @@ class MainPage:
                                         expand=True,
                                         on_click=lambda e: self._activate_category("warning"),
                                         ink=True,
-                                        tooltip="Activer les actions nécessitant attention (Télémétrie, Browser, Events, Superfetch, Cortana, Services, SFC/DISM, Registre, Services avancés)",
+                                        tooltip="Activer les actions nécessitant attention (9 options) : Télémétrie, Browser, Events, Superfetch, Cortana, Services, SFC/DISM, Registre, Services avancés",
                                     ),
                                     ft.Container(width=Spacing.MD),
                                     # Rouge - Actions à risque
@@ -3124,7 +3155,7 @@ class MainPage:
                                         expand=True,
                                         on_click=lambda e: self._activate_category("danger"),
                                         ink=True,
-                                        tooltip="Activer les actions à risque (Hibernation, Restore Points, WinSxS, Reset Réseau, Cache Système) - Experts uniquement !",
+                                        tooltip="Activer les actions à risque (5 options) : Hibernation, Restore Points, WinSxS, Reset Réseau, Cache Système - Experts uniquement !",
                                     ),
                                 ],
                             ),
@@ -3141,13 +3172,13 @@ class MainPage:
                 ft.Container(
                     content=ft.Column(
                         [
-                            # 🟢 ACTIONS SÛRES (6)
+                            # 🟢 ACTIONS SÛRES (9 options)
                             BodyText("🟢 Actions Sûres", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.SUCCESS),
                             Spacer(height=Spacing.SM),
                             
                             self._build_option_item(
                                 "Nettoyer logs volumineux",
-                                "Supprime les fichiers journaux volumineux et inutiles",
+                                "Supprime les fichiers journaux volumineux (>100 MB) et anciens (>30 jours)",
                                 "clear_large_logs",
                                 False,
                                 recommended=True
@@ -3155,7 +3186,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Optimiser fichier de pagination",
-                                "Configure automatiquement la taille du pagefile",
+                                "Configure automatiquement la taille du pagefile selon la RAM (libère 2-8 GB)",
                                 "optimize_pagefile",
                                 False,
                                 recommended=True
@@ -3163,7 +3194,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Optimiser programmes au démarrage",
-                                "Analyse et optimise les programmes qui se lancent au démarrage",
+                                "Désactive les programmes inutiles au démarrage (accélère boot de 20-60s)",
                                 "optimize_startup",
                                 False,
                                 recommended=True
@@ -3171,7 +3202,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Nettoyer pilotes obsolètes",
-                                "Supprime les anciens pilotes inutilisés",
+                                "Supprime les anciens pilotes non utilisés (libère 200 MB - 2 GB)",
                                 "clean_drivers",
                                 False,
                                 recommended=False
@@ -3179,7 +3210,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Nettoyer dossiers temporaires Windows Update",
-                                "Supprime fichiers temporaires des mises à jour Windows",
+                                "Supprime fichiers temporaires des mises à jour terminées (libère 1-5 GB)",
                                 "clean_windows_update_temp",
                                 False,
                                 recommended=True
@@ -3187,21 +3218,45 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Nettoyer fichiers orphelins",
-                                "Supprime fichiers laissés par applications désinstallées",
+                                "Supprime traces laissées par applications désinstallées (libère 100-500 MB)",
                                 "clean_orphan_files",
+                                False,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Planification du nettoyage automatique",
+                                "Lance automatiquement les opérations sélectionnées à des moments choisis",
+                                "schedule_cleaning",
+                                False,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer cache Windows Store",
+                                "Vide le cache des applications Microsoft Store (libère 200-800 MB)",
+                                "clean_store_cache",
+                                False,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Optimiser base de données Windows Search",
+                                "Reconstruit l'index de recherche Windows (libère 100-500 MB, accélère recherches)",
+                                "optimize_windows_search",
                                 False,
                                 recommended=True
                             ),
                             
                             Spacer(height=Spacing.XL),
                             
-                            # 🟠 ATTENTION REQUISE (9)
+                            # 🟠 ATTENTION REQUISE (9 options)
                             BodyText("🟠 Attention Requise", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.WARNING),
                             Spacer(height=Spacing.SM),
                             
                             self._build_option_item(
                                 "Désactiver télémétrie",
-                                "Désactive les services de collecte de données de Windows",
+                                "Désactive DiagTrack et collecte de données (libère 50-100 MB RAM, améliore confidentialité)",
                                 "disable_telemetry",
                                 False,
                                 recommended=False
@@ -3209,7 +3264,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Vider cache des navigateurs",
-                                "Nettoie le cache de Chrome, Firefox et Edge",
+                                "Nettoie cache Chrome, Firefox, Edge (libère 500 MB - 5 GB) ⚠️ Déconnexion sites",
                                 "clear_browser_cache",
                                 False,
                                 recommended=False
@@ -3217,15 +3272,15 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Nettoyer logs d'événements",
-                                "Vide les journaux d'événements Windows",
+                                "Vide journaux Windows (libère 100-500 MB) ⚠️ Perte historique diagnostics",
                                 "clean_event_logs",
                                 False,
                                 recommended=False
                             ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
-                                "Désactiver Superfetch/Prefetch",
-                                "Recommandé pour SSD, améliore les performances",
+                                "Désactiver Superfetch/Prefetch (permanent)",
+                                "Recommandé pour SSD/NVMe uniquement (libère 100-300 MB, accélère accès disque)",
                                 "disable_superfetch",
                                 False,
                                 recommended=True
@@ -3233,7 +3288,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Désactiver Cortana",
-                                "Libère de la RAM et améliore la confidentialité",
+                                "Désactive Cortana et SearchUI.exe (libère 100-200 MB RAM, améliore confidentialité)",
                                 "disable_cortana",
                                 False,
                                 recommended=False
@@ -3241,7 +3296,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Désactiver services inutiles",
-                                "Désactive Fax, Tablet Input et autres services non essentiels",
+                                "Désactive Fax, Tablet Input, Xbox Live, etc. (libère 200-400 MB RAM)",
                                 "disable_services",
                                 False,
                                 recommended=False
@@ -3249,7 +3304,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Analyse et réparation système (SFC/DISM)",
-                                "Vérifie et répare fichiers système corrompus",
+                                "Vérifie et répare fichiers système corrompus (durée: 10-30 min, améliore stabilité)",
                                 "system_repair",
                                 False,
                                 recommended=False
@@ -3257,7 +3312,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Optimiser registre (clés non critiques)",
-                                "Nettoie clés obsolètes et invalides du registre",
+                                "Nettoie clés obsolètes du registre (amélioration légère 5-10%, backup automatique)",
                                 "optimize_registry",
                                 False,
                                 recommended=False
@@ -3265,7 +3320,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Gestion avancée services Windows",
-                                "Liste services inutiles avec choix personnalisé",
+                                "Interface pour désactiver manuellement des services non essentiels de façon sécurisée",
                                 "advanced_services_management",
                                 False,
                                 recommended=False
@@ -3273,13 +3328,13 @@ class MainPage:
                             
                             Spacer(height=Spacing.XL),
                             
-                            # 🔴 ACTIONS À RISQUE (5)
+                            # 🔴 ACTIONS À RISQUE (5 options - Experts uniquement)
                             BodyText("🔴 Actions à Risque (Experts)", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.ERROR),
                             Spacer(height=Spacing.SM),
                             
                             self._build_option_item(
                                 "Désactiver l'hibernation",
-                                "Supprime hiberfil.sys et libère plusieurs GB (taille = RAM)",
+                                "Supprime hiberfil.sys (libère 4-32 GB) 🔴 Plus d'hibernation possible après",
                                 "disable_hibernation",
                                 False,
                                 recommended=False
@@ -3287,7 +3342,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Nettoyer points de restauration anciens",
-                                "Garde seulement les 2 plus récents, libère de l'espace",
+                                "Garde les 2 plus récents (libère 2-10 GB) 🔴 Impossible revenir anciens points",
                                 "clean_restore_points",
                                 False,
                                 recommended=False
@@ -3295,7 +3350,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Vider WinSxS",
-                                "Nettoie les composants Windows obsolètes",
+                                "Nettoie composants Windows obsolètes (libère 2-8 GB, durée 5-15 min) 🔴 Risque",
                                 "clean_winsxs",
                                 False,
                                 recommended=False
@@ -3303,7 +3358,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Réinitialisation complète réseau",
-                                "Reset Winsock, TCP/IP, firewall, proxy (redémarrage requis)",
+                                "Reset total réseau (Winsock, TCP/IP, Firewall, Proxy) 🔴 Redémarrage obligatoire",
                                 "full_network_reset",
                                 False,
                                 recommended=False
@@ -3311,7 +3366,7 @@ class MainPage:
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
                                 "Nettoyage complet cache système",
-                                "Vide tous les caches (icônes, thumbnails, fonts, etc.)",
+                                "Vide tous caches (icônes, thumbnails, fonts) (libère 500 MB - 2 GB) ⚠️ Ralentissement temp",
                                 "full_system_cache_clean",
                                 False,
                                 recommended=False
@@ -3383,25 +3438,42 @@ class MainPage:
         )
     
     def _get_detailed_description(self, key):
-        """Retourne une description concise pour les tooltips"""
+        """Retourne une description concise pour les tooltips avec niveau de risque"""
         descriptions = {
+            # 🟢 ACTIONS SÛRES (info = vert)
+            "clear_large_logs": ("Supprime les fichiers .log volumineux (>100 MB, >30 jours). Libère 500 MB - 2 GB.", "info"),
+            "optimize_pagefile": ("Configure le pagefile automatiquement selon la RAM. Libère 2-8 GB.", "info"),
+            "optimize_startup": ("Désactive programmes inutiles au démarrage. Accélère boot de 20-60s.", "info"),
+            "clean_drivers": ("Supprime anciens pilotes non utilisés. Libère 200 MB - 2 GB.", "info"),
+            "clean_windows_update_temp": ("Supprime fichiers temporaires Windows Update. Libère 1-5 GB.", "info"),
+            "clean_orphan_files": ("Supprime traces d'applications désinstallées. Libère 100-500 MB.", "info"),
+            "schedule_cleaning": ("Planifie le nettoyage automatique (quotidien/hebdomadaire/mensuel). Maintenance automatique.", "info"),
+            "clean_store_cache": ("Vide le cache Windows Store. Libère 200-800 MB. Résout problèmes téléchargement.", "info"),
+            "optimize_windows_search": ("Reconstruit l'index de recherche Windows. Libère 100-500 MB, accélère recherches.", "info"),
+            
+            # 🟠 ATTENTION REQUISE (warning = orange)
+            "disable_telemetry": ("Désactive DiagTrack et collecte de données. Libère 50-100 MB RAM. ⚠️ Améliore confidentialité.", "warning"),
+            "clear_browser_cache": ("Vide cache Chrome, Firefox, Edge. Libère 500 MB - 5 GB. ⚠️ Déconnexion de tous les sites.", "warning"),
+            "clean_event_logs": ("Nettoie journaux d'événements Windows. Libère 100-500 MB. ⚠️ Perte historique diagnostics.", "warning"),
+            "disable_superfetch": ("Désactive Superfetch/Prefetch. Libère 100-300 MB. ⚠️ Recommandé pour SSD/NVMe uniquement.", "warning"),
+            "disable_cortana": ("Désactive Cortana et SearchUI.exe. Libère 100-200 MB RAM. ⚠️ Améliore confidentialité.", "warning"),
+            "disable_services": ("Désactive services inutiles (Fax, Tablet Input, Xbox). Libère 200-400 MB RAM. ⚠️ Vérifier avant.", "warning"),
+            "system_repair": ("Vérifie et répare fichiers système (SFC/DISM). Durée 10-30 min. ⚠️ Améliore stabilité.", "warning"),
+            "optimize_registry": ("Nettoie clés obsolètes du registre. Amélioration 5-10%. ⚠️ Backup automatique avant.", "warning"),
+            "advanced_services_management": ("Interface pour désactiver services manuellement. ⚠️ Risque si mauvais choix utilisateur.", "warning"),
+            
+            # 🔴 ACTIONS À RISQUE (danger = rouge)
+            "disable_hibernation": ("Supprime hiberfil.sys. Libère 4-32 GB (taille RAM). 🔴 Plus d'hibernation possible après.", "danger"),
+            "clean_restore_points": ("Garde les 2 points les plus récents. Libère 2-10 GB. 🔴 Impossible revenir anciens points.", "danger"),
+            "clean_winsxs": ("Nettoie composants Windows obsolètes via DISM. Libère 2-8 GB. 🔴 Durée 5-15 min, risque.", "danger"),
+            "full_network_reset": ("Reset total réseau (Winsock, TCP/IP, Firewall, Proxy). 🔴 Redémarrage obligatoire, perte config.", "danger"),
+            "full_system_cache_clean": ("Vide tous caches (icônes, thumbnails, fonts). Libère 500 MB - 2 GB. 🔴 Ralentissement temporaire.", "danger"),
+            
+            # Anciennes options (compatibilité)
             "clear_standby_memory": ("Libère la RAM en attente. Amélioration temporaire.", "info"),
             "flush_dns": ("Vide le cache DNS. Résout les problèmes de connexion.", "info"),
-            "disable_telemetry": ("Désactive DiagTrack et services de collecte de données.", "warning"),
-            "clear_large_logs": ("Supprime les fichiers .log volumineux (100MB-2GB).", "info"),
-            "disable_hibernation": ("Supprime hiberfil.sys. Libère plusieurs GB. ⚠️ Plus d'hibernation possible.", "danger"),
-            "clean_restore_points": ("Garde les 2 points les plus récents. ⚠️ Impossible de revenir aux anciens.", "danger"),
-            "optimize_startup": ("Analyse les programmes au démarrage. Accélère le boot.", "info"),
-            "clear_browser_cache": ("Vide Chrome, Firefox, Edge. ⚠️ Vous serez déconnecté des sites.", "warning"),
-            "clean_event_logs": ("Nettoie les journaux Windows. ⚠️ Perte de l'historique.", "warning"),
-            "disable_superfetch": ("Désactive Superfetch. Recommandé pour SSD.", "warning"),
-            "disable_cortana": ("Désactive Cortana. Libère de la RAM.", "warning"),
             "optimize_tcp_ip": ("Reset Winsock et TCP/IP. ⚠️ Nécessite redémarrage.", "warning"),
-            "disable_services": ("Désactive Fax, Tablet Input, etc. Réduit CPU/RAM.", "warning"),
             "gaming_mode": ("Désactive Game Bar. Améliore FPS et latence.", "info"),
-            "clean_drivers": ("Nettoie les pilotes obsolètes. Libère 100-500MB.", "warning"),
-            "clean_winsxs": ("Nettoie WinSxS via DISM. ⚠️ Opération longue (5-15min).", "danger"),
-            "optimize_pagefile": ("Configure le pagefile automatiquement. Optimise la RAM.", "info"),
         }
         return descriptions.get(key, ("Option de nettoyage avancée.", "info"))
     
@@ -3412,7 +3484,7 @@ class MainPage:
     
     def _activate_category(self, category: str):
         """
-        Active toutes les actions d'une catégorie de risque
+        Toggle toutes les actions d'une catégorie de risque (activer/désactiver)
         
         Args:
             category: "safe", "warning" ou "danger"
@@ -3426,9 +3498,17 @@ class MainPage:
             print(f"[WARNING] Unknown category: {category}")
             return
         
-        # Activer toutes les actions de la catégorie
+        # Vérifier si toutes les actions sont déjà activées
+        all_active = all(self.app.advanced_options.get(action_key, False) for action_key in actions)
+        
+        # Si toutes activées, on désactive. Sinon, on active.
+        new_state = not all_active
+        
+        # Appliquer le nouvel état à toutes les actions de la catégorie
         for action_key in actions:
-            self.app.advanced_options[action_key] = True
+            self.app.advanced_options[action_key] = new_state
+            action_verb = "Activating" if new_state else "Deactivating"
+            print(f"[INFO] {action_verb} option: {action_key}")
         
         # Afficher un message de confirmation
         category_names = {
@@ -3452,37 +3532,52 @@ class MainPage:
         name = category_names.get(category, category)
         icon = category_icons.get(category, "ℹ")
         
+        # Message selon l'état (activé ou désactivé)
+        action_text = "activées" if new_state else "désactivées"
+        icon_display = icon if new_state else "✗"
+        
         # Afficher un snackbar de confirmation
         snack = ft.SnackBar(
             content=ft.Row(
                 [
                     ft.Icon(
-                        ft.Icons.CHECK_CIRCLE if category == "safe" else ft.Icons.WARNING_AMBER if category == "warning" else ft.Icons.DANGEROUS,
+                        ft.Icons.CHECK_CIRCLE if new_state else ft.Icons.CANCEL,
                         color=ft.Colors.WHITE,
                         size=20
                     ),
                     ft.Container(width=8),
                     ft.Text(
-                        f"{icon} {len(actions)} {name.lower()} activées",
+                        f"{icon_display} {len(actions)} {name.lower()} {action_text}",
                         color=ft.Colors.WHITE,
                         weight=ft.FontWeight.BOLD,
                     ),
                 ],
             ),
-            bgcolor=category_colors.get(category, Colors.ACCENT_PRIMARY),
+            bgcolor=category_colors.get(category, Colors.ACCENT_PRIMARY) if new_state else ft.Colors.GREY_700,
             duration=3000,
         )
         
         self.page.snack_bar = snack
         snack.open = True
-        
-        # Forcer la mise à jour de la page pour rafraîchir les switches
         self.page.update()
         
-        # Reconstruire la section pour mettre à jour les switches
-        self._switch_tab(self.current_tab)
+        # Reconstruire complètement l'onglet Options avancées pour mettre à jour les switches
+        print(f"[INFO] Rebuilding advanced options tab to update switches...")
         
-        print(f"[INFO] Activated {len(actions)} actions in category '{category}'")
+        # Sauvegarder l'onglet actuel
+        current = self.current_tab
+        
+        # Si on est sur l'onglet advanced, le reconstruire
+        if current == "advanced":
+            self.content_container.content = ft.Column(
+                [self._build_advanced_options()],
+                horizontal_alignment=ft.CrossAxisAlignment.START,
+                spacing=0,
+            )
+            self.page.update()
+        
+        state_verb = "Activated" if new_state else "Deactivated"
+        print(f"[INFO] {state_verb} {len(actions)} actions in category '{category}'")
     
     def _build_configuration_section(self):
         """Construit la section Configuration avec monitoring matériel amélioré"""
