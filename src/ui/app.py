@@ -37,7 +37,7 @@ class CleanerApp:
     
     def _configure_window(self):
         """Configure window properties"""
-        self.page.title = "5GH'z Cleaner"
+        self.page.title = "5GH'z Cleaner - MAJOR-Update"
         self.page.window.width = 900
         self.page.window.height = 1082
         self.page.window.resizable = True

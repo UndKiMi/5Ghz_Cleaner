@@ -11,26 +11,29 @@ def get_category_actions():
     """
     return {
         "safe": [
-            "clear_standby_memory",  # Libérer RAM Standby
-            "flush_dns",              # Flush DNS
-            "clear_large_logs",       # Nettoyer logs volumineux
-            "gaming_mode",            # Mode Gaming
-            "optimize_pagefile",      # Optimiser fichier de pagination
+            "clear_large_logs",              # Nettoyer logs volumineux
+            "optimize_pagefile",             # Optimiser fichier de pagination
+            "optimize_startup",              # Optimiser programmes au démarrage
+            "clean_drivers",                 # Nettoyer pilotes obsolètes
+            "clean_windows_update_temp",     # 🆕 Nettoyer dossiers temporaires Windows Update
+            "clean_orphan_files",            # 🆕 Nettoyer fichiers orphelins
         ],
         "warning": [
-            "disable_telemetry",      # Désactiver télémétrie
-            "clear_browser_cache",    # Vider cache des navigateurs
-            "clean_event_logs",       # Nettoyer logs d'événements
-            "disable_superfetch",     # Désactiver Superfetch/Prefetch
-            "disable_cortana",        # Désactiver Cortana
-            "optimize_tcp_ip",        # Optimiser TCP/IP
-            "disable_services",       # Désactiver services inutiles
-            "clean_drivers",          # Nettoyer pilotes obsolètes
-            "optimize_startup",       # Optimiser programmes au démarrage
+            "disable_telemetry",             # Désactiver télémétrie
+            "clear_browser_cache",           # Vider cache des navigateurs
+            "clean_event_logs",              # Nettoyer logs d'événements
+            "disable_superfetch",            # Désactiver Superfetch/Prefetch
+            "disable_cortana",               # Désactiver Cortana
+            "disable_services",              # Désactiver services inutiles
+            "system_repair",                 # 🆕 Analyse et réparation système (SFC/DISM)
+            "optimize_registry",             # 🆕 Optimiser registre (clés non critiques)
+            "advanced_services_management",  # 🆕 Gestion avancée services Windows
         ],
         "danger": [
-            "disable_hibernation",    # Désactiver l'hibernation
-            "clean_restore_points",   # Nettoyer points de restauration anciens
-            "clean_winsxs",           # Vider WinSxS
+            "disable_hibernation",           # Désactiver l'hibernation
+            "clean_restore_points",          # Nettoyer points de restauration anciens
+            "clean_winsxs",                  # Vider WinSxS
+            "full_network_reset",            # 🆕 Réinitialisation complète réseau
+            "full_system_cache_clean",       # 🆕 Nettoyage complet cache système
         ],
     }

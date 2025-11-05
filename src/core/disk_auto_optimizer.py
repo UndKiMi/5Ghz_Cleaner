@@ -1,16 +1,124 @@
 """
 Module d'optimisation automatique des disques selon leur type (HDD/SSD/NVMe)
 Applique les meilleures pratiques pour chaque type de disque
+
+DÉTECTION LOCALE:
+- Scan du disque C: sans accès Internet
+- Détection type: HDD, SSD, NVMe via APIs Windows natives
+- Récupération modèle/marque via WMI et PowerShell
+- Optimisations adaptées au type détecté
+
+SÉCURITÉ:
+- Aucune modification dangereuse
+- Backup automatique avant modifications
+- Toutes les optimisations sont réversibles
 """
 import subprocess
 import os
 import winreg
 import time
+from typing import Dict, Optional
+
+
+def get_disk_info(drive_letter: str) -> Dict:
+    """
+    Récupère les informations complètes du disque (type, modèle, marque)
+    Détection 100% locale sans accès Internet
+    
+    Args:
+        drive_letter: Lettre du lecteur (ex: "C:\\")
+    
+    Returns:
+        dict: {
+            'type': 'HDD'|'SSD'|'NVMe'|'Unknown',
+            'model': str,
+            'manufacturer': str,
+            'serial': str,
+            'size_gb': float
+        }
+    """
+    try:
+        # PowerShell pour récupérer toutes les infos du disque
+        ps_command = f"""
+        $disk = Get-PhysicalDisk | Where-Object {{
+            $partition = Get-Partition -DiskNumber $_.DeviceID -ErrorAction SilentlyContinue | 
+                         Where-Object {{$_.DriveLetter -eq '{drive_letter.replace(':', '').replace('\\', '')}'}}
+            $partition -ne $null
+        }}
+        if ($disk) {{
+            $mediaType = $disk.MediaType
+            $busType = $disk.BusType
+            $model = $disk.FriendlyName
+            $manufacturer = $disk.Manufacturer
+            $serial = $disk.SerialNumber
+            $sizeGB = [math]::Round($disk.Size / 1GB, 2)
+            
+            # Détecter le type
+            if ($busType -eq 'NVMe') {{
+                $type = 'NVMe'
+            }}
+            elseif ($mediaType -eq 'SSD') {{
+                $type = 'SSD'
+            }}
+            elseif ($mediaType -eq 'HDD') {{
+                $type = 'HDD'
+            }}
+            else {{
+                $type = 'Unknown'
+            }}
+            
+            Write-Output "$type|$model|$manufacturer|$serial|$sizeGB"
+        }} else {{
+            Write-Output "Unknown||||0"
+        }}
+        """
+        
+        result = subprocess.run(
+            ["powershell", "-Command", ps_command],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            shell=False
+        )
+        
+        output = result.stdout.strip()
+        parts = output.split('|')
+        
+        if len(parts) >= 5:
+            disk_info = {
+                'type': parts[0] if parts[0] in ['HDD', 'SSD', 'NVMe'] else 'Unknown',
+                'model': parts[1].strip() if parts[1] else 'Non détecté',
+                'manufacturer': parts[2].strip() if parts[2] else 'Non détecté',
+                'serial': parts[3].strip() if parts[3] else 'N/A',
+                'size_gb': float(parts[4]) if parts[4] else 0.0
+            }
+            
+            print(f"[INFO] Disk info: {disk_info}")
+            return disk_info
+        else:
+            return {
+                'type': 'Unknown',
+                'model': 'Non détecté',
+                'manufacturer': 'Non détecté',
+                'serial': 'N/A',
+                'size_gb': 0.0
+            }
+    
+    except Exception as e:
+        print(f"[ERROR] Failed to get disk info: {e}")
+        return {
+            'type': 'Unknown',
+            'model': 'Non détecté',
+            'manufacturer': 'Non détecté',
+            'serial': 'N/A',
+            'size_gb': 0.0
+        }
 
 
 def detect_disk_type(drive_letter):
     """
     Détecte le type de disque (HDD, SSD, NVMe)
+    Version simplifiée pour compatibilité
     
     Returns:
         str: 'HDD', 'SSD', ou 'NVMe'
@@ -343,27 +451,33 @@ def optimize_nvme(drive_letter):
 def auto_optimize_disk(drive_letter):
     """
     Optimise automatiquement un disque selon son type
+    Détection locale complète: type, modèle, marque
     
     Args:
         drive_letter (str): Lettre du lecteur (ex: "C:\\")
     
     Returns:
-        dict: Résultat de l'optimisation
+        dict: Résultat de l'optimisation avec infos disque
     """
     print(f"\n[INFO] ========== AUTO-OPTIMISATION DU DISQUE {drive_letter} ==========")
     
-    # Détecter le type de disque
-    disk_type = detect_disk_type(drive_letter)
+    # Récupérer les informations complètes du disque
+    disk_info = get_disk_info(drive_letter)
+    disk_type = disk_info['type']
+    
+    print(f"[INFO] Type: {disk_type}")
+    print(f"[INFO] Modèle: {disk_info['model']}")
+    print(f"[INFO] Fabricant: {disk_info['manufacturer']}")
+    print(f"[INFO] Taille: {disk_info['size_gb']} GB")
     
     if disk_type == 'Unknown':
         return {
             "success": False,
             "disk_type": "Unknown",
+            "disk_info": disk_info,
             "message": f"Type de disque {drive_letter} non détecté",
             "optimizations": []
         }
-    
-    print(f"[INFO] Type détecté: {disk_type}")
     
     # Appliquer les optimisations selon le type
     if disk_type == 'HDD':
@@ -376,9 +490,13 @@ def auto_optimize_disk(drive_letter):
         result = {
             "success": False,
             "disk_type": disk_type,
+            "disk_info": disk_info,
             "message": f"Type {disk_type} non supporté",
             "optimizations": []
         }
+    
+    # Ajouter les infos du disque au résultat
+    result['disk_info'] = disk_info
     
     print(f"[INFO] ========== OPTIMISATION TERMINÉE ==========\n")
     return result

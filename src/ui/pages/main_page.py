@@ -26,17 +26,18 @@ class MainPage:
         import time
         import threading
         self._last_action_time = {}  # Timestamp de la dernière action par bouton
-        self._cooldown_duration = 600  # Cooldown de 10 minutes (600 secondes) - Protection anti-spam renforcée
+        self._cooldown_duration = 120  # Cooldown de 2 minutes (120 secondes)
         self._cooldown_timers = {}  # Timers actifs pour chaque bouton
         self._cooldown_lock = threading.Lock()  # Lock pour thread-safety
         self._button_original_texts = {}  # Textes originaux des boutons (pour restauration après cooldown)
-        self._button_original_colors = {}  # Couleurs originales des boutons (pour restauration après cooldown)
+        self._button_original_colors = {}  # Couleurs originaux des boutons (pour restauration après cooldown)
         
         # NOUVEAU: Système de références persistantes pour mise à jour dynamique (REFONTE UI)
         self.storage_item_refs = {
             'cleanable': {'title': None, 'current': None, 'progress': None, 'container': None},
             'ram': {'title': None, 'current': None, 'progress': None, 'container': None},
             'dns': {'title': None, 'current': None, 'progress': None, 'container': None},
+            'disk': {'title': None, 'current': None, 'progress': None, 'container': None},
         }
         self.storage_total_text_ref = None
         
@@ -96,6 +97,22 @@ class MainPage:
                         [
                             BodyText("5GH'z Cleaner", weight=Typography.WEIGHT_BOLD, size=16),
                             Caption("Optimisation et Nettoyage Windows", color=Colors.FG_SECONDARY, size=12),
+                            ft.Container(height=Spacing.XS),
+                            ft.Row(
+                                [
+                                    ft.Icon(
+                                        ft.Icons.INFO_OUTLINE_ROUNDED,
+                                        size=14,
+                                        color=Colors.ACCENT_PRIMARY,
+                                    ),
+                                    ft.Container(width=4),
+                                    Caption(
+                                        "Prévisualisez le nettoyage pour voir ce qui sera supprimé avant de continuer",
+                                        color=Colors.FG_SECONDARY,
+                                        size=11,
+                                    ),
+                                ],
+                            ),
                         ],
                         spacing=2,
                     ),
@@ -171,6 +188,7 @@ class MainPage:
                 width=16,
                 height=16,
                 fit=ft.ImageFit.CONTAIN,
+                color=Colors.ACCENT_PRIMARY,  # Couleur fixe pour le logo pinceau
             )
         else:
             icon_widget = ft.Icon(
@@ -206,41 +224,19 @@ class MainPage:
         return ft.Container(
             content=ft.Column(
                 [
-                    # Message de prévisualisation
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Icon(
-                                    ft.Icons.INFO_OUTLINE_ROUNDED,
-                                    size=16,
-                                    color=Colors.ACCENT_PRIMARY,
-                                ),
-                                ft.Container(width=Spacing.XS),
-                                Caption(
-                                    "Prévisualisez le nettoyage pour voir ce qui sera supprimé avant de continuer",
-                                    text_align=ft.TextAlign.CENTER,
-                                    color=Colors.FG_SECONDARY,
-                                    size=12,
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                        ),
-                        padding=ft.padding.symmetric(vertical=Spacing.SM),
-                    ),
-                    
                     # En-tête centré
                     ft.Container(
                         content=ft.Column(
                             [
                                 BodyText(
-                                    "Actions rapides", 
+                                    "Actions Rapides", 
                                     weight=ft.FontWeight.W_600, 
                                     size=22,
                                     color=Colors.FG_PRIMARY,
                                 ),
                                 Spacer(height=Spacing.XS),
                                 Caption(
-                                    "Optimisez votre système en un clic.",
+                                    "Effectuez des actions rapidement en 1 clic.",
                                     color=Colors.FG_SECONDARY,
                                     size=13,
                                 ),
@@ -251,26 +247,30 @@ class MainPage:
                         padding=ft.padding.only(bottom=Spacing.MD),
                     ),
                     
-                    # Grille d'actions rapides CENTRÉE - 1x2
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                self._build_quick_action_button(
+                    # Actions rapides - 2 boutons
+                    ft.Row(
+                        [
+                            ft.Container(
+                                content=self._build_quick_action_button(
                                     icon=ft.Icons.RESTORE_ROUNDED,
-                                    title="Point de restauration",
+                                    title="Création d'un point de restauration",
                                     description="Crée une sauvegarde du système.",
                                     action="restore_point",
                                 ),
-                                ft.Container(width=Spacing.LG),
-                                self._build_quick_action_button(
-                                    icon=ft.Icons.DNS_ROUNDED,
-                                    title="Flush DNS",
-                                    description="Réinitialise le cache DNS.",
-                                    action="flush_dns",
+                                expand=True,
+                            ),
+                            ft.Container(width=Spacing.MD),
+                            ft.Container(
+                                content=self._build_quick_action_button(
+                                    icon=ft.Icons.SPORTS_ESPORTS_ROUNDED,
+                                    title="Mode Performance MAX",
+                                    description="Optimise Windows en mode performance MAX",
+                                    action="gaming_mode",
                                 ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                        ),
+                                expand=True,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
                     ),
                     
                     Spacer(height=Spacing.XL),
@@ -438,15 +438,15 @@ class MainPage:
             content=ft.Column(
                 [
                     BodyText(
-                        "Espace à libérer", 
+                        "Optimisations rapides", 
                         weight=ft.FontWeight.W_600, 
                         size=20,
                         color=Colors.FG_PRIMARY,
                     ),
                     Spacer(height=Spacing.XS),
                     Caption(
-                        "Calcul en cours...",
-                        color=Colors.FG_SECONDARY,
+                        "Impossible de calculer les données",
+                        color=Colors.ERROR,
                         size=13,
                     ),
                     Spacer(height=Spacing.XL),
@@ -553,89 +553,86 @@ class MainPage:
             # Créer les items de stockage avec références
             self.storage_cleanable_item = self._build_storage_item_with_tooltip(
                 icon=ft.Icons.CLEANING_SERVICES_OUTLINED,
-                title="Fichiers à nettoyer",
-                current=f"{cleanable_gb:.2f} GB" if cleanable_gb >= 1 else f"{cleanable_mb:.0f} MB",
+                title="Nettoyage Rapide",
+                current=f"Taille des fichiers trouvée : ~{cleanable_gb:.2f} GB" if cleanable_gb >= 1 else f"Taille des fichiers trouvée : ~{cleanable_mb:.0f} MB",
                 percentage=cleanable_mb / total_mb if total_mb > 0 else 0,
                 color=Colors.WARNING,
                 show_button=True,
-                button_text="Nettoyage rapide",
+                button_text="Lancer le Nettoyage",
                 button_action=lambda e: self._quick_clean_files(),
                 button_ref_key="clean_button",
-                tooltip="Fichiers temporaires, logs, cache Windows et corbeille. Scan des dossiers toutes les 2 s.",
+                tooltip="Suppression des fichiers temporaires, logs inutiles, cache Windows obsolète, Vidage Corbeille. Scan toutes les 3s.",
                 item_key="cleanable"
             )
             
+            # Calculer le pourcentage par rapport à la RAM totale
+            try:
+                import psutil
+                total_ram_mb = psutil.virtual_memory().total / (1024 * 1024)
+                ram_percentage = standby_mb / total_ram_mb if total_ram_mb > 0 else 0
+            except:
+                ram_percentage = standby_mb / total_mb if total_mb > 0 else 0
+            
             self.storage_ram_item = self._build_storage_item_with_tooltip(
                 icon=ft.Icons.MEMORY_OUTLINED,
-                title=f"RAM Standby ({standby_percent:.1f}%)",
-                current=f"{standby_gb:.2f} GB" if standby_gb >= 1 else f"{standby_mb:.0f} MB",
-                percentage=standby_mb / total_mb if total_mb > 0 else 0,
+                title="Mémoire (RAM) inutilisée",
+                current=f"Mémoire inutilisée détectée : ~{standby_gb:.2f} GB" if standby_gb >= 1 else f"Mémoire inutilisée détectée : ~{standby_mb:.0f} MB",
+                percentage=ram_percentage,
                 color=Colors.INFO,
                 show_button=True,
-                button_text="Vider la RAM",
+                button_text="Récupérer la RAM",
                 button_action=lambda e: self._clear_ram_action(),
                 button_ref_key="ram_button",
-                tooltip="La RAM en standby sur un PC est une mémoire occupée par données récentes mais non utilisées, conservées pour accélérer la réouverture des applications.",
+                tooltip="La mémoire (RAM) inutilisée contient des données mises en réserve pour accélérer la réouverture d'applications ; la libérer peut rendre le système plus fluide pendant un certain temps.",
                 item_key="ram"
             )
             
-            # Obtenir les informations CPU
-            try:
-                from src.services.hardware_monitor import hardware_monitor
-                cpu_usage = hardware_monitor.get_cpu_usage()
-                cpu_temp = hardware_monitor.get_cpu_temperature()
-            except Exception:
-                cpu_usage = 0
-                cpu_temp = None
-            
-            self.storage_cpu_item = self._build_storage_item_with_tooltip(
-                icon=ft.Icons.DEVELOPER_BOARD_OUTLINED,
-                title=f"Utilisation CPU ({cpu_usage:.1f}%)" + (f" • {cpu_temp}°C" if cpu_temp else ""),
-                current=f"{cpu_usage:.1f}% utilisé",
-                percentage=cpu_usage / 100 if cpu_usage > 0 else 0,
-                color=ft.Colors.PURPLE_400,  # Couleur unique pour le CPU
-                show_button=True,
-                button_text="Optimiser CPU",
-                button_action=lambda e: self._optimize_cpu_action(),
-                button_ref_key="cpu_button",
-                tooltip="L'utilisation du CPU indique la charge actuelle du processeur. Cliquez sur 'Optimiser CPU' pour réduire les processus non essentiels.",
-                item_key="cpu"
-            )
-            
             self.storage_dns_item = self._build_storage_item_with_tooltip(
-                icon=ft.Icons.DNS_OUTLINED,
-                title="Cache DNS & Réseau",
-                current=f"{dns_mb:.2f} MB" if dns_mb >= 1 else f"{dns_mb * 1024:.0f} KB",
+                icon=ft.Icons.WIFI_OUTLINED,
+                title="Cache Réseau",
+                current=f"Fichiers de cache détectés : ~{dns_mb:.2f} MB" if dns_mb >= 1 else f"Fichiers de cache détectés : ~{dns_mb * 1024:.0f} KB",
                 percentage=dns_mb / total_mb if total_mb > 0 else 0,
                 color=Colors.SUCCESS,
                 show_button=True,
-                button_text="Optimiser Réseau",
+                button_text="Vider le cache réseau",
                 button_action=lambda e: self._optimize_dns_network_action(),
                 button_ref_key="dns_button",
-                tooltip="Cache DNS + optimisations réseau complètes : flush DNS, reset Winsock, reset TCP/IP, renouvellement IP. Améliore la connexion et résout les problèmes réseau.",
+                tooltip="Optimisation réseau : cette action supprime le cache DNS, réinitialise les paramètres réseau (Winsock, TCP/IP, IP) pour améliorer la connexion et résoudre les soucis courants d'accès à Internet.",
                 item_key="dns"
+            )
+            
+            self.storage_disk_item = self._build_storage_item_with_tooltip(
+                icon=ft.Icons.STORAGE_OUTLINED,
+                title="Optimisation Disque C:",
+                current="Optimise le disque dur en fonction du type (HDD/SSD/NVMe). Détection automatique.",
+                percentage=0,
+                color=ft.Colors.PURPLE,
+                show_button=True,
+                button_text="Optimiser le Disque",
+                button_action=lambda e: self._optimize_disk_auto_action(),
+                button_ref_key="disk_button",
+                tooltip="Détection locale du type de disque (HDD/SSD/NVMe) et optimisations adaptées : défragmentation pour HDD, TRIM pour SSD/NVMe, optimisation indexation et alimentation. Scan 100% local sans Internet.",
+                item_key="disk"
             )
             
             return ft.Column(
                 [
                     BodyText(
-                        "Espace à libérer", 
+                        "Optimisations rapides", 
                         weight=ft.FontWeight.W_600, 
                         size=20,
                         color=Colors.FG_PRIMARY,
                     ),
-                    Spacer(height=Spacing.XS),
-                    self.storage_total_text,
-                    Spacer(height=Spacing.MD),  # Réduit de XL à MD
+                    Spacer(height=Spacing.MD),
                     ft.Column(
                         [
                             self.storage_cleanable_item,
                             Spacer(height=Spacing.SM),
                             self.storage_ram_item,
                             Spacer(height=Spacing.SM),
-                            self.storage_cpu_item,
-                            Spacer(height=Spacing.SM),
                             self.storage_dns_item,
+                            Spacer(height=Spacing.SM),
+                            self.storage_disk_item,
                         ],
                         spacing=0,
                     ),
@@ -650,45 +647,33 @@ class MainPage:
     
     def _update_storage_values(self, cleanable_mb, cleanable_gb, standby_mb, standby_gb, standby_percent, dns_mb, total_mb):
         """Met à jour uniquement les valeurs sans recréer les widgets"""
-        # Mettre à jour le total
-        if self.storage_total_text:
-            self.storage_total_text.value = f"Total estimé: {total_mb / 1024:.2f} GB"
-        
         # Mettre à jour les items via leurs références stockées
         if hasattr(self, 'storage_item_refs'):
-            # Fichiers à nettoyer
+            # Nettoyage Rapide
             if 'cleanable' in self.storage_item_refs:
                 refs = self.storage_item_refs['cleanable']
-                refs['title'].value = "Fichiers à nettoyer"
-                refs['current'].value = f"À libérer: {cleanable_gb:.2f} GB" if cleanable_gb >= 1 else f"À libérer: {cleanable_mb:.0f} MB"
+                refs['title'].value = "Nettoyage Rapide"
+                refs['current'].value = f"Taille des fichiers trouvée : ~{cleanable_gb:.2f} GB" if cleanable_gb >= 1 else f"Taille des fichiers trouvée : ~{cleanable_mb:.0f} MB"
                 refs['progress'].value = cleanable_mb / total_mb if total_mb > 0 else 0
             
-            # RAM Standby
+            # Mémoire (RAM) inutilisée - Barre basée sur RAM totale
             if 'ram' in self.storage_item_refs:
                 refs = self.storage_item_refs['ram']
-                refs['title'].value = f"RAM Standby ({standby_percent:.1f}%)"
-                refs['current'].value = f"À libérer: {standby_gb:.2f} GB" if standby_gb >= 1 else f"À libérer: {standby_mb:.0f} MB"
-                refs['progress'].value = (standby_mb / total_mb) if total_mb > 0 else 0
-            
-            # CPU
-            if 'cpu' in self.storage_item_refs:
+                refs['title'].value = "Mémoire (RAM) inutilisée"
+                refs['current'].value = f"Mémoire inutilisée détectée : ~{standby_gb:.2f} GB" if standby_gb >= 1 else f"Mémoire inutilisée détectée : ~{standby_mb:.0f} MB"
+                # Calculer la barre par rapport à la RAM totale du système
                 try:
-                    from src.services.hardware_monitor import hardware_monitor
-                    cpu_usage = hardware_monitor.get_cpu_usage()
-                    cpu_temp = hardware_monitor.get_cpu_temperature()
-                    
-                    refs = self.storage_item_refs['cpu']
-                    refs['title'].value = f"Utilisation CPU ({cpu_usage:.1f}%)" + (f" • {cpu_temp}°C" if cpu_temp else "")
-                    refs['current'].value = f"{cpu_usage:.1f}% utilisé"
-                    refs['progress'].value = cpu_usage / 100 if cpu_usage > 0 else 0
-                except Exception:
-                    pass
+                    import psutil
+                    total_ram_mb = psutil.virtual_memory().total / (1024 * 1024)
+                    refs['progress'].value = standby_mb / total_ram_mb if total_ram_mb > 0 else 0
+                except:
+                    refs['progress'].value = standby_mb / total_mb if total_mb > 0 else 0
             
-            # Cache DNS
+            # Cache Réseau
             if 'dns' in self.storage_item_refs:
                 refs = self.storage_item_refs['dns']
-                refs['title'].value = "Cache DNS"
-                refs['current'].value = f"À libérer: {dns_mb:.2f} MB" if dns_mb >= 1 else f"À libérer: {dns_mb * 1024:.0f} KB"
+                refs['title'].value = "Cache Réseau"
+                refs['current'].value = f"Fichiers de cache détectés : ~{dns_mb:.2f} MB" if dns_mb >= 1 else f"Fichiers de cache détectés : ~{dns_mb * 1024:.0f} KB"
                 refs['progress'].value = dns_mb / total_mb if total_mb > 0 else 0
     
     def _start_storage_auto_update(self):
@@ -702,9 +687,9 @@ class MainPage:
                     current_time = time.time()
                     
                     # Déterminer quoi scanner selon les intervalles
-                    scan_cleanable = (current_time - self.last_cleanable_scan) >= 2  # 2 secondes
-                    scan_ram = (current_time - self.last_ram_scan) >= 2  # 2 secondes
-                    scan_dns = (current_time - self.last_dns_scan) >= 2  # 2 secondes
+                    scan_cleanable = (current_time - self.last_cleanable_scan) >= 3  # 3 secondes
+                    scan_ram = (current_time - self.last_ram_scan) >= 3  # 3 secondes
+                    scan_dns = (current_time - self.last_dns_scan) >= 3  # 3 secondes
                     
                     # Scanner uniquement ce qui est nécessaire
                     if scan_cleanable or scan_ram or scan_dns:
@@ -854,7 +839,7 @@ class MainPage:
         )
         
         current_text = ft.Text(
-            f"À libérer: {current}",
+            current,
             color=Colors.FG_SECONDARY,
             size=12,
         )
@@ -980,7 +965,7 @@ class MainPage:
             
             # Mise à jour de la valeur actuelle
             if new_current and refs.get('current'):
-                refs['current'].value = f"À libérer: {new_current}"
+                refs['current'].value = new_current
             
             # Mise à jour de la barre de progression avec animation
             if new_percentage is not None and refs.get('progress'):
@@ -1248,24 +1233,15 @@ class MainPage:
                     button.content.value = "⏳ Vidage..."
                     self.page.update()
                 
-                # Détecter le fabricant CPU pour optimisations adaptées
-                cpu_manufacturer = "Unknown"
-                try:
-                    from src.core.cpu_optimizer_advanced import cpu_optimizer_advanced
-                    cpu_info = cpu_optimizer_advanced.detect_cpu()
-                    cpu_manufacturer = cpu_info.get('manufacturer', 'Unknown')
-                except Exception:
-                    pass
-                
                 # Vider la RAM
                 result = cleaner.clear_standby_memory()
                 success = result.get('ram_standby_cleared', False)
                 
-                # Appliquer optimisations RAM légères adaptées
+                # Appliquer optimisations RAM légères
                 light_opts = []
                 try:
                     from src.core.light_optimizations import light_optimizer
-                    light_result = light_optimizer.optimize_ram_light(cpu_manufacturer)
+                    light_result = light_optimizer.optimize_ram_light()
                     if light_result.get('success'):
                         light_opts = light_result.get('optimizations', [])
                 except Exception as e:
@@ -1353,8 +1329,7 @@ class MainPage:
                         
                         if light_opts:
                             opts_text = "\n".join([f"  {opt}" for opt in light_opts[:4]])
-                            message += f"\n⚡ OPTIMISATIONS RAM APPLIQUÉES:\n{opts_text}\n"
-                            message += f"\n💡 CPU détecté: {cpu_manufacturer}"
+                            message += f"\n⚡ OPTIMISATIONS RAM APPLIQUÉES:\n{opts_text}"
                         
                         self._show_success_dialog("✓ RAM Optimisée", message)
                     else:
@@ -1395,185 +1370,6 @@ class MainPage:
         
         # Lancer dans un thread
         threading.Thread(target=clear_ram, daemon=True).start()
-    
-    def _optimize_cpu_action(self):
-        """Optimise l'utilisation CPU avec animation de succès/échec"""
-        import threading
-        
-        # ANTI-SPAM: Vérifier le cooldown (PROTECTION)
-        can_execute, remaining = self._can_execute_action('optimize_cpu')
-        if not can_execute:
-            self._show_cooldown_message(remaining)
-            return
-        
-        # Sauvegarder le texte et la couleur ORIGINAUX du bouton avant l'action
-        if hasattr(self, 'storage_item_buttons') and 'cpu_button' in self.storage_item_buttons:
-            button = self.storage_item_buttons['cpu_button']
-            if hasattr(button.content, 'value'):
-                self._button_original_texts['cpu_button'] = button.content.value
-            # Sauvegarder la couleur originale (PURPLE pour CPU)
-            self._button_original_colors['cpu_button'] = ft.Colors.PURPLE_400
-        
-        # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
-        self._register_action('optimize_cpu')
-        
-        def optimize_cpu():
-            from src.core.cpu_optimizer_advanced import cpu_optimizer_advanced
-            from src.core.cpu_optimizer import cpu_optimizer
-            import psutil
-            import time
-            
-            try:
-                print("[INFO] Optimizing CPU usage with advanced gaming optimizations...")
-                
-                # Obtenir la référence du bouton
-                button = None
-                if hasattr(self, 'storage_item_buttons') and 'cpu_button' in self.storage_item_buttons:
-                    button = self.storage_item_buttons['cpu_button']
-                
-                # Obtenir l'utilisation CPU avant optimisation
-                cpu_before = psutil.cpu_percent(interval=1)
-                
-                # Animation de chargement
-                if button:
-                    button.bgcolor = ft.Colors.ORANGE
-                    button.content.value = "⏳ Optimisation avancée..."
-                    self.page.update()
-                
-                # Appliquer les optimisations gaming avancées
-                gaming_result = cpu_optimizer_advanced.apply_gaming_optimizations()
-                gaming_success = gaming_result.get('success', False)
-                gaming_opts = gaming_result.get('optimizations', [])
-                cpu_model = gaming_result.get('cpu_model', 'Unknown')
-                manufacturer = gaming_result.get('manufacturer', 'Unknown')
-                architecture = gaming_result.get('architecture', 'Unknown')
-                
-                # Appliquer optimisations CPU légères supplémentaires
-                light_opts = []
-                try:
-                    from src.core.light_optimizations import light_optimizer
-                    light_result = light_optimizer.optimize_cpu_light(manufacturer)
-                    if light_result.get('success'):
-                        light_opts = light_result.get('optimizations', [])
-                except Exception as e:
-                    print(f"[WARNING] Light CPU optimizations failed: {e}")
-                
-                # Optimiser le CPU (fermer processus non essentiels)
-                result = cpu_optimizer.optimize_cpu(aggressive=False)
-                success = result.get('success', False)
-                terminated_count = result.get('terminated_count', 0)
-                terminated_procs = result.get('terminated_processes', [])
-                
-                # Attendre un peu pour que le système se stabilise
-                time.sleep(2)
-                
-                # Obtenir l'utilisation CPU après optimisation
-                cpu_after = psutil.cpu_percent(interval=1)
-                cpu_reduced = max(0, cpu_before - cpu_after)
-                
-                # Animation de succès ou échec
-                if button:
-                    if success and terminated_count > 0:
-                        # Animation verte (succès)
-                        button.bgcolor = ft.Colors.GREEN
-                        button.content.value = f"✓ {terminated_count} processus"
-                        self.page.update()
-                        
-                        time.sleep(1.5)
-                        
-                        # ANTI-SPAM: Démarrer le cooldown visuel
-                        self._start_cooldown_timer('optimize_cpu', 'cpu_button')
-                        
-                        # Forcer la mise à jour de l'affichage CPU
-                        if 'cpu' in self.storage_item_refs:
-                            try:
-                                from src.services.hardware_monitor import hardware_monitor
-                                cpu_usage = hardware_monitor.get_cpu_usage()
-                                cpu_temp = hardware_monitor.get_cpu_temperature()
-                                
-                                refs = self.storage_item_refs['cpu']
-                                refs['title'].value = f"Utilisation CPU ({cpu_usage:.1f}%)" + (f" • {cpu_temp}°C" if cpu_temp else "")
-                                refs['current'].value = f"{cpu_usage:.1f}% utilisé"
-                                refs['progress'].value = cpu_usage / 100 if cpu_usage > 0 else 0
-                                self.page.update()
-                            except Exception:
-                                pass
-                        
-                        # Construire le message de succès
-                        procs_text = "\n".join([
-                            f"• {p['name']} (CPU: {p['cpu_percent']:.1f}%)"
-                            for p in terminated_procs[:5]  # Afficher max 5 processus
-                        ])
-                        
-                        # Construire le texte des optimisations gaming (limité à 6 pour l'affichage)
-                        gaming_text = "\n".join([f"{opt}" for opt in gaming_opts[:6]])
-                        
-                        # Ajouter les optimisations légères
-                        if light_opts:
-                            light_text = "\n".join([f"{opt}" for opt in light_opts[:3]])
-                            gaming_text += f"\n{light_text}"
-                        
-                        # Générer le rapport complet
-                        full_report = cpu_optimizer_advanced.get_optimization_report()
-                        print(f"\n{full_report}\n")
-                        
-                        self._show_success_dialog(
-                            f"✓ CPU {manufacturer} Optimisé - Gaming Mode",
-                            f"📊 PROCESSEUR:\n"
-                            f"  • Modèle: {cpu_model}\n"
-                            f"  • Architecture: {architecture}\n\n"
-                            f"⚡ OPTIMISATIONS APPLIQUÉES:\n{gaming_text}\n\n"
-                            f"🔧 PROCESSUS FERMÉS: {terminated_count}\n{procs_text}\n\n"
-                            f"📈 PERFORMANCES:\n"
-                            f"  • Avant: {cpu_before:.1f}% CPU\n"
-                            f"  • Après: {cpu_after:.1f}% CPU\n"
-                            f"  • Réduction: {cpu_reduced:.1f}%\n\n"
-                            f"💡 RECOMMANDATIONS:\n"
-                            f"  • Redémarrer le PC pour appliquer toutes les optimisations\n"
-                            f"  • Vérifier les températures pendant le gaming\n"
-                            f"  • Un rapport détaillé est disponible dans la console"
-                        )
-                    else:
-                        # Animation orange (aucun processus à optimiser)
-                        button.bgcolor = ft.Colors.ORANGE
-                        button.content.value = "ℹ Déjà optimisé"
-                        self.page.update()
-                        
-                        time.sleep(1.5)
-                        
-                        # ANTI-SPAM: Démarrer le cooldown visuel
-                        self._start_cooldown_timer('optimize_cpu', 'cpu_button')
-                        
-                        # Afficher un message d'information
-                        self._show_success_dialog(
-                            "ℹ CPU déjà optimisé",
-                            f"Aucun processus non essentiel utilisant beaucoup de CPU détecté.\n\n"
-                            f"Utilisation CPU actuelle: {cpu_after:.1f}%\n\n"
-                            f"Votre système est déjà optimisé."
-                        )
-                
-                print(f"[INFO] CPU optimization result: {success}, terminated: {terminated_count}")
-                
-            except Exception as e:
-                print(f"[ERROR] Failed to optimize CPU: {e}")
-                import traceback
-                traceback.print_exc()
-                
-                # Animation d'erreur
-                if button:
-                    button.bgcolor = ft.Colors.RED
-                    button.content.value = "✗ Erreur"
-                    self.page.update()
-                    
-                    time.sleep(1.5)
-                    
-                    # ANTI-SPAM: Démarrer le cooldown visuel même en cas d'exception
-                    self._start_cooldown_timer('optimize_cpu', 'cpu_button')
-                
-                self._show_error_dialog("⚠ Erreur", f"Impossible d'optimiser le CPU:\n{str(e)}")
-        
-        # Lancer dans un thread
-        threading.Thread(target=optimize_cpu, daemon=True).start()
     
     def _optimize_dns_network_action(self):
         """Optimise le réseau complet : DNS + Winsock + TCP/IP + IP Renew"""
@@ -1707,6 +1503,138 @@ class MainPage:
         
         # Lancer dans un thread
         threading.Thread(target=optimize_network, daemon=True).start()
+    
+    def _optimize_disk_auto_action(self):
+        """Optimise automatiquement le disque C: selon son type (HDD/SSD/NVMe)"""
+        import threading
+        
+        # ANTI-SPAM: Vérifier le cooldown (PROTECTION)
+        can_execute, remaining = self._can_execute_action('optimize_disk_auto')
+        if not can_execute:
+            self._show_cooldown_message(remaining)
+            return
+        
+        # Sauvegarder le texte et la couleur ORIGINAUX du bouton avant l'action
+        if hasattr(self, 'storage_item_buttons') and 'disk_button' in self.storage_item_buttons:
+            button = self.storage_item_buttons['disk_button']
+            if hasattr(button.content, 'value'):
+                self._button_original_texts['disk_button'] = button.content.value
+            # Sauvegarder la couleur originale (Purple pour Disque)
+            self._button_original_colors['disk_button'] = ft.Colors.PURPLE
+        
+        # ANTI-SPAM: Bloquer immédiatement pour empêcher les clics multiples
+        self._register_action('optimize_disk_auto')
+        
+        def optimize_disk():
+            from src.core.disk_auto_optimizer import auto_optimize_disk
+            import time
+            
+            try:
+                print("[INFO] Optimizing disk C: automatically...")
+                
+                # Obtenir la référence du bouton
+                button = None
+                if hasattr(self, 'storage_item_buttons') and 'disk_button' in self.storage_item_buttons:
+                    button = self.storage_item_buttons['disk_button']
+                
+                # Animation de chargement
+                if button:
+                    button.bgcolor = ft.Colors.ORANGE
+                    button.content.value = "⏳ Scan en cours..."
+                    self.page.update()
+                
+                # Optimiser le disque C:
+                result = auto_optimize_disk("C:\\")
+                success = result.get('success', False)
+                disk_type = result.get('disk_type', 'Unknown')
+                disk_info = result.get('disk_info', {})
+                optimizations = result.get('optimizations', [])
+                
+                # Animation de succès ou échec
+                if button:
+                    if success:
+                        # Animation verte (succès)
+                        button.bgcolor = ft.Colors.GREEN
+                        button.content.value = f"✓ {disk_type} optimisé"
+                        self.page.update()
+                        
+                        time.sleep(1.5)
+                        
+                        # ANTI-SPAM: Démarrer le cooldown visuel
+                        self._start_cooldown_timer('optimize_disk_auto', 'disk_button')
+                        
+                        # Construire le message de succès avec infos disque
+                        model = disk_info.get('model', 'Non détecté')
+                        manufacturer = disk_info.get('manufacturer', 'Non détecté')
+                        size_gb = disk_info.get('size_gb', 0)
+                        
+                        message = f"💾 DISQUE C: OPTIMISÉ\n\n"
+                        message += f"📊 INFORMATIONS DISQUE:\n"
+                        message += f"  • Type: {disk_type}\n"
+                        message += f"  • Modèle: {model}\n"
+                        message += f"  • Fabricant: {manufacturer}\n"
+                        message += f"  • Taille: {size_gb:.0f} GB\n\n"
+                        
+                        message += f"✓ OPTIMISATIONS APPLIQUÉES ({len(optimizations)}):\n"
+                        for opt in optimizations:
+                            message += f"  {opt}\n"
+                        
+                        message += f"\n💡 RECOMMANDATIONS:\n"
+                        if disk_type == 'HDD':
+                            message += "  • Défragmentation planifiée activée\n"
+                            message += "  • Évitez de déplacer le PC pendant la défragmentation\n"
+                        elif disk_type in ['SSD', 'NVMe']:
+                            message += "  • TRIM activé pour maintenir les performances\n"
+                            message += "  • Évitez de remplir le disque à plus de 80%\n"
+                        
+                        message += "  • Redémarrez le PC pour appliquer toutes les optimisations"
+                        
+                        self._show_success_dialog(
+                            f"✓ Disque {disk_type} Optimisé",
+                            message
+                        )
+                    else:
+                        # Animation orange (échec)
+                        button.bgcolor = ft.Colors.ORANGE
+                        button.content.value = "⚠ Type non détecté"
+                        self.page.update()
+                        
+                        time.sleep(1.5)
+                        
+                        # ANTI-SPAM: Démarrer le cooldown visuel
+                        self._start_cooldown_timer('optimize_disk_auto', 'disk_button')
+                        
+                        self._show_error_dialog(
+                            "⚠ Type de disque non détecté",
+                            "Impossible de détecter le type de disque C:.\n\n"
+                            "Vérifiez que:\n"
+                            "  • Le disque C: est accessible\n"
+                            "  • Vous avez les privilèges administrateur\n"
+                            "  • Le disque est correctement installé"
+                        )
+                
+                print(f"[INFO] Disk optimization result: {success}, type: {disk_type}")
+                
+            except Exception as e:
+                print(f"[ERROR] Failed to optimize disk: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                # Animation d'erreur
+                if button:
+                    button.bgcolor = ft.Colors.RED
+                    button.content.value = "✗ Erreur"
+                    self.page.update()
+                    
+                    time.sleep(1.5)
+                    
+                    # ANTI-SPAM: Démarrer le cooldown visuel même en cas d'exception
+                    self._start_cooldown_timer('optimize_disk_auto', 'disk_button')
+                
+                self._show_error_dialog("⚠ Erreur", f"Impossible d'optimiser le disque:\n{str(e)}")
+        
+        # Lancer dans un thread
+        threading.Thread(target=optimize_disk, daemon=True).start()
     
     def _quick_clean_files(self):
         """Nettoie rapidement les fichiers temporaires avec animation de succès/échec"""
@@ -1923,12 +1851,8 @@ class MainPage:
         
         if action == "restore_point":
             self._quick_restore_point(button_ref, original_bgcolor, original_border)
-        elif action == "optimize_disk":
-            self._quick_optimize_disk(button_ref, original_bgcolor, original_border)
-        elif action == "empty_recycle":
-            self._quick_empty_recycle(button_ref, original_bgcolor, original_border)
-        elif action == "flush_dns":
-            self._quick_flush_dns(button_ref, original_bgcolor, original_border)
+        elif action == "gaming_mode":
+            self._quick_gaming_mode(button_ref, original_bgcolor, original_border)
     
     def _quick_restore_point(self, button_ref=None, original_bgcolor=None, original_border=None):
         """Crée un point de restauration rapidement"""
@@ -2194,6 +2118,312 @@ class MainPage:
         
         import threading
         threading.Thread(target=create_point, daemon=True).start()
+    
+    def _quick_gaming_mode(self, button_ref=None, original_bgcolor=None, original_border=None):
+        """Active le mode Gaming avec optimisations de performance maximale"""
+        # Afficher la barre de progression dans le bouton
+        if button_ref and button_ref.get("progress_bar"):
+            button_ref["progress_bar"].visible = True
+            button_ref["progress_bar"].value = 0
+            self.page.update()
+        
+        def update_progress(percent, text=None):
+            if button_ref and button_ref.get("progress_bar"):
+                button_ref["progress_bar"].value = percent / 100
+                if text and button_ref.get("title"):
+                    button_ref["title"].value = text
+                self.page.update()
+        
+        def activate_gaming_mode():
+            try:
+                import subprocess
+                import time
+                optimizations_applied = []
+                warnings = []
+                
+                update_progress(5, "Activation du mode Gaming...")
+                
+                # 1. Activer le Mode Jeu natif Windows
+                try:
+                    update_progress(10, "Activation Mode Jeu Windows...")
+                    print("[MODE PERF] 1/9 - Activation Mode Jeu Windows...")
+                    result1 = subprocess.run(
+                        ['reg', 'add', 'HKCU\\Software\\Microsoft\\GameBar', '/v', 'AutoGameModeEnabled', '/t', 'REG_DWORD', '/d', '1', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] AutoGameModeEnabled: {result1.returncode == 0}")
+                    result2 = subprocess.run(
+                        ['reg', 'add', 'HKCU\\Software\\Microsoft\\GameBar', '/v', 'AllowAutoGameMode', '/t', 'REG_DWORD', '/d', '1', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] AllowAutoGameMode: {result2.returncode == 0}")
+                    optimizations_applied.append("✓ Mode Jeu Windows activé (priorité CPU/GPU)")
+                    print("[MODE PERF] ✓ Mode Jeu Windows activé")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur Mode Jeu: {str(e)}")
+                    warnings.append(f"⚠ Mode Jeu: {str(e)}")
+                
+                # 2. Plan d'alimentation Performances élevées / Ultimate Performance
+                try:
+                    update_progress(20, "Plan d'alimentation...")
+                    print("[MODE PERF] 2/9 - Configuration plan d'alimentation...")
+                    # Essayer Ultimate Performance d'abord
+                    result = subprocess.run(
+                        ['powercfg', '/setactive', 'e9a42b02-d5df-448d-aa00-03f14749eb61'],
+                        capture_output=True, text=True, timeout=10
+                    )
+                    if result.returncode == 0:
+                        print("[MODE PERF] ✓ Plan Ultimate Performance activé")
+                        optimizations_applied.append("✓ Plan Ultimate Performance activé")
+                    else:
+                        print("[MODE PERF] Ultimate Performance non disponible, fallback...")
+                        # Fallback sur Performances élevées
+                        result2 = subprocess.run(
+                            ['powercfg', '/setactive', '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'],
+                            capture_output=True, timeout=10, text=True
+                        )
+                        print(f"[MODE PERF] ✓ Plan Performances élevées activé: {result2.returncode == 0}")
+                        optimizations_applied.append("✓ Plan Performances élevées activé")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur plan d'alimentation: {str(e)}")
+                    warnings.append(f"⚠ Plan d'alimentation: {str(e)}")
+                
+                # 3. Planification GPU à accélération matérielle
+                try:
+                    update_progress(30, "Planification GPU matérielle...")
+                    print("[MODE PERF] 3/9 - Activation planification GPU matérielle...")
+                    result = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers', '/v', 'HwSchMode', '/t', 'REG_DWORD', '/d', '2', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] HwSchMode=2: {result.returncode == 0}")
+                    optimizations_applied.append("✓ Planification GPU accélération matérielle activée")
+                    print("[MODE PERF] ✓ Planification GPU activée")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur planification GPU: {str(e)}")
+                    warnings.append(f"⚠ Planification GPU: {str(e)}")
+                
+                # 4. Priorisation GPU haute performance pour jeux
+                try:
+                    update_progress(40, "Priorisation GPU jeux...")
+                    print("[MODE PERF] 4/9 - Priorisation GPU haute performance...")
+                    result = subprocess.run(
+                        ['reg', 'add', 'HKCU\\Software\\Microsoft\\DirectX\\UserGpuPreferences', '/v', 'DirectXUserGlobalSettings', '/t', 'REG_SZ', '/d', 'GpuPreference=2;', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] GpuPreference=2: {result.returncode == 0}")
+                    optimizations_applied.append("✓ GPU haute performance priorisé pour jeux")
+                    print("[MODE PERF] ✓ GPU haute performance activé")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur priorisation GPU: {str(e)}")
+                    warnings.append(f"⚠ Priorisation GPU: {str(e)}")
+                
+                # 5. Optimisations pour jeux fenêtrés (Windows 11)
+                try:
+                    update_progress(50, "Optimisation jeux fenêtrés...")
+                    print("[MODE PERF] 5/9 - Optimisation jeux fenêtrés...")
+                    result1 = subprocess.run(
+                        ['reg', 'add', 'HKCU\\System\\GameConfigStore', '/v', 'GameDVR_DXGIHonorFSEWindowsCompatible', '/t', 'REG_DWORD', '/d', '1', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] DXGIHonorFSE: {result1.returncode == 0}")
+                    result2 = subprocess.run(
+                        ['reg', 'add', 'HKCU\\System\\GameConfigStore', '/v', 'GameDVR_FSEBehaviorMode', '/t', 'REG_DWORD', '/d', '2', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] FSEBehaviorMode: {result2.returncode == 0}")
+                    optimizations_applied.append("✓ Optimisations jeux fenêtrés activées")
+                    print("[MODE PERF] ✓ Jeux fenêtrés optimisés")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur jeux fenêtrés: {str(e)}")
+                    warnings.append(f"⚠ Jeux fenêtrés: {str(e)}")
+                
+                # 6. Désactivation gestion automatique alimentation USB
+                try:
+                    update_progress(60, "Désactivation gestion USB...")
+                    print("[MODE PERF] 6/9 - Désactivation gestion alimentation USB...")
+                    result1 = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\USB', '/v', 'DisableSelectiveSuspend', '/t', 'REG_DWORD', '/d', '1', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] DisableSelectiveSuspend: {result1.returncode == 0}")
+                    # Désactiver la suspension sélective USB dans le plan d'alimentation
+                    result2 = subprocess.run(
+                        ['powercfg', '/setacvalueindex', 'SCHEME_CURRENT', '2a737441-1930-4402-8d77-b2bebba308a3', '48e6b7a6-50f5-4782-a5d4-53bb8f07e226', '0'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] USB setacvalueindex: {result2.returncode == 0}")
+                    result3 = subprocess.run(
+                        ['powercfg', '/setactive', 'SCHEME_CURRENT'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] Powercfg setactive: {result3.returncode == 0}")
+                    optimizations_applied.append("✓ Gestion alimentation USB désactivée")
+                    print("[MODE PERF] ✓ Gestion USB désactivée")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur gestion USB: {str(e)}")
+                    warnings.append(f"⚠ Gestion USB: {str(e)}")
+                
+                # 7. Optimisation réseau pour jeux (priorité ping)
+                try:
+                    update_progress(70, "Optimisation réseau gaming...")
+                    print("[MODE PERF] 7/9 - Optimisation réseau gaming...")
+                    # Désactiver Nagle's Algorithm pour réduire la latence
+                    result1 = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces', '/v', 'TcpAckFrequency', '/t', 'REG_DWORD', '/d', '1', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] TcpAckFrequency: {result1.returncode == 0}")
+                    result2 = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces', '/v', 'TCPNoDelay', '/t', 'REG_DWORD', '/d', '1', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] TCPNoDelay: {result2.returncode == 0}")
+                    # Priorité réseau pour processus de jeu
+                    result3 = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games', '/v', 'NetworkThrottlingIndex', '/t', 'REG_DWORD', '/d', '4294967295', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] NetworkThrottlingIndex: {result3.returncode == 0}")
+                    optimizations_applied.append("✓ Réseau optimisé (latence réduite, priorité jeux)")
+                    print("[MODE PERF] ✓ Réseau optimisé")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur optimisation réseau: {str(e)}")
+                    warnings.append(f"⚠ Optimisation réseau: {str(e)}")
+                
+                # 8. Désactivation accélération souris Windows
+                try:
+                    update_progress(80, "Désactivation accélération souris...")
+                    print("[MODE PERF] 8/9 - Désactivation accélération souris...")
+                    result1 = subprocess.run(
+                        ['reg', 'add', 'HKCU\\Control Panel\\Mouse', '/v', 'MouseSpeed', '/t', 'REG_SZ', '/d', '0', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] MouseSpeed=0: {result1.returncode == 0}")
+                    result2 = subprocess.run(
+                        ['reg', 'add', 'HKCU\\Control Panel\\Mouse', '/v', 'MouseThreshold1', '/t', 'REG_SZ', '/d', '0', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] MouseThreshold1=0: {result2.returncode == 0}")
+                    result3 = subprocess.run(
+                        ['reg', 'add', 'HKCU\\Control Panel\\Mouse', '/v', 'MouseThreshold2', '/t', 'REG_SZ', '/d', '0', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] MouseThreshold2=0: {result3.returncode == 0}")
+                    optimizations_applied.append("✓ Accélération souris désactivée (contrôle précis)")
+                    print("[MODE PERF] ✓ Accélération souris désactivée")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur accélération souris: {str(e)}")
+                    warnings.append(f"⚠ Accélération souris: {str(e)}")
+                
+                # 9. Priorisation processus de jeux
+                try:
+                    update_progress(90, "Priorisation processus jeux...")
+                    print("[MODE PERF] 9/9 - Priorisation processus de jeux...")
+                    result1 = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games', '/v', 'Priority', '/t', 'REG_DWORD', '/d', '8', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] Priority=8: {result1.returncode == 0}")
+                    result2 = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games', '/v', 'Scheduling Category', '/t', 'REG_SZ', '/d', 'High', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] Scheduling Category=High: {result2.returncode == 0}")
+                    result3 = subprocess.run(
+                        ['reg', 'add', 'HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games', '/v', 'SFIO Priority', '/t', 'REG_SZ', '/d', 'High', '/f'],
+                        capture_output=True, timeout=10, text=True
+                    )
+                    print(f"[MODE PERF] SFIO Priority=High: {result3.returncode == 0}")
+                    optimizations_applied.append("✓ Priorité maximale pour processus de jeux")
+                    print("[MODE PERF] ✓ Priorité maximale activée")
+                except Exception as e:
+                    print(f"[MODE PERF] ✗ Erreur priorisation jeux: {str(e)}")
+                    warnings.append(f"⚠ Priorisation jeux: {str(e)}")
+                
+                update_progress(100, "Gaming Mode activé!")
+                time.sleep(0.3)
+                
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    if button_ref.get("title"):
+                        button_ref["title"].value = "Mode Performance MAX"
+                    self.page.update()
+                
+                # Restaurer le bouton avec effet de succès
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.GREEN)
+                    button_ref["container"].border = ft.border.all(2, ft.Colors.GREEN)
+                    self.page.update()
+                    
+                    time.sleep(1)
+                    
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                
+                # Construire le message de succès
+                message = "🎮 MODE GAMING ACTIVÉ\n\n"
+                message += f"✅ {len(optimizations_applied)} optimisations appliquées:\n\n"
+                for opt in optimizations_applied:
+                    message += f"{opt}\n"
+                
+                if warnings:
+                    message += f"\n⚠️ {len(warnings)} avertissement(s):\n"
+                    for warn in warnings:
+                        message += f"{warn}\n"
+                
+                message += "\n⚡ RAPPEL IMPORTANT:\n"
+                message += "• Performance maximale activée\n"
+                message += "• Surconsommation énergétique accrue\n"
+                message += "• Chauffe potentielle augmentée\n"
+                message += "• Surveillez les températures\n\n"
+                message += "💡 Redémarrez votre PC pour appliquer tous les changements."
+                
+                self._show_success_dialog(
+                    "✓ Gaming Mode Activé",
+                    message
+                )
+                
+                # Déverrouiller les actions
+                self.quick_action_in_progress = False
+                print("[INFO] Gaming mode activated (unlocked)")
+                
+                # ANTI-SPAM: Démarrer le timer visuel
+                if button_ref:
+                    self._start_quick_action_cooldown_timer('gaming_mode', button_ref)
+                    
+            except Exception as e:
+                print(f"[ERROR] Exception in gaming mode: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                # Cacher la barre de progression
+                if button_ref and button_ref.get("progress_bar"):
+                    button_ref["progress_bar"].visible = False
+                    if button_ref.get("title"):
+                        button_ref["title"].value = "Mode Performance MAX"
+                    self.page.update()
+                
+                # Restaurer le bouton
+                if button_ref and button_ref.get("container"):
+                    button_ref["container"].bgcolor = original_bgcolor
+                    button_ref["container"].border = original_border
+                    self.page.update()
+                
+                self._show_error_dialog(
+                    "⚠ Erreur",
+                    f"Impossible d'activer le Gaming Mode:\n\n{str(e)}\n\n"
+                    "Assurez-vous d'avoir les privilèges administrateur."
+                )
+                
+                # Déverrouiller les actions
+                self.quick_action_in_progress = False
+                print("[INFO] Gaming mode failed (unlocked)")
+        
+        import threading
+        threading.Thread(target=activate_gaming_mode, daemon=True).start()
     
     def _quick_optimize_disk(self, button_ref=None, original_bgcolor=None, original_border=None):
         """Optimise le disque dur selon son type (HDD/SSD/NVME)"""
@@ -2753,13 +2983,10 @@ class MainPage:
                     # Ligne principale avec version et auteur
                     ft.Row(
                         [
-                            Caption("5GH'z Cleaner v1.6.0", color=Colors.FG_SECONDARY),
-                            Caption(" • ", color=Colors.FG_TERTIARY),
-                            Caption("Réalisé par", color=Colors.FG_SECONDARY),
+                            Caption("5GH'z Cleaner Version: MAJOR-Update – Développé avec ♥️ par", color=Colors.FG_SECONDARY, size=11),
                             ft.Container(width=4),
                             ft.TextButton(
-                                text="UndKiMi",
-                                # SÉCURITÉ: Import sécurisé de webbrowser au lieu de __import__ dynamique (PATCH)
+                                text="KiMi",
                                 on_click=self._open_github_link,
                                 style=ft.ButtonStyle(
                                     color=Colors.ACCENT_PRIMARY,
@@ -2772,17 +2999,9 @@ class MainPage:
                     ),
                     ft.Container(height=4),
                     # Ligne de copyright et licence
-                    ft.Row(
-                        [
-                            Caption("© 2025 UndKiMi", color=Colors.FG_TERTIARY, size=10),
-                            Caption(" • ", color=Colors.FG_TERTIARY, size=10),
-                            Caption("Licence CC BY-NC-SA 4.0", color=Colors.FG_TERTIARY, size=10),
-                            Caption(" • ", color=Colors.FG_TERTIARY, size=10),
-                            Caption("Usage non commercial uniquement", color=Colors.FG_TERTIARY, size=10),
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        spacing=0,
-                    ),
+                    Caption("© 2025 UndKiMi - Licence Creative Commons BY-NC-SA 4.0", color=Colors.FG_TERTIARY, size=10),
+                    ft.Container(height=2),
+                    Caption("Utilisation réservée à un usage non commercial", color=Colors.FG_TERTIARY, size=10),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=0,
@@ -2853,7 +3072,7 @@ class MainPage:
                                         expand=True,
                                         on_click=lambda e: self._activate_category("safe"),
                                         ink=True,
-                                        tooltip="Activer toutes les actions sûres (RAM, DNS, Logs, Gaming, Pagefile)",
+                                        tooltip="Activer toutes les actions sûres (Logs, Pagefile, Démarrage, Pilotes, Windows Update, Orphelins)",
                                     ),
                                     ft.Container(width=Spacing.MD),
                                     # Orange - Attention requise
@@ -2879,7 +3098,7 @@ class MainPage:
                                         expand=True,
                                         on_click=lambda e: self._activate_category("warning"),
                                         ink=True,
-                                        tooltip="Activer les actions nécessitant attention (Télémétrie, Browser, Events, Superfetch, Cortana, TCP/IP, Services, Drivers)",
+                                        tooltip="Activer les actions nécessitant attention (Télémétrie, Browser, Events, Superfetch, Cortana, Services, SFC/DISM, Registre, Services avancés)",
                                     ),
                                     ft.Container(width=Spacing.MD),
                                     # Rouge - Actions à risque
@@ -2905,7 +3124,7 @@ class MainPage:
                                         expand=True,
                                         on_click=lambda e: self._activate_category("danger"),
                                         ink=True,
-                                        tooltip="Activer les actions à risque (Hibernation, Restore Points, WinSxS) - Experts uniquement !",
+                                        tooltip="Activer les actions à risque (Hibernation, Restore Points, WinSxS, Reset Réseau, Cache Système) - Experts uniquement !",
                                     ),
                                 ],
                             ),
@@ -2922,57 +3141,24 @@ class MainPage:
                 ft.Container(
                     content=ft.Column(
                         [
-                            self._build_option_item(
-                                "Libérer RAM Standby",
-                                "Vide la mémoire en attente pour libérer de la RAM",
-                                "clear_standby_memory",
-                                True,
-                                recommended=True
-                            ),
-                            Spacer(height=Spacing.MD),
-                            self._build_option_item(
-                                "Flush DNS",
-                                "Vide le cache DNS pour améliorer les performances réseau",
-                                "flush_dns",
-                                True,
-                                recommended=True
-                            ),
-                            Spacer(height=Spacing.MD),
-                            self._build_option_item(
-                                "Désactiver télémétrie",
-                                "Désactive les services de collecte de données de Windows",
-                                "disable_telemetry",
-                                False,
-                                recommended=False
-                            ),
-                            Spacer(height=Spacing.MD),
+                            # 🟢 ACTIONS SÛRES (6)
+                            BodyText("🟢 Actions Sûres", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.SUCCESS),
+                            Spacer(height=Spacing.SM),
+                            
                             self._build_option_item(
                                 "Nettoyer logs volumineux",
                                 "Supprime les fichiers journaux volumineux et inutiles",
                                 "clear_large_logs",
-                                True,
+                                False,
                                 recommended=True
                             ),
-                            Spacer(height=Spacing.LG),
-                            
-                            # Nouvelles options avancées
-                            BodyText("Optimisations Système", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.ACCENT_PRIMARY),
-                            Spacer(height=Spacing.MD),
-                            
-                            self._build_option_item(
-                                "Désactiver l'hibernation",
-                                "Supprime hiberfil.sys et libère plusieurs GB (taille = RAM)",
-                                "disable_hibernation",
-                                False,
-                                recommended=False
-                            ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
-                                "Nettoyer points de restauration anciens",
-                                "Garde seulement les 2 plus récents, libère de l'espace",
-                                "clean_restore_points",
+                                "Optimiser fichier de pagination",
+                                "Configure automatiquement la taille du pagefile",
+                                "optimize_pagefile",
                                 False,
-                                recommended=False
+                                recommended=True
                             ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
@@ -2981,6 +3167,44 @@ class MainPage:
                                 "optimize_startup",
                                 False,
                                 recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer pilotes obsolètes",
+                                "Supprime les anciens pilotes inutilisés",
+                                "clean_drivers",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer dossiers temporaires Windows Update",
+                                "Supprime fichiers temporaires des mises à jour Windows",
+                                "clean_windows_update_temp",
+                                False,
+                                recommended=True
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer fichiers orphelins",
+                                "Supprime fichiers laissés par applications désinstallées",
+                                "clean_orphan_files",
+                                False,
+                                recommended=True
+                            ),
+                            
+                            Spacer(height=Spacing.XL),
+                            
+                            # 🟠 ATTENTION REQUISE (9)
+                            BodyText("🟠 Attention Requise", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.WARNING),
+                            Spacer(height=Spacing.SM),
+                            
+                            self._build_option_item(
+                                "Désactiver télémétrie",
+                                "Désactive les services de collecte de données de Windows",
+                                "disable_telemetry",
+                                False,
+                                recommended=False
                             ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
@@ -3016,14 +3240,6 @@ class MainPage:
                             ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
-                                "Optimiser TCP/IP",
-                                "Reset Winsock et TCP/IP pour améliorer le réseau",
-                                "optimize_tcp_ip",
-                                False,
-                                recommended=False
-                            ),
-                            Spacer(height=Spacing.MD),
-                            self._build_option_item(
                                 "Désactiver services inutiles",
                                 "Désactive Fax, Tablet Input et autres services non essentiels",
                                 "disable_services",
@@ -3032,17 +3248,47 @@ class MainPage:
                             ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
-                                "Mode Gaming",
-                                "Optimisations pour améliorer les performances en jeu",
-                                "gaming_mode",
+                                "Analyse et réparation système (SFC/DISM)",
+                                "Vérifie et répare fichiers système corrompus",
+                                "system_repair",
                                 False,
                                 recommended=False
                             ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
-                                "Nettoyer pilotes obsolètes",
-                                "Supprime les anciens pilotes inutilisés",
-                                "clean_drivers",
+                                "Optimiser registre (clés non critiques)",
+                                "Nettoie clés obsolètes et invalides du registre",
+                                "optimize_registry",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Gestion avancée services Windows",
+                                "Liste services inutiles avec choix personnalisé",
+                                "advanced_services_management",
+                                False,
+                                recommended=False
+                            ),
+                            
+                            Spacer(height=Spacing.XL),
+                            
+                            # 🔴 ACTIONS À RISQUE (5)
+                            BodyText("🔴 Actions à Risque (Experts)", weight=Typography.WEIGHT_BOLD, size=16, color=Colors.ERROR),
+                            Spacer(height=Spacing.SM),
+                            
+                            self._build_option_item(
+                                "Désactiver l'hibernation",
+                                "Supprime hiberfil.sys et libère plusieurs GB (taille = RAM)",
+                                "disable_hibernation",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyer points de restauration anciens",
+                                "Garde seulement les 2 plus récents, libère de l'espace",
+                                "clean_restore_points",
                                 False,
                                 recommended=False
                             ),
@@ -3056,9 +3302,17 @@ class MainPage:
                             ),
                             Spacer(height=Spacing.MD),
                             self._build_option_item(
-                                "Optimiser fichier de pagination",
-                                "Configure automatiquement la taille du pagefile",
-                                "optimize_pagefile",
+                                "Réinitialisation complète réseau",
+                                "Reset Winsock, TCP/IP, firewall, proxy (redémarrage requis)",
+                                "full_network_reset",
+                                False,
+                                recommended=False
+                            ),
+                            Spacer(height=Spacing.MD),
+                            self._build_option_item(
+                                "Nettoyage complet cache système",
+                                "Vide tous les caches (icônes, thumbnails, fonts, etc.)",
+                                "full_system_cache_clean",
                                 False,
                                 recommended=False
                             ),

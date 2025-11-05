@@ -122,7 +122,7 @@ def print_banner():
 ║              {Colors.BOLD_WHITE}5GH'z CLEANER{Colors.BOLD_CYAN}                                        ║
 ║        {Colors.WHITE}Windows 11 Cleaning & Optimization Tool{Colors.BOLD_CYAN}              ║
 ║                                                                   ║
-║  {Colors.CYAN}Auteur : {Colors.WHITE}UndKiMi{Colors.CYAN}  │  {Colors.CYAN}Version : {Colors.WHITE}1.6.0{Colors.CYAN}  │  {Colors.CYAN}Licence : {Colors.WHITE}CC BY-NC-SA{Colors.BOLD_CYAN}  ║
+║  {Colors.CYAN}Auteur : {Colors.WHITE}UndKiMi{Colors.CYAN}  │  {Colors.CYAN}Version : {Colors.WHITE}MAJOR-Update{Colors.CYAN}  │  {Colors.CYAN}Licence : {Colors.WHITE}CC BY-NC-SA{Colors.BOLD_CYAN}  ║
 ║                                                                   ║
 ╚═══════════════════════════════════════════════════════════════════╝{Colors.RESET}
 """
