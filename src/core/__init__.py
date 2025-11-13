@@ -1,20 +1,29 @@
 """
 Core Business Logic Module
-Contains main cleaning, optimization, and scanning functionality
+Core Module
+Cleaning, optimization, and system operations
 """
 
 from .cleaner import *
 from .dry_run import *
 from .file_scanner import *
-from .disk_optimizer import *
 from .ram_manager import *
+from .disk_optimizer import *
 from .advanced_optimizations import *
+from .dns_optimizer import *
+from .network_optimizer import *
+from .light_optimizations import *
+from .disk_auto_optimizer import *
 
 __all__ = [
     'cleaner',
     'dry_run',
     'file_scanner',
-    'disk_optimizer',
     'ram_manager',
+    'disk_optimizer',
     'advanced_optimizations',
+    'dns_optimizer',
+    'network_optimizer',
+    'light_optimizations',
+    'disk_auto_optimizer',
 ]

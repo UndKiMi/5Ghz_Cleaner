@@ -3,7 +3,7 @@ Backend module for 5Gh'z Cleaner
 Contains all cleaning and optimization functions
 SÉCURITÉ MAXIMALE - Utilise le module security_core
 
-OPTIMISATIONS PERFORMANCE (v1.6.0):
+OPTIMISATIONS PERFORMANCE (MAJOR-Update):
 - os.scandir() au lieu de os.listdir() pour 2-3x plus rapide
 - Parallélisation avec ThreadPoolExecutor pour 3-4x plus rapide  
 - Cache LRU pour validations répétées (10x plus rapide)

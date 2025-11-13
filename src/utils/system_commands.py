@@ -94,7 +94,8 @@ class SystemCommand:
         return subprocess.run(  # nosec B603 - Commande système sécurisée avec chemin absolu
             cmd,
             capture_output=True,
-            text=True,
+            encoding='utf-8',
+            errors='ignore',
             timeout=timeout,
             shell=False
         )
@@ -117,7 +118,8 @@ class SystemCommand:
         return subprocess.run(  # nosec B603 - Commande système sécurisée avec chemin absolu
             cmd,
             capture_output=True,
-            text=True,
+            encoding='utf-8',
+            errors='ignore',
             timeout=timeout,
             shell=False
         )
@@ -140,7 +142,8 @@ class SystemCommand:
         return subprocess.run(  # nosec B603 - Commande système sécurisée avec chemin absolu
             cmd,
             capture_output=True,
-            text=True,
+            encoding='utf-8',
+            errors='ignore',
             timeout=timeout,
             shell=False
         )

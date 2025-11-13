@@ -6,6 +6,6 @@ Author: UndKiMi
 License: CC BY-NC-SA 4.0
 """
 
-__version__ = "1.6.0"
+__version__ = "MAJOR-Update"
 __author__ = "UndKiMi"
 __license__ = "CC BY-NC-SA 4.0"
