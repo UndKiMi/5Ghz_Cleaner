@@ -14,12 +14,26 @@ import io
 def configure_console_encoding():
     """Configure console encoding to UTF-8 for Windows"""
     try:
-        # Only configure if not already configured and if buffer exists
-        if hasattr(sys.stdout, 'buffer') and not isinstance(sys.stdout, io.TextIOWrapper):
-            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-        if hasattr(sys.stderr, 'buffer') and not isinstance(sys.stderr, io.TextIOWrapper):
-            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-    except (AttributeError, ValueError, OSError):
+        if sys.platform == 'win32':
+            # Configurer la console Windows pour UTF-8
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            # SetConsoleOutputCP(65001) = UTF-8
+            kernel32.SetConsoleOutputCP(65001)
+            kernel32.SetConsoleCP(65001)
+        
+        # Reconfigurer sys.stdout et sys.stderr avec UTF-8
+        if hasattr(sys.stdout, 'buffer'):
+            try:
+                sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+            except (AttributeError, ValueError, OSError):
+                pass
+        if hasattr(sys.stderr, 'buffer'):
+            try:
+                sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+            except (AttributeError, ValueError, OSError):
+                pass
+    except (AttributeError, ValueError, OSError, ImportError):
         # Already configured, not applicable, or buffer closed
         pass
 
