@@ -2,7 +2,7 @@
 # Windows 11 x64 only
 
 ## Production (Optimized for size and security)
-flet==0.25.2          # UI Framework - 45MB (nécessaire)
+flet==0.28.3          # UI Framework - 45MB (nécessaire)
 pywin32==306          # Windows API - 12MB (nécessaire)
 psutil==5.9.8         # System monitoring - 500KB (léger, nécessaire)
 pythonnet==3.0.5      # .NET interop for LibreHardwareMonitor - 8MB (nécessaire)
